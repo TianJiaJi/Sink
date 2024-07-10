@@ -28,7 +28,7 @@ onMounted(() => {
       >
         <a
           ref="email"
-          href="mailto:sink.cool$miantiao.me"
+          href="mailto:blog$tianjiaji.cloudns.biz"
           title="Email"
           class="text-gray-400 hover:text-gray-500"
         >
@@ -38,18 +38,7 @@ onMounted(() => {
           />
         </a>
         <a
-          href="https://t.me/htmlzone"
-          target="_blank"
-          title="Telegram"
-          class="text-gray-400 hover:text-gray-500"
-        >
-          <span class="sr-only">Telegram</span>
-          <TelegramIcon
-            class="w-6 h-6"
-          />
-        </a>
-        <a
-          href="https://mt.ci"
+          href="https://blog.tianjiaji.cloudns.biz/"
           target="_blank"
           title="Blog"
           class="text-gray-400 hover:text-gray-500"
@@ -59,9 +48,42 @@ onMounted(() => {
             class="w-6 h-6"
           />
         </a>
+        <a
+          href="https://github.com/TianJiaJi"
+          target="_blank"
+          title="GitHub"
+          class="text-gray-400 hover:text-gray-500"
+        >
+          <span class="sr-only">GitHub</span>
+          <GitHubIcon
+            class="w-6 h-6"
+          />
+        </a>
+        <a
+          href="#"
+          target="_blank"
+          title="Telegram"
+          class="text-gray-400 hover:text-gray-500"
+        >
+          <span class="sr-only">Telegram</span>
+          <TelegramIcon
+            class="w-6 h-6"
+          />
+        </a>
+        <!-- <a
+          href="https://blog.tianjiaji.cloudns.biz/"
+          target="_blank"
+          title="Blog"
+          class="text-gray-400 hover:text-gray-500"
+        >
+          <span class="sr-only">Blog</span>
+          <BloggerIcon
+            class="w-6 h-6"
+          />
+        </a> -->
 
         <a
-          href="https://x.com/xkaibi"
+          href="#"
           target="_blank"
           title="Twitter"
           class="text-gray-400 hover:text-gray-500"
@@ -73,7 +95,7 @@ onMounted(() => {
         </a>
 
         <a
-          href="https://miantiao.me/@chi"
+          href="#"
           target="_blank"
           title="Mastodon"
           class="text-gray-400 hover:text-gray-500"
@@ -84,8 +106,8 @@ onMounted(() => {
           />
         </a>
 
-        <a
-          href="https://github.com/ccbikai"
+        <!-- <a
+          href="https://github.com/TianJiaJi"
           target="_blank"
           title="GitHub"
           class="text-gray-400 hover:text-gray-500"
@@ -94,7 +116,7 @@ onMounted(() => {
           <GitHubIcon
             class="w-6 h-6"
           />
-        </a>
+        </a> -->
       </span>
     </div>
   </section>
