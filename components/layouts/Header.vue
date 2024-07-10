@@ -63,7 +63,7 @@ const showMenu = ref(false)
                 class="w-full px-6 py-2 mr-0 text-gray-700 cursor-pointer dark:text-gray-300 md:px-3 md:mr-2 lg:mr-3 md:w-auto"
                 href="/dashboard"
                 title="Sink Dashboard"
-              >仪表板</a>
+              >管理</a>
               <a
                 href="https://github.com/ccbikai/sink"
                 target="_blank"

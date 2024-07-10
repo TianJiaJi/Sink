@@ -23,7 +23,7 @@ defineProps({
           :as="NuxtLink"
           to="/dashboard"
         >
-          仪表板
+          管理
         </BreadcrumbLink>
       </BreadcrumbItem>
       <BreadcrumbSeparator />
