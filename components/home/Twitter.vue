@@ -15,7 +15,7 @@ import { ArrowRight } from 'lucide-vue-next'
       orientation="vertical"
       class="h-4"
     />
-    <span>Follow me on X(Twitter)</span>
+    <span>关注原作者的 X(Twitter)</span>
     <ArrowRight class="w-4 h-4" />
   </a>
 </template>
