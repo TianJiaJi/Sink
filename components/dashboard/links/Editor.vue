@@ -130,7 +130,7 @@ const { previewMode } = useRuntimeConfig().public
           variant="outline"
           @click="randomSlug"
         >
-          Create Link
+          创建链接
         </Button>
       </slot>
     </DialogTrigger>
@@ -142,7 +142,7 @@ const { previewMode } = useRuntimeConfig().public
         v-if="previewMode"
         class="text-sm text-muted-foreground"
       >
-        The preview mode link is valid for up to 24 hours.
+        预览模式链接的有效期最长为24小时。
       </p>
       <AutoForm
         class="px-2 space-y-2 overflow-y-auto"

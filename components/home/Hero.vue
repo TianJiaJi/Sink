@@ -30,7 +30,7 @@ const { title, description } = useAppConfig()
           <AreaChart
             class="w-5 h-5"
           />
-          Dashboard
+          仪表板
         </HomeLink>
         <HomeLink
           size="lg"
