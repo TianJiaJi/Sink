@@ -107,7 +107,7 @@ watch(dateRange, (newValue) => {
   <Dialog v-model:open="openCustomDateRange">
     <DialogContent class="w-auto max-w-[95svw] max-h-[95svh] md:max-w-screen-md grid-rows-[auto_minmax(0,1fr)_auto]">
       <DialogHeader>
-        <DialogTitle>Custom Date</DialogTitle>
+        <DialogTitle>自定义日期</DialogTitle>
       </DialogHeader>
       <Tabs
         default-value="range"
