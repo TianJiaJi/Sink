@@ -119,5 +119,6 @@ onMounted(() => {
         </a> -->
       </span>
     </div>
+    <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "360789bbc4234f23b63bb6123764bd25"}'></script><!-- End Cloudflare Web Analytics -->
   </section>
 </template>
