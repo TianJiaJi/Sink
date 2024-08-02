@@ -23,9 +23,6 @@ onMounted(() => {
       >
         &copy; {{ new Date().getFullYear() }} Products of HTML.ZONE
       </a>
-       <!-- Cloudflare Web Analytics -->
-            <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "360789bbc4234f23b63bb6123764bd25"}'></script>
-       <!-- End Cloudflare Web Analytics -->
       <span
         class="inline-flex justify-center mt-4 space-x-5 sm:ml-auto sm:mt-0 sm:justify-start"
       >
