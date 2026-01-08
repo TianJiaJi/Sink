@@ -21,8 +21,7 @@
     "deploy": "npm run deploy:pages",
     "deploy:pages": "wrangler pages deploy dist",
     "deploy:worker": "wrangler deploy",
-    "preview": "wrangler dev",
-    "test": "vitest"
+    "preview": "wrangler dev"
   },
   "dependencies": {
     "@intlify/message-compiler": "^11.2.8",
@@ -58,7 +57,7 @@
   "devDependencies": {
     "@anatine/zod-mock": "^3.14.0",
     "@antfu/eslint-config": "^6.7.3",
-    "@cloudflare/vitest-pool-workers": "^0.12.0",
+    "@cloudflare/vitest-pool-workers": "^0.12.1",
     "@nuxt/eslint": "^1.12.1",
     "@nuxt/eslint-config": "^1.12.1",
     "@nuxthub/core": "<0.10.0",
@@ -81,9 +80,9 @@
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.16",
+    "vitest": "^3.2.4",
     "vue-tsc": "^3.2.2",
-    "wrangler": "^4.57.0"
+    "wrangler": "^4.58.0"
   },
   "simple-git-hooks": {
     "pre-commit": "npm run lint-staged"

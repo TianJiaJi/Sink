@@ -12,7 +12,6 @@ Use pnpm with Node 20.11+. Key commands:
 - `pnpm build` runs `nuxt build` plus the map generator to verify production bundles.
 - `pnpm preview` executes `wrangler dev --var ...` for a full Worker preview.
 - `pnpm lint:fix` invoke ESLint (`@antfu/eslint-config`, `eslint-plugin-better-tailwindcss`).
-- `pnpm test` triggers the Vitest suite.
 - `pnpm deploy:worker` and `pnpm deploy:pages` publish to Cloudflare Workers or Pages respectively.
 
 ## Coding Style & Naming Conventions
@@ -21,11 +20,11 @@ Favor TypeScript with `<script setup>` single-file components, 2-space indentati
 
 ## Testing Guidelines
 
-Vitest is configured in `vitest.config.ts` with `@cloudflare/vitest-pool-workers` handling Worker contexts. Place new specs in `tests/*.spec.ts`, reusing `tests/utils.ts` and `tests/setup.ts` for shared fixtures. Prioritize coverage for link creation flows, analytics counters, and permission boundaries. Mock Cloudflare KV and Analytics interactions—credentials must never be required for local runs. CI executes `pnpm test`, so ensure suites pass offline.
+Vitest is configured in `vitest.config.ts` with `@cloudflare/vitest-pool-workers` handling Worker contexts. Place new specs in `tests/*.spec.ts`, reusing `tests/utils.ts` and `tests/setup.ts` for shared fixtures. Prioritize coverage for link creation flows, analytics counters, and permission boundaries. Mock Cloudflare KV and Analytics interactions—credentials must never be required for local runs.
 
 ## Commit & Pull Request Guidelines
 
-Git history follows Conventional Commits (`fix: adjust analytics filter`, `chore(release): bump version to v0.2.1`). Before pushing, confirm `pnpm lint:fix && pnpm test` pass and attach screenshots or recordings for UI changes. PR descriptions should outline motivation, scope, related issues, and rollout considerations. When adding or renaming environment variables, update `docs/configuration.md` and mention new `.env` keys in the PR body.
+Git history follows Conventional Commits (`fix: adjust analytics filter`, `chore(release): bump version to v0.2.1`). Before pushing, confirm `pnpm lint:fix` pass and attach screenshots or recordings for UI changes. PR descriptions should outline motivation, scope, related issues, and rollout considerations. When adding or renaming environment variables, update `docs/configuration.md` and mention new `.env` keys in the PR body.
 
 ## Configuration & Security Tips
 
