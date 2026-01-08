@@ -3,10 +3,10 @@ import { useInfiniteScroll } from '@vueuse/core'
 import { Loader } from 'lucide-vue-next'
 
 const links = ref([])
+const listComplete = ref(false)
+const listError = ref(false)
 const limit = 24
 let cursor = ''
-let listComplete = false
-let listError = false
 
 const sortBy = ref('az')
 
@@ -36,12 +36,12 @@ async function getLinks() {
     })
     links.value = links.value.concat(data.links).filter(Boolean) // Sometimes cloudflare will return null, filter out
     cursor = data.cursor
-    listComplete = data.list_complete
-    listError = false
+    listComplete.value = data.list_complete
+    listError.value = false
   }
   catch (error) {
     console.error(error)
-    listError = true
+    listError.value = true
   }
 }
 
@@ -52,7 +52,7 @@ const { isLoading } = useInfiniteScroll(
     distance: 150,
     interval: 1000,
     canLoadMore: () => {
-      return !listError && !listComplete
+      return !listError.value && !listComplete.value
     },
   },
 )
