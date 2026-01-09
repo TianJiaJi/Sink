@@ -4,7 +4,7 @@ import { parsePath, withQuery } from 'ufo'
 
 export default eventHandler(async (event) => {
   const { pathname: slug } = parsePath(event.path.replace(/^\/|\/$/g, '')) // remove leading and trailing slashes
-  const { slugRegex, reserveSlug } = useAppConfig(event)
+  const { slugRegex, reserveSlug } = useAppConfig()
   const { homeURL, linkCacheTtl, caseSensitive, redirectWithQuery, redirectStatusCode } = useRuntimeConfig(event)
   const { cloudflare } = event.context
 

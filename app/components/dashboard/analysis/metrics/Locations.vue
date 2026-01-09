@@ -3,7 +3,6 @@ import type { AreaData } from '@/types'
 import { VisSingleContainer, VisTopoJSONMap, VisTopoJSONMapSelectors } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
 import { ChartTooltip } from '@/components/ui/chart'
-import { LINK_ID_KEY } from '@/composables/injection-keys'
 
 const isMounted = useMounted()
 const id = inject(LINK_ID_KEY, computed(() => undefined))

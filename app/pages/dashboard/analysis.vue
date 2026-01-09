@@ -3,7 +3,7 @@ definePageMeta({
   layout: 'dashboard',
 })
 
-provide('id', ref())
+provide(LINK_ID_KEY, computed(() => undefined))
 </script>
 
 <template>

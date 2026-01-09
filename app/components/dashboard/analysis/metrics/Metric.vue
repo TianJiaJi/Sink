@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { MetricItem } from '@/types'
 import { Maximize } from 'lucide-vue-next'
-import { LINK_ID_KEY } from '@/composables/injection-keys'
 
 const props = defineProps<{
   type: string

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Dependency } from '@/components/ui/auto-form/interface'
-import type { Link, LinkUpdateType } from '@/types'
+import type { Link } from '@/types'
 import { LinkSchema, nanoid } from '@@/schemas/link'
 import { toTypedSchema } from '@vee-validate/zod'
 import { Shuffle, Sparkles } from 'lucide-vue-next'
@@ -15,11 +15,8 @@ const props = withDefaults(defineProps<{
   link: () => ({}),
 })
 
-const emit = defineEmits<{
-  'update:link': [link: Link, type: LinkUpdateType]
-}>()
-
 const { t } = useI18n()
+const linksStore = useDashboardLinksStore()
 const link = ref(props.link)
 const dialogOpen = ref(false)
 
@@ -118,7 +115,7 @@ async function onSubmit(formData: { url: string, slug: string, optional?: { comm
     body: linkData,
   }) as { link: Link }
   dialogOpen.value = false
-  emit('update:link', newLink, isEdit ? 'edit' : 'create')
+  linksStore.notifyLinkUpdate(newLink, isEdit ? 'edit' : 'create')
   if (isEdit) {
     toast(t('links.update_success'))
   }

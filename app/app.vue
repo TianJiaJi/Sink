@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import 'vue-sonner/style.css'
+
 const { title, description, image } = useAppConfig()
 
 useSeoMeta({
@@ -43,6 +45,6 @@ useHead({
   <NuxtLayout>
     <NuxtLoadingIndicator color="#000" />
     <NuxtPage />
-    <Toaster />
+    <Toaster position="top-center" rich-colors />
   </NuxtLayout>
 </template>

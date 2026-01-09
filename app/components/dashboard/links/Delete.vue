@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type { Link, LinkUpdateType } from '@/types'
+import type { Link } from '@/types'
 import { toast } from 'vue-sonner'
 
 const props = defineProps<{
   link: Link
 }>()
 
-const emit = defineEmits<{
-  'update:link': [link: Link, type: LinkUpdateType]
-}>()
+const { t } = useI18n()
+const linksStore = useDashboardLinksStore()
 
 async function deleteLink() {
   await useAPI('/api/link/delete', {
@@ -17,8 +16,8 @@ async function deleteLink() {
       slug: props.link.slug,
     },
   })
-  emit('update:link', props.link, 'delete')
-  toast('Delete successful!')
+  linksStore.notifyLinkUpdate(props.link, 'delete')
+  toast(t('links.delete_success'))
 }
 </script>
 

@@ -16,7 +16,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "lint-staged": "lint-staged",
-    "types:check": "vue-tsc --noEmit",
+    "types:check": "nuxt typecheck",
     "wrangler": "wrangler",
     "dev": "nuxt dev --port 7465",
     "deploy": "npm run deploy:pages",

@@ -2,7 +2,6 @@
 import type { CounterData } from '@/types'
 import NumberFlow from '@number-flow/vue'
 import { Flame, MousePointerClick, Users } from 'lucide-vue-next'
-import { LINK_ID_KEY } from '@/composables/injection-keys'
 
 const defaultData: CounterData = Object.freeze({
   visits: 0,

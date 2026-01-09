@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Link, LinkUpdateType } from '@/types'
+import type { Link } from '@/types'
 import { useClipboard } from '@vueuse/core'
 import { CalendarPlus2, Copy, CopyCheck, Eraser, Hourglass, Link as LinkIcon, QrCode, SquareChevronDown, SquarePen } from 'lucide-vue-next'
 import { parseURL } from 'ufo'
@@ -8,9 +8,6 @@ import QRCode from './QRCode.vue'
 
 const props = defineProps<{
   link: Link
-}>()
-const emit = defineEmits<{
-  'update:link': [link: Link, type: LinkUpdateType]
 }>()
 
 const { t } = useI18n()
@@ -29,11 +26,6 @@ const shortLink = computed(() => `${origin}/${props.link.slug}`)
 const linkIcon = computed(() => `https://unavatar.io/${getLinkHost(props.link.url)}?fallback=https://sink.cool/icon.png`)
 
 const { copy, copied } = useClipboard({ source: shortLink.value, copiedDuring: 400 })
-
-function updateLink(link: Link, type: LinkUpdateType) {
-  emit('update:link', link, type)
-  editPopoverOpen.value = false
-}
 
 function copyLink() {
   copy(shortLink.value)
@@ -129,7 +121,6 @@ function copyLink() {
             >
               <LazyDashboardLinksEditor
                 :link="link"
-                @update:link="updateLink"
               >
                 <div
                   class="
@@ -149,7 +140,6 @@ function copyLink() {
 
               <LazyDashboardLinksDelete
                 :link="link"
-                @update:link="updateLink"
               >
                 <div
                   class="

@@ -2,7 +2,6 @@
 import type { CounterData } from '@/types'
 import NumberFlow from '@number-flow/vue'
 import { MousePointerClick } from 'lucide-vue-next'
-import { LINK_ID_KEY } from '@/composables/injection-keys'
 
 provide(LINK_ID_KEY, computed(() => undefined))
 

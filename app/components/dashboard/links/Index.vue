@@ -79,6 +79,14 @@ function updateLinkList(link: Link, type: LinkUpdateType) {
     linksStore.sortBy = 'newest'
   }
 }
+
+const unsubscribe = linksStore.onLinkUpdate(({ link, type }) => {
+  updateLinkList(link, type)
+})
+
+onUnmounted(() => {
+  unsubscribe()
+})
 </script>
 
 <template>
@@ -93,7 +101,6 @@ function updateLinkList(link: Link, type: LinkUpdateType) {
       v-for="link in displayedLinks"
       :key="link.id"
       :link="link"
-      @update:link="updateLinkList"
     />
   </section>
   <div

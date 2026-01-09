@@ -19,7 +19,7 @@ export function useAPI<T = unknown>(api: string, options?: APIOptions): Promise<
       navigateTo('/dashboard/login')
     }
     if (error?.data?.statusMessage) {
-      toast(error?.data?.statusMessage)
+      toast.error(error?.data?.statusMessage)
     }
     return Promise.reject(error)
   }) as Promise<T>

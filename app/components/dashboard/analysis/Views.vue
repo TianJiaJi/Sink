@@ -2,7 +2,6 @@
 import type { ViewDataPoint } from '@/types'
 import { AreaChart } from '@/components/ui/chart-area'
 import { BarChart } from '@/components/ui/chart-bar'
-import { LINK_ID_KEY } from '@/composables/injection-keys'
 
 const props = withDefaults(defineProps<{
   mode?: 'full' | 'simple'

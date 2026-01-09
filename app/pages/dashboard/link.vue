@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { Link, LinkUpdateType } from '@/types'
-import { LINK_ID_KEY } from '@/composables/injection-keys'
+import type { Link } from '@/types'
 
 definePageMeta({
   layout: 'dashboard',
 })
 
 const slug = useRoute().query.slug
+const linksStore = useDashboardLinksStore()
 
 const link = ref<Link | null>(null)
 const id = computed(() => link.value?.id)
@@ -15,23 +15,29 @@ provide(LINK_ID_KEY, id)
 
 async function getLink() {
   const data = await useAPI<Link>('/api/link/query', {
-    query: {
-      slug,
-    },
+    query: { slug },
   })
   link.value = data
 }
 
-function updateLink(_link: Link, type: LinkUpdateType) {
-  if (type === 'delete') {
-    navigateTo('/dashboard/links', {
-      replace: true,
-    })
-  }
-}
-
 onMounted(() => {
   getLink()
+})
+
+const unsubscribe = linksStore.onLinkUpdate(({ link: updatedLink, type }) => {
+  if (updatedLink.id !== link.value?.id)
+    return
+
+  if (type === 'delete') {
+    navigateTo('/dashboard/links', { replace: true })
+  }
+  else if (type === 'edit') {
+    link.value = updatedLink
+  }
+})
+
+onUnmounted(() => {
+  unsubscribe()
 })
 </script>
 
@@ -40,7 +46,6 @@ onMounted(() => {
     <DashboardLinksLink
       v-if="link?.id"
       :link="link"
-      @update:link="updateLink"
     />
     <DashboardAnalysis
       v-if="link?.id"

@@ -10,7 +10,7 @@ export default eventHandler(async (event) => {
 
   if (AI) {
     const { aiPrompt, aiModel } = useRuntimeConfig(event)
-    const { slugRegex } = useAppConfig(event)
+    const { slugRegex } = useAppConfig()
     const messages = [
       { role: 'system', content: aiPrompt.replace('{slugRegex}', slugRegex.toString()) },
 
