@@ -92,7 +92,8 @@ function formatTime(tick: number): string {
     "
   >
     <CardTitle
-      v-if="mode === 'full'" class="
+      v-if="mode === 'full'"
+      class="
         px-6
         md:px-0
       "
@@ -101,7 +102,6 @@ function formatTime(tick: number): string {
     </CardTitle>
     <component
       :is="chart"
-      v-if="views.length"
       class="h-full w-full"
       index="time"
       :data="views"

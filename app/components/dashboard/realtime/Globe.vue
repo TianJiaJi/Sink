@@ -139,7 +139,7 @@ function initGlobe() {
     .width(size.value.width)
     .height(size.value.height)
     // .globeOffset([width.value > 768 ? -100 : 0, width.value > 768 ? 0 : 100])
-    .atmosphereColor('rgba(170, 170, 200, 0.8)')
+    .atmosphereColor('rgb(170, 170, 200)')
     .globeMaterial(new MeshPhongMaterial({
       color: 'rgb(228, 228, 231)',
       transparent: false,
