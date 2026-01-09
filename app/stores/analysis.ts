@@ -10,9 +10,13 @@ export const useDashboardAnalysisStore = defineStore('dashboard-analysis', () =>
   })
   const filters = ref<Record<string, string>>({})
 
-  function updateDateRange(range: [number, number]) {
+  function setDateRange(range: [number, number]) {
     dateRange.value.startAt = range[0]
     dateRange.value.endAt = range[1]
+  }
+
+  function updateDateRange(range: [number, number]) {
+    setDateRange(range)
     searchParams.time = JSON.stringify(dateRange.value)
   }
 
@@ -52,6 +56,7 @@ export const useDashboardAnalysisStore = defineStore('dashboard-analysis', () =>
   return {
     dateRange,
     filters,
+    setDateRange,
     updateDateRange,
     updateFilter,
     clearFilters,

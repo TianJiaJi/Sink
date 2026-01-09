@@ -74,11 +74,7 @@ function restoreDateRange() {
     if (searchParams.time) {
       const time = safeDestr<{ startAt: number, endAt: number }>(searchParams.time as string)
       emit('update:dateRange', [time.startAt, time.endAt])
-      dateRange.value = 'custom'
-      nextTick(() => {
-        openCustomDateRange.value = false
-        customDateRange.value = undefined
-      })
+      dateRange.value = null
     }
   }
   catch (error) {

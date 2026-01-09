@@ -13,7 +13,7 @@ const tz = getLocalTimeZone()
 
 function initDateRange() {
   if (analysisStore.dateRange.startAt === 0) {
-    analysisStore.updateDateRange([
+    analysisStore.setDateRange([
       date2unix(now(tz).subtract({ days: 7 })),
       date2unix(now(tz)),
     ])
