@@ -165,7 +165,15 @@
   }
 
   button:not(:disabled),
-  [role='button']:not(:disabled) {
+  [role='button']:not(:disabled),
+  [role='menuitem']:not(:disabled),
+  [role='tab']:not(:disabled),
+  [role='option']:not(:disabled),
+  [role='switch']:not(:disabled),
+  [role='checkbox']:not(:disabled),
+  [role='radio']:not(:disabled),
+  summary,
+  label {
     @apply cursor-pointer;
   }
 }

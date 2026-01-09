@@ -1,18 +1,12 @@
-<script setup>
-defineProps({
-  name: {
-    type: String,
-    required: true,
-  },
-  type: {
-    type: String,
-    required: true,
-  },
-})
+<script setup lang="ts">
+defineProps<{
+  name: string
+  type: string
+}>()
 
 const locale = useI18n().locale
 
-function formatName(name, type) {
+function formatName(name: string, type: string): string {
   if (!name || typeof Intl === 'undefined')
     return name
 
@@ -23,14 +17,8 @@ function formatName(name, type) {
     }
     if (type === 'language') {
       const languageNames = new Intl.DisplayNames([locale.value], { type: 'language' })
-      return languageNames.of(name)
+      return languageNames.of(name) ?? name
     }
-
-    // TODO: Add support for timezone
-    // if (type === 'timezone' && typeof Intl.TimeZone === 'function') {
-    //   const tz = new Intl.TimeZone(name)
-    //   return tz.getDisplayName(locale.value, { type: 'long' })
-    // }
 
     return name
   }

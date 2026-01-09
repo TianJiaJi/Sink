@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { AlertCircle } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { z } from 'zod'
@@ -19,7 +19,7 @@ const loginFieldConfig = {
 
 const { previewMode } = useRuntimeConfig().public
 
-async function onSubmit(form) {
+async function onSubmit(form: { token: string }) {
   try {
     localStorage.setItem('SinkSiteToken', form.token)
     await useAPI('/api/verify')
@@ -28,7 +28,7 @@ async function onSubmit(form) {
   catch (e) {
     console.error(e)
     toast.error(t('login.failed'), {
-      description: e.message,
+      description: e instanceof Error ? e.message : String(e),
     })
   }
 }

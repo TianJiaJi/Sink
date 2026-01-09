@@ -1,22 +1,28 @@
-<script setup>
+<script setup lang="ts">
+import type { Link, LinkUpdateType } from '@/types'
+import { LINK_ID_KEY } from '@/composables/injection-keys'
+
+definePageMeta({
+  layout: 'dashboard',
+})
+
 const slug = useRoute().query.slug
 
-const link = ref({})
-const id = computed(() => link.value.id)
+const link = ref<Link | null>(null)
+const id = computed(() => link.value?.id)
 
-provide('id', id)
+provide(LINK_ID_KEY, id)
 
 async function getLink() {
-  const data = await useAPI('/api/link/query', {
+  const data = await useAPI<Link>('/api/link/query', {
     query: {
       slug,
     },
   })
-  // data.id = 'y1c4fhirl5'
   link.value = data
 }
 
-function updateLink(link, type) {
+function updateLink(_link: Link, type: LinkUpdateType) {
   if (type === 'delete') {
     navigateTo('/dashboard/links', {
       replace: true,
@@ -31,14 +37,13 @@ onMounted(() => {
 
 <template>
   <main class="space-y-6">
-    <DashboardBreadcrumb title="Link" />
     <DashboardLinksLink
-      v-if="link.id"
+      v-if="link?.id"
       :link="link"
       @update:link="updateLink"
     />
     <DashboardAnalysis
-      v-if="link.id"
+      v-if="link?.id"
       :link="link"
     />
   </main>

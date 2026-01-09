@@ -1,14 +1,14 @@
-<script setup>
+<script setup lang="ts">
+import type { Link, LinkUpdateType } from '@/types'
 import { toast } from 'vue-sonner'
 
-const props = defineProps({
-  link: {
-    type: Object,
-    required: true,
-  },
-})
+const props = defineProps<{
+  link: Link
+}>()
 
-const emit = defineEmits(['update:link'])
+const emit = defineEmits<{
+  'update:link': [link: Link, type: LinkUpdateType]
+}>()
 
 async function deleteLink() {
   await useAPI('/api/link/delete', {

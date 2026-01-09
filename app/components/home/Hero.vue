@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { AreaChart } from 'lucide-vue-next'
 import { GitHubIcon } from 'vue3-simple-icons'
 import heroImg from '@/assets/images/hero.svg?raw'

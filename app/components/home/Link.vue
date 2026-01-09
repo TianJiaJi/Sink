@@ -1,33 +1,23 @@
-<script setup>
-defineProps({
-  href: {
-    type: String,
-    required: true,
-  },
-  block: {
-    type: Boolean,
-    default: false,
-  },
-  size: {
-    type: String,
-    default: 'md',
-  },
-  type: {
-    type: String,
-    default: 'primary',
-  },
-  className: {
-    type: String,
-    default: '',
-  },
+<script setup lang="ts">
+withDefaults(defineProps<{
+  href: string
+  block?: boolean
+  size?: 'lg' | 'md'
+  type?: 'outline' | 'primary' | 'inverted' | 'muted'
+  className?: string
+}>(), {
+  block: false,
+  size: 'md',
+  type: 'primary',
+  className: '',
 })
 
-const sizes = {
+const sizes: Record<string, string> = {
   lg: 'px-5 py-2.5',
   md: 'px-4 py-2',
 }
 
-const styles = {
+const styles: Record<string, string> = {
   outline: 'bg-white border-2 border-black hover:bg-gray-100 text-black',
   primary: 'bg-black text-white hover:bg-gray-800 border-2 border-transparent',
   inverted: 'bg-white text-black border-2 border-transparent',

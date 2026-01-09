@@ -53,6 +53,14 @@
     "analysis": "Statistiques",
     "realtime": "Realtime"
   },
+  "sidebar": {
+    "subtitle": "Raccourcisseur de liens",
+    "platform": "Plateforme",
+    "settings": "Paramètres",
+    "import": "Importer",
+    "export": "Exporter",
+    "github": "GitHub"
+  },
   "home": {
     "features": {
       "title": "Fonctionnalités",

@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { Dependency } from '@/components/ui/auto-form/interface'
+import type { Link, LinkUpdateType } from '@/types'
 import { LinkSchema, nanoid } from '@@/schemas/link'
 import { toTypedSchema } from '@vee-validate/zod'
 import { Shuffle, Sparkles } from 'lucide-vue-next'
@@ -7,14 +9,15 @@ import { toast } from 'vue-sonner'
 import { z } from 'zod'
 import { DependencyType } from '@/components/ui/auto-form/interface'
 
-const props = defineProps({
-  link: {
-    type: Object,
-    default: () => ({}),
-  },
+const props = withDefaults(defineProps<{
+  link?: Partial<Link>
+}>(), {
+  link: () => ({}),
 })
 
-const emit = defineEmits(['update:link'])
+const emit = defineEmits<{
+  'update:link': [link: Link, type: LinkUpdateType]
+}>()
 
 const { t } = useI18n()
 const link = ref(props.link)
@@ -40,18 +43,17 @@ const EditLinkSchema = LinkSchema.pick({
   }).optional(),
 })
 
+type EditLinkSchemaType = z.infer<typeof EditLinkSchema>
+
 const fieldConfig = {
-  slug: {
-    disabled: isEdit,
-  },
   optional: {
     comment: {
       component: 'textarea',
     },
   },
-}
+} as const
 
-const dependencies = [
+const dependencies: Dependency<EditLinkSchemaType>[] = [
   {
     sourceField: 'slug',
     type: DependencyType.DISABLES,
@@ -84,12 +86,12 @@ async function aiSlug() {
 
   aiSlugPending.value = true
   try {
-    const { slug } = await useAPI('/api/link/ai', {
+    const result = await useAPI<{ slug: string }>('/api/link/ai', {
       query: {
         url: form.values.url,
       },
     })
-    form.setFieldValue('slug', slug)
+    form.setFieldValue('slug', result.slug)
   }
   catch (error) {
     console.log(error)
@@ -99,21 +101,22 @@ async function aiSlug() {
 
 onMounted(() => {
   if (link.value.expiration) {
-    form.setFieldValue('optional.expiration', unix2date(link.value.expiration))
+    const calendarDate = unix2date(link.value.expiration)
+    form.setFieldValue('optional.expiration', calendarDate.toDate(getTimeZone()))
   }
 })
 
-async function onSubmit(formData) {
-  const link = {
+async function onSubmit(formData: { url: string, slug: string, optional?: { comment?: string, expiration?: Date } }) {
+  const linkData = {
     url: formData.url,
     slug: formData.slug,
-    ...(formData.optional || []),
+    ...(formData.optional || {}),
     expiration: formData.optional?.expiration ? date2unix(formData.optional?.expiration, 'end') : undefined,
   }
   const { link: newLink } = await useAPI(isEdit ? '/api/link/edit' : '/api/link/create', {
     method: isEdit ? 'PUT' : 'POST',
-    body: link,
-  })
+    body: linkData,
+  }) as { link: Link }
   dialogOpen.value = false
   emit('update:link', newLink, isEdit ? 'edit' : 'create')
   if (isEdit) {
@@ -132,7 +135,7 @@ const { previewMode } = useRuntimeConfig().public
     <DialogTrigger as-child>
       <slot>
         <Button
-          class="ml-2"
+          class="md:ml-2"
           variant="outline"
           @click="randomSlug"
         >
@@ -179,6 +182,7 @@ const { previewMode } = useRuntimeConfig().public
                 @click="aiSlug"
               />
             </div>
+            <!-- @vue-ignore -->
             <AutoFormField
               v-bind="slotProps"
             />

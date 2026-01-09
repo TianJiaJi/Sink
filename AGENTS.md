@@ -4,6 +4,8 @@
 
 Sink runs on Nuxt 4 and Cloudflare Workers. Application code lives in `app/` (pages, layouts, components, composables) while Worker entry points and API handlers are in `server/`. Zod schemas for payload validation are in `schemas/`, static assets in `public/`, and reference docs (deployment, API, configuration) in `docs/`. Automated scripts (`build-map.js`, `build-colo.js`) sit in `scripts/`; tests reside in `tests/` with `setup.ts`, `sink.spec.ts`, and utilities. Core configuration is centralized in `nuxt.config.ts`, `wrangler.jsonc`, `eslint.config.mjs`, and `vitest.config.ts`.
 
+**All documentation and comments within this project must be written in English.**
+
 ## Build, Test, and Development Commands
 
 Use pnpm with Node 20.11+. Key commands:
@@ -16,7 +18,7 @@ Use pnpm with Node 20.11+. Key commands:
 
 ## Coding Style & Naming Conventions
 
-Favor TypeScript with `<script setup>` single-file components, 2-space indentation, single quotes, and trailing commas. Components and composables use PascalCase (`app/components/StatsCard.vue`), route directories use kebab-case (`app/dashboard/links`), and functions/state use camelCase. Keep Tailwind or shadcn-vue tokens in reusable helpers under `app/lib` or `components/ui`; avoid magic values inline. Run `pnpm lint:fix` before every commit to satisfy ESLint, Tailwind, and lint-staged hooks.
+Favor TypeScript with `<script setup>` single-file components, 2-space indentation, single quotes, and trailing commas. Components and composables use PascalCase (`app/components/StatsCard.vue`), route directories use kebab-case (`app/dashboard/links`), and functions/state use camelCase. Keep Tailwind or shadcn-vue tokens in reusable helpers under `app/lib` or `components/ui`; avoid magic values inline. Run `pnpm lint:fix` before every commit to satisfy ESLint, Tailwind, and lint-staged hooks.Prioritize the use of Nuxt's Auto-imports feature to reduce explicit imports.
 
 ## Testing Guidelines
 

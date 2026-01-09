@@ -1,5 +1,5 @@
 import type SqlBricks from 'sql-bricks'
-// @ts-expect-error use SqlBricks as a type
+// @ts-expect-error mysql-bricks has no type declarations
 import MySqlBricks from 'mysql-bricks'
 
 const Bricks = MySqlBricks as unknown as typeof SqlBricks

@@ -53,6 +53,14 @@
     "analysis": "分析",
     "realtime": "即時"
   },
+  "sidebar": {
+    "subtitle": "短連結服務",
+    "platform": "平台",
+    "settings": "設定",
+    "import": "導入",
+    "export": "導出",
+    "github": "GitHub"
+  },
   "home": {
     "features": {
       "title": "功能特色",

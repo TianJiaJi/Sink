@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ArrowRight } from 'lucide-vue-next'
 import { XIcon } from 'vue3-simple-icons'
 

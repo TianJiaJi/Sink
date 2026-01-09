@@ -53,6 +53,14 @@
     "analysis": "Analysis",
     "realtime": "Realtime"
   },
+  "sidebar": {
+    "subtitle": "Link Shortener",
+    "platform": "Platform",
+    "settings": "Settings",
+    "import": "Import",
+    "export": "Export",
+    "github": "GitHub"
+  },
   "home": {
     "features": {
       "title": "Features",

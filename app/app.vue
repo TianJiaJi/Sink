@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 const { title, description, image } = useAppConfig()
 
 useSeoMeta({
@@ -23,7 +23,6 @@ useHead({
     {
       name: 'viewport',
       content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0',
-      tagPosition: 'head',
     },
   ],
   link: [

@@ -12,10 +12,8 @@ export function query2filter(query: Query) {
     filter.push(eq('index1', query.id))
 
   Object.keys(logsMap).forEach((key) => {
-    // @ts-expect-error todo
-    if (query[key]) {
-      // @ts-expect-error todo
-      filter.push($in(logsMap[key], query[key].split(',')))
+    if ((query as any)[key]) {
+      filter.push($in((logsMap as any)[key], (query as any)[key].split(',')))
     }
   })
   return filter.length ? and(...filter) : []

@@ -53,6 +53,14 @@
     "analysis": "Analyse",
     "realtime": "Echtzeit"
   },
+  "sidebar": {
+    "subtitle": "Link-Verkürzer",
+    "platform": "Plattform",
+    "settings": "Einstellungen",
+    "import": "Importieren",
+    "export": "Exportieren",
+    "github": "GitHub"
+  },
   "home": {
     "features": {
       "title": "Funktionen",

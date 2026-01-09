@@ -1,24 +1,26 @@
-<script setup>
+<script setup lang="ts">
+import type { Link, LinkUpdateType } from '@/types'
 import { useClipboard } from '@vueuse/core'
 import { CalendarPlus2, Copy, CopyCheck, Eraser, Hourglass, Link as LinkIcon, QrCode, SquareChevronDown, SquarePen } from 'lucide-vue-next'
 import { parseURL } from 'ufo'
 import { toast } from 'vue-sonner'
 import QRCode from './QRCode.vue'
 
-const props = defineProps({
-  link: {
-    type: Object,
-    required: true,
-  },
-})
-const emit = defineEmits(['update:link'])
+const props = defineProps<{
+  link: Link
+}>()
+const emit = defineEmits<{
+  'update:link': [link: Link, type: LinkUpdateType]
+}>()
 
 const { t } = useI18n()
 const editPopoverOpen = ref(false)
 
-const { host, origin } = location
+const requestUrl = useRequestURL()
+const host = requestUrl.host
+const origin = requestUrl.origin
 
-function getLinkHost(url) {
+function getLinkHost(url: string): string | undefined {
   const { host } = parseURL(url)
   return host
 }
@@ -28,7 +30,7 @@ const linkIcon = computed(() => `https://unavatar.io/${getLinkHost(props.link.ur
 
 const { copy, copied } = useClipboard({ source: shortLink.value, copiedDuring: 400 })
 
-function updateLink(link, type) {
+function updateLink(link: Link, type: LinkUpdateType) {
   emit('update:link', link, type)
   editPopoverOpen.value = false
 }
@@ -80,20 +82,14 @@ function copyLink() {
               />
             </div>
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <p class="truncate text-sm">
-                    {{ link.comment || link.title || link.description }}
-                  </p>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p class="max-w-[90svw] break-all">
-                    {{ link.comment || link.title || link.description }}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <TooltipText
+              :text="link.comment || link.title || link.description"
+              content-class="max-w-[90svw] break-all"
+            >
+              <p class="truncate text-sm">
+                {{ link.comment || link.title || link.description }}
+              </p>
+            </TooltipText>
           </div>
 
           <a
@@ -131,7 +127,7 @@ function copyLink() {
               class="w-auto p-0"
               :hide-when-detached="false"
             >
-              <DashboardLinksEditor
+              <LazyDashboardLinksEditor
                 :link="link"
                 @update:link="updateLink"
               >
@@ -147,11 +143,11 @@ function copyLink() {
                   />
                   {{ $t('common.edit') }}
                 </div>
-              </DashboardLinksEditor>
+              </LazyDashboardLinksEditor>
 
               <Separator />
 
-              <DashboardLinksDelete
+              <LazyDashboardLinksDelete
                 :link="link"
                 @update:link="updateLink"
               >
@@ -166,7 +162,7 @@ function copyLink() {
                     class="mr-2 h-5 w-5"
                   /> {{ $t('common.delete') }}
                 </div>
-              </DashboardLinksDelete>
+              </LazyDashboardLinksDelete>
             </PopoverContent>
           </Popover>
         </div>

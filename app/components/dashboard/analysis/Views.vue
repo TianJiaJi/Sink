@@ -1,28 +1,38 @@
-<script setup>
+<script setup lang="ts">
+import type { ViewDataPoint } from '@/types'
 import { AreaChart } from '@/components/ui/chart-area'
 import { BarChart } from '@/components/ui/chart-bar'
+import { LINK_ID_KEY } from '@/composables/injection-keys'
 
-const props = defineProps({
-  mode: {
-    type: String,
-    default: 'full',
-  },
-  chartType: {
-    type: String,
-    default: 'area',
-  },
+const props = withDefaults(defineProps<{
+  mode?: 'full' | 'simple'
+  chartType?: 'area' | 'bar'
+  startAt?: number
+  endAt?: number
+  filters?: Record<string, string>
+}>(), {
+  mode: 'full',
+  chartType: 'area',
 })
 
-const views = ref([])
+const views = ref<ViewDataPoint[]>([])
 const chart = computed(() => (props.chartType === 'area' && views.value.length > 1) ? AreaChart : BarChart)
 
-const id = inject('id')
-const time = inject('time')
-const filters = inject('filters')
+const id = inject(LINK_ID_KEY, computed(() => undefined))
+const analysisStore = useDashboardAnalysisStore()
 
-const OneHour = 60 * 60 // 1 hour in seconds
-const OneDay = 24 * 60 * 60 // 1 day in seconds
-function getUnit(startAt, endAt) {
+const effectiveTimeRange = computed(() => ({
+  startAt: props.startAt ?? analysisStore.dateRange.startAt,
+  endAt: props.endAt ?? analysisStore.dateRange.endAt,
+}))
+
+const effectiveFilters = computed(() =>
+  props.filters ?? analysisStore.filters,
+)
+
+const OneHour = 60 * 60
+const OneDay = 24 * 60 * 60
+function getUnit(startAt: number, endAt: number): 'minute' | 'hour' | 'day' {
   if (startAt && endAt && endAt - startAt <= OneHour)
     return 'minute'
 
@@ -34,34 +44,38 @@ function getUnit(startAt, endAt) {
 
 async function getLinkViews() {
   views.value = []
-  const { data } = await useAPI('/api/stats/views', {
+  const { startAt, endAt } = effectiveTimeRange.value
+  const result = await useAPI<{ data: ViewDataPoint[] }>('/api/stats/views', {
     query: {
       id: id.value,
-      unit: getUnit(time.value.startAt, time.value.endAt),
+      unit: getUnit(startAt, endAt),
       clientTimezone: getTimeZone(),
-      startAt: time.value.startAt,
-      endAt: time.value.endAt,
-      ...filters.value,
+      startAt,
+      endAt,
+      ...effectiveFilters.value,
     },
   })
-  views.value = (data || []).map((item) => {
+  views.value = (result.data || []).map((item) => {
     item.visitors = +item.visitors
     item.visits = +item.visits
     return item
   })
 }
 
-watch([time, filters], getLinkViews, {
-  deep: true,
-})
+watch(
+  [effectiveTimeRange, effectiveFilters],
+  getLinkViews,
+  { deep: true },
+)
 
 onMounted(async () => {
   getLinkViews()
 })
 
-function formatTime(tick) {
+function formatTime(tick: number): string {
   if (Number.isInteger(tick) && views.value[tick]) {
-    if (getUnit(time.value.startAt, time.value.endAt) === 'hour')
+    const { startAt, endAt } = effectiveTimeRange.value
+    if (getUnit(startAt, endAt) === 'hour')
       return views.value[tick].time.split(' ')[1] || ''
 
     return views.value[tick].time
@@ -87,6 +101,7 @@ function formatTime(tick) {
     </CardTitle>
     <component
       :is="chart"
+      v-if="views.length"
       class="h-full w-full"
       index="time"
       :data="views"

@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+import type { Component } from 'vue'
 import {
   Globe,
   Laptop,
@@ -8,7 +9,6 @@ import {
   Terminal,
 } from 'lucide-vue-next'
 
-// https://vue3-simple-icons.wyatt-herkamp.dev/
 import {
   AndroidIcon,
   AppleIcon,
@@ -20,10 +20,8 @@ import {
   GoogleIcon,
   HuaweiIcon,
   IOsIcon,
-  // InternetExplorerIcon,
   LinuxIcon,
   MacOsIcon,
-  // MicrosoftEdgeIcon,
   OperaIcon,
   SafariIcon,
   SamsungIcon,
@@ -32,23 +30,18 @@ import {
   WearOsIcon,
   WeChatIcon,
   XiaomiIcon,
-  // WindowsIcon,
   XIcon,
   YandexCloudIcon,
 } from 'vue3-simple-icons'
 
-defineProps({
-  name: {
-    type: String,
-    required: true,
-  },
-  type: {
-    type: String,
-    default: 'browser',
-  },
+withDefaults(defineProps<{
+  name: string
+  type?: string
+}>(), {
+  type: 'browser',
 })
 
-const iconMaps = {
+const iconMaps: Record<string, Component> = {
   'android': AndroidIcon,
   'android browser': AndroidIcon,
   'browser': Globe,
@@ -67,7 +60,6 @@ const iconMaps = {
   'gnu': GnuIcon,
   'harmonyos': HuaweiIcon,
   'huawei browser': HuaweiIcon,
-  // 'ie': InternetExplorerIcon,
   'ios': IOsIcon,
   'ipad': AppleIcon,
   'iphone': AppleIcon,

@@ -1,16 +1,11 @@
-<script setup>
+<script setup lang="ts">
+import type { MetricItem } from '@/types'
 import { VList } from 'virtua/vue'
 
-defineProps({
-  metrics: {
-    type: Array,
-    required: true,
-  },
-  type: {
-    type: String,
-    required: true,
-  },
-})
+defineProps<{
+  metrics: MetricItem[]
+  type: string
+}>()
 </script>
 
 <template>

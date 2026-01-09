@@ -1,12 +1,19 @@
+import type { NitroFetchOptions, NitroFetchRequest } from 'nitropack'
 import { defu } from 'defu'
 import { toast } from 'vue-sonner'
 
-export function useAPI(api: string, options?: object): Promise<unknown> {
-  return $fetch(api, defu(options || {}, {
+type APIOptions = Omit<NitroFetchOptions<NitroFetchRequest>, 'headers'> & {
+  headers?: Record<string, string>
+}
+
+export function useAPI<T = unknown>(api: string, options?: APIOptions): Promise<T> {
+  const mergedOptions = defu(options || {}, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem('SinkSiteToken') || ''}`,
     },
-  })).catch((error) => {
+  }) as NitroFetchOptions<NitroFetchRequest>
+
+  return $fetch<T>(api, mergedOptions).catch((error) => {
     if (error?.status === 401) {
       localStorage.removeItem('SinkSiteToken')
       navigateTo('/dashboard/login')
@@ -15,5 +22,5 @@ export function useAPI(api: string, options?: object): Promise<unknown> {
       toast(error?.data?.statusMessage)
     }
     return Promise.reject(error)
-  })
+  }) as Promise<T>
 }

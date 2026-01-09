@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { AreaChart, Hourglass, Link, Paintbrush, ServerOff, Sparkles } from 'lucide-vue-next'
 
 const { t } = useI18n()
