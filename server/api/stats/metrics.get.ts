@@ -1,11 +1,15 @@
 import type { H3Event } from 'h3'
+import type { BlobsMap, DoublesMap } from '../../utils/access-log'
 import { QuerySchema } from '@@/schemas/query'
 import { z } from 'zod'
 
 const { select } = SqlBricks
 
+type MetricType = BlobsMap[keyof BlobsMap] | DoublesMap[keyof DoublesMap]
+const validMetricTypes = [...Object.values(blobsMap), ...Object.values(doublesMap)] as [MetricType, ...MetricType[]]
+
 const MetricsQuerySchema = QuerySchema.extend({
-  type: z.string(),
+  type: z.enum(validMetricTypes),
 })
 
 function query2sql(query: z.infer<typeof MetricsQuerySchema>, event: H3Event): string {

@@ -56,7 +56,7 @@
     "zod": "3.25.76"
   },
   "devDependencies": {
-    "@anatine/zod-mock": "^3.25.76",
+    "@anatine/zod-mock": "^3.14.0",
     "@antfu/eslint-config": "^6.7.3",
     "@cloudflare/vitest-pool-workers": "^0.12.1",
     "@nuxt/eslint": "^1.12.1",
@@ -67,7 +67,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^25.0.3",
     "@vueuse/integrations": "^14.1.0",
-    "baseline-browser-mapping": "^2.9.12",
+    "baseline-browser-mapping": "^2.9.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "eslint": "^9.39.2",
