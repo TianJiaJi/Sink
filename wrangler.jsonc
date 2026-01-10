@@ -13,7 +13,8 @@
   "keep_vars": true,
   "upload_source_maps": true,
   "ai": {
-    "binding": "AI"
+    "binding": "AI",
+    "remote": true
   },
   "analytics_engine_datasets": [
     {

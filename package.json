@@ -61,12 +61,12 @@
     "@cloudflare/vitest-pool-workers": "^0.12.1",
     "@nuxt/eslint": "^1.12.1",
     "@nuxt/eslint-config": "^1.12.1",
-    "@nuxthub/core": "<0.10.0",
     "@nuxtjs/color-mode": "^4.0.0",
     "@nuxtjs/i18n": "^10.2.1",
     "@tailwindcss/vite": "^4.1.18",
     "@types/node": "^25.0.3",
     "@vueuse/integrations": "^14.1.0",
+    "ai": "^6.0.26",
     "baseline-browser-mapping": "^2.9.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -82,6 +82,7 @@
     "typescript": "^5.9.3",
     "vitest": "^3.2.4",
     "vue-tsc": "^3.2.2",
+    "workers-ai-provider": "^3.0.2",
     "wrangler": "^4.58.0"
   },
   "pnpm": {

@@ -1,21 +1,19 @@
 import process from 'node:process'
 import tailwindcss from '@tailwindcss/vite'
-import { provider } from 'std-env'
 import { currentLocales } from './i18n/i18n'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
-    '@nuxthub/core',
     '@nuxtjs/color-mode',
     '@nuxtjs/i18n',
     '@nuxt/eslint',
+    '@pinia/nuxt',
     '@vueuse/motion/nuxt',
     'shadcn-nuxt',
-    '@pinia/nuxt',
   ],
   devtools: { enabled: true },
-  css: ['~/assets/css/tailwind.css'],
+  css: ['@/assets/css/tailwind.css'],
   colorMode: {
     classSuffix: '',
   },
@@ -28,7 +26,7 @@ export default defineNuxtConfig({
     cfAccountId: '',
     cfApiToken: '',
     dataset: 'sink',
-    aiModel: '@cf/meta/llama-3.1-8b-instruct',
+    aiModel: '@cf/qwen/qwen3-30b-a3b-fp8',
     aiPrompt: `You are a URL shortening assistant, please shorten the URL provided by the user into a SLUG. The SLUG information must come from the URL itself, do not make any assumptions. A SLUG is human-readable and should not exceed three words and can be validated using regular expressions {slugRegex} . Only the best one is returned, the format must be JSON reference {"slug": "example-slug"}`,
     caseSensitive: false,
     listQueryLimit: 500,
@@ -79,15 +77,6 @@ export default defineNuxtConfig({
         },
       },
     },
-  },
-  hub: {
-    ai: true,
-    analytics: true,
-    blob: false,
-    cache: false,
-    database: false,
-    kv: true,
-    workers: provider !== 'cloudflare_pages',
   },
   vite: {
     plugins: [
