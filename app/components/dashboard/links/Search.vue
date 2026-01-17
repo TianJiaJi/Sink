@@ -93,7 +93,7 @@ onMounted(() => {
     </Button>
   </TriggerTemplate>
   <SearchTemplate>
-    <Command class="h-12">
+    <Command class="h-auto">
       <CommandInput v-model="searchTerm" :placeholder="$t('links.search_placeholder')" />
     </Command>
     <!-- disable command search -->
@@ -137,7 +137,7 @@ onMounted(() => {
     <DialogTrigger as-child>
       <TriggerComponent />
     </DialogTrigger>
-    <DialogContent class="gap-0 overflow-hidden p-0 shadow-lg">
+    <DialogContent class="gap-0 overflow-hidden p-0 shadow-lg" :show-close-button="false">
       <DialogHeader class="sr-only">
         <DialogTitle>{{ $t('links.search_placeholder') }}</DialogTitle>
       </DialogHeader>
