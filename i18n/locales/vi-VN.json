@@ -25,7 +25,9 @@
     "tips": "Mẹo",
     "preview_token": "Token của chế độ xem trước là",
     "submit": "Đăng nhập",
-    "failed": "Đăng nhập thất bại, vui lòng thử lại"
+    "failed": "Đăng nhập thất bại, vui lòng thử lại",
+    "token_label": "Token trang",
+    "token_required": "Vui lòng nhập token"
   },
   "logout": {
     "title": "Đăng xuất?",
@@ -177,12 +179,22 @@
     "no_more": "Không còn liên kết nào",
     "load_failed": "Tải liên kết thất bại,",
     "download_qr_code": "Tải mã QR",
+    "form": {
+      "url": "URL",
+      "slug": "Slug",
+      "comment": "Ghi chú",
+      "expiration": "Hết hạn",
+      "pick_date": "Chọn ngày"
+    },
     "sort": {
       "newest": "Mới nhất trước",
       "oldest": "Cũ nhất trước",
       "az": "Slug A-Z",
       "za": "Slug Z-A",
       "tip": "Trải nghiệm: Chỉ áp dụng với các liên kết đã tải"
-    }
+    },
+    "update_failed": "Cập nhật liên kết thất bại",
+    "create_failed": "Tạo liên kết thất bại",
+    "ai_slug_failed": "Tạo slug AI thất bại"
   }
 }

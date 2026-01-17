@@ -25,7 +25,9 @@
     "tips": "提示",
     "preview_token": "預覽模式的站點密碼是",
     "submit": "登入",
-    "failed": "登入失敗，請重試"
+    "failed": "登入失敗，請重試",
+    "token_label": "站點密碼",
+    "token_required": "請輸入密碼"
   },
   "logout": {
     "title": "登出？",
@@ -177,12 +179,22 @@
     "no_more": "沒有更多連結",
     "load_failed": "加載連接失敗,",
     "download_qr_code": "下載QR code",
+    "form": {
+      "url": "連結地址",
+      "slug": "短連結",
+      "comment": "備註",
+      "expiration": "過期時間",
+      "pick_date": "選擇日期"
+    },
     "sort": {
       "newest": "最新",
       "oldest": "最舊",
       "az": "短連結(A-Z)",
       "za": "短連結(Z-A)",
       "tip": "體驗功能: 僅對已經加載的連結有效"
-    }
+    },
+    "update_failed": "更新連結失敗",
+    "create_failed": "創建連結失敗",
+    "ai_slug_failed": "AI 生成短連結失敗"
   }
 }

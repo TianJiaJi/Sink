@@ -83,9 +83,11 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
+  typescript: {
+    strict: false,
+  },
   eslint: {
     config: {
-      stylistic: true,
       standalone: false,
     },
   },

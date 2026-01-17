@@ -7,25 +7,16 @@ defineProps<{
 const locale = useI18n().locale
 
 function formatName(name: string, type: string): string {
-  if (!name || typeof Intl === 'undefined')
+  if (!name)
     return name
 
-  try {
-    if (type === 'country') {
-      const regionNames = new Intl.DisplayNames([locale.value], { type: 'region' })
-      return `${getFlag(name)} ${regionNames.of(name)}`
-    }
-    if (type === 'language') {
-      const languageNames = new Intl.DisplayNames([locale.value], { type: 'language' })
-      return languageNames.of(name) ?? name
-    }
+  if (type === 'country')
+    return `${getFlag(name)} ${getRegionName(name, locale.value)}`
 
-    return name
-  }
-  catch (e) {
-    console.error(e)
-    return name
-  }
+  if (type === 'language')
+    return getLanguageName(name, locale.value)
+
+  return name
 }
 </script>
 

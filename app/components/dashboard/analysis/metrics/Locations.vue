@@ -1,15 +1,25 @@
 <script setup lang="ts">
+import type { ChartConfig } from '@/components/ui/chart'
 import type { AreaData } from '@/types'
-import { VisSingleContainer, VisTopoJSONMap, VisTopoJSONMapSelectors } from '@unovis/vue'
+import { VisSingleContainer, VisTooltip, VisTopoJSONMap, VisTopoJSONMapSelectors } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
-import { ChartTooltip } from '@/components/ui/chart'
+import { h, render } from 'vue'
+import { ChartTooltipContent } from '@/components/ui/chart'
 
 const isMounted = useMounted()
 const id = inject(LINK_ID_KEY, computed(() => undefined))
 const analysisStore = useDashboardAnalysisStore()
+const { t, locale } = useI18n()
 
 const worldMapTopoJSON = ref<Record<string, unknown>>({})
 const areaData = ref<AreaData[]>([])
+
+const chartConfig = computed<ChartConfig>(() => ({
+  count: {
+    label: t('dashboard.visits'),
+    color: 'var(--chart-1)',
+  },
+}))
 
 async function getWorldMapJSON() {
   const data = await $fetch('/world.json')
@@ -44,18 +54,34 @@ onMounted(() => {
   getMapData()
 })
 
-const valueFormatter = (v: unknown): string => String(v)
-const Tooltip = {
-  props: ['title', 'data'],
-  setup(props: { title: string, data: Array<{ value: { name?: string, count?: number } }> }) {
-    const title = props.data[1]?.value?.name
-    const data = [{
-      name: props.title,
-      value: props.data[3]?.value?.count,
-      color: 'black',
-    }]
-    return () => h(ChartTooltip, { title, data })
-  },
+let tooltipCache = new WeakMap<object, string>()
+
+watch(locale, () => {
+  tooltipCache = new WeakMap()
+})
+
+function tooltipTemplate(d: any): string {
+  // VisTopoJSONMap 传入的数据结构可能是嵌套的
+  const data = d?.data ?? d
+  if (!data?.name)
+    return ''
+
+  // 检查缓存
+  if (tooltipCache.has(data))
+    return tooltipCache.get(data) as string
+
+  data.displayName = getRegionName(data.name, locale.value)
+
+  const div = document.createElement('div')
+  const vnode = h(ChartTooltipContent, {
+    payload: { count: data.count },
+    config: chartConfig.value,
+    x: data.displayName,
+  })
+  render(vnode, div)
+  const html = div.innerHTML
+  tooltipCache.set(data, html)
+  return html
 }
 </script>
 
@@ -80,12 +106,15 @@ const Tooltip = {
           :topojson="worldMapTopoJSON"
           map-feature-name="countries"
         />
-        <ChartSingleTooltip
-          index="id"
-          :selector="VisTopoJSONMapSelectors.feature"
-          :items="areaData"
-          :value-formatter="valueFormatter"
-          :custom-tooltip="Tooltip"
+        <VisTooltip
+          :horizontal-shift="20"
+          :vertical-shift="20"
+          :triggers="{
+            [VisTopoJSONMapSelectors.feature]: tooltipTemplate,
+          }"
+          :attributes="{
+            style: '--vis-tooltip-padding: 0; --vis-tooltip-background-color: transparent; --vis-tooltip-border-color: transparent; --vis-tooltip-shadow-color: transparent;',
+          }"
         />
       </VisSingleContainer>
     </CardContent>

@@ -25,7 +25,9 @@
     "tips": "Astuces",
     "preview_token": "Le jeton du site pour le mode aperçu est",
     "submit": "Connexion",
-    "failed": "Échec de la connexion, veuillez réessayer"
+    "failed": "Échec de la connexion, veuillez réessayer",
+    "token_label": "Jeton du site",
+    "token_required": "Le jeton est requis"
   },
   "logout": {
     "title": "Déconnexion ?",
@@ -177,12 +179,22 @@
     "no_more": "Plus de liens",
     "load_failed": "Échec du chargement des liens,",
     "download_qr_code": "Télécharger le code QR",
+    "form": {
+      "url": "URL",
+      "slug": "Slug",
+      "comment": "Commentaire",
+      "expiration": "Expiration",
+      "pick_date": "Choisir une date"
+    },
     "sort": {
       "newest": "Les plus récents",
       "oldest": "Les plus anciens",
       "az": "Slug A-Z",
       "za": "Slug Z-A",
       "tip": "Essai : uniquement pour les liens chargés"
-    }
+    },
+    "update_failed": "Échec de la mise à jour du lien",
+    "create_failed": "Échec de la création du lien",
+    "ai_slug_failed": "Échec de la génération du slug IA"
   }
 }

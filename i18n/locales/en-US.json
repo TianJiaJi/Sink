@@ -25,7 +25,9 @@
     "tips": "Tips",
     "preview_token": "The site token for preview mode is",
     "submit": "Login",
-    "failed": "Login failed, please try again"
+    "failed": "Login failed, please try again",
+    "token_label": "Site Token",
+    "token_required": "Token is required"
   },
   "logout": {
     "title": "LogOut?",
@@ -177,12 +179,22 @@
     "no_more": "No more links",
     "load_failed": "Loading links failed,",
     "download_qr_code": "Download QR Code",
+    "form": {
+      "url": "URL",
+      "slug": "Slug",
+      "comment": "Comment",
+      "expiration": "Expiration",
+      "pick_date": "Pick a date"
+    },
     "sort": {
       "newest": "Newest First",
       "oldest": "Oldest First",
       "az": "Slug A-Z",
       "za": "Slug Z-A",
       "tip": "Experience: Only for loaded links"
-    }
+    },
+    "update_failed": "Failed to update link",
+    "create_failed": "Failed to create link",
+    "ai_slug_failed": "Failed to generate AI slug"
   }
 }

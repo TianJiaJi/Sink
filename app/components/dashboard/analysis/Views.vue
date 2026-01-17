@@ -1,7 +1,15 @@
 <script setup lang="ts">
+import type { ChartConfig } from '@/components/ui/chart'
 import type { ViewDataPoint } from '@/types'
-import { AreaChart } from '@/components/ui/chart-area'
-import { BarChart } from '@/components/ui/chart-bar'
+import { VisArea, VisAxis, VisGroupedBar, VisLine, VisXYContainer } from '@unovis/vue'
+import {
+  ChartContainer,
+  ChartCrosshair,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+  componentToString,
+} from '@/components/ui/chart'
 
 const props = withDefaults(defineProps<{
   mode?: 'full' | 'simple'
@@ -14,8 +22,31 @@ const props = withDefaults(defineProps<{
   chartType: 'area',
 })
 
+const { t } = useI18n()
+
 const views = ref<ViewDataPoint[]>([])
-const chart = computed(() => (props.chartType === 'area' && views.value.length > 1) ? AreaChart : BarChart)
+
+const isAreaMode = computed(() => props.chartType === 'area' && views.value.length > 1)
+
+const chartConfig = computed<ChartConfig>(() => {
+  const config: ChartConfig = {
+    visits: {
+      label: t('dashboard.visits'),
+      color: 'var(--chart-1)',
+    },
+  }
+  if (props.mode === 'full') {
+    config.visitors = {
+      label: t('dashboard.visitors'),
+      color: 'var(--chart-2)',
+    }
+  }
+  return config
+})
+
+const categories = computed(() =>
+  props.mode === 'full' ? ['visits', 'visitors'] : ['visits'],
+)
 
 const id = inject(LINK_ID_KEY, computed(() => undefined))
 const analysisStore = useDashboardAnalysisStore()
@@ -71,13 +102,15 @@ onMounted(async () => {
   getLinkViews()
 })
 
-function formatTime(tick: number): string {
-  if (Number.isInteger(tick) && views.value[tick]) {
+type Data = ViewDataPoint
+
+function formatXAxis(tick: number, index: number): string {
+  if (Number.isInteger(index) && views.value[index]) {
     const { startAt, endAt } = effectiveTimeRange.value
     if (getUnit(startAt, endAt) === 'hour')
-      return views.value[tick].time.split(' ')[1] || ''
+      return views.value[index].time.split(' ')[1] || ''
 
-    return views.value[tick].time
+    return views.value[index].time
   }
   return ''
 }
@@ -99,16 +132,65 @@ function formatTime(tick: number): string {
     >
       {{ $t('dashboard.views') }}
     </CardTitle>
-    <component
-      :is="chart"
-      class="h-full w-full"
-      index="time"
-      :data="views"
-      :categories="mode === 'full' ? ['visits', 'visitors'] : ['visits']"
-      :x-formatter="formatTime"
-      :y-formatter="formatNumber"
-      :show-grid-line="mode === 'full'"
-      :show-legend="mode === 'full'"
-    />
+    <ChartContainer :config="chartConfig" class="aspect-[4/1] w-full">
+      <VisXYContainer :data="views" :margin="{ left: 0, right: 0 }">
+        <template v-if="isAreaMode">
+          <template v-for="cat in categories" :key="cat">
+            <VisArea
+              :x="(d: Data, i: number) => i"
+              :y="(d: Data) => d[cat as keyof Data] as number"
+              :color="chartConfig[cat]?.color ?? 'var(--chart-1)'"
+              :opacity="0.4"
+            />
+            <VisLine
+              :x="(d: Data, i: number) => i"
+              :y="(d: Data) => d[cat as keyof Data] as number"
+              :color="chartConfig[cat]?.color ?? 'var(--chart-1)'"
+              :line-width="2"
+            />
+          </template>
+        </template>
+
+        <template v-else>
+          <VisGroupedBar
+            :x="(d: Data, i: number) => i"
+            :y="categories.map(cat => (d: Data) => d[cat as keyof Data] as number)"
+            :color="categories.map(cat => chartConfig[cat]?.color ?? 'var(--chart-1)')"
+            :rounded-corners="4"
+          />
+        </template>
+
+        <VisAxis
+          v-if="mode === 'full'"
+          type="x"
+          :x="(d: Data, i: number) => i"
+          :tick-format="formatXAxis"
+          :tick-line="false"
+          :domain-line="false"
+          :grid-line="false"
+        />
+
+        <!-- Y 轴 -->
+        <VisAxis
+          v-if="mode === 'full'"
+          type="y"
+          :tick-format="formatNumber"
+          :tick-line="false"
+          :domain-line="false"
+          :grid-line="true"
+          :num-ticks="3"
+        />
+
+        <!-- Tooltip -->
+        <ChartTooltip />
+        <ChartCrosshair
+          :template="componentToString(chartConfig, ChartTooltipContent, { labelKey: 'time' })"
+          :color="categories.map(cat => chartConfig[cat]?.color ?? 'var(--chart-1)')"
+        />
+      </VisXYContainer>
+
+      <!-- Legend -->
+      <ChartLegendContent v-if="mode === 'full'" />
+    </ChartContainer>
   </Card>
 </template>

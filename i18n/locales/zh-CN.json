@@ -25,7 +25,9 @@
     "tips": "提示",
     "preview_token": "预览模式的站点令牌是",
     "submit": "登录",
-    "failed": "登录失败，请重试"
+    "failed": "登录失败，请重试",
+    "token_label": "站点令牌",
+    "token_required": "请输入令牌"
   },
   "logout": {
     "title": "退出登录？",
@@ -177,12 +179,22 @@
     "no_more": "没有更多链接",
     "load_failed": "加载链接失败,",
     "download_qr_code": "下载二维码",
+    "form": {
+      "url": "链接地址",
+      "slug": "短链",
+      "comment": "备注",
+      "expiration": "过期时间",
+      "pick_date": "选择日期"
+    },
     "sort": {
       "newest": "最新",
       "oldest": "最旧",
       "az": "短链(A-Z)",
       "za": "短链(Z-A)",
       "tip": "体验功能: 仅对已经加载的链接有效"
-    }
+    },
+    "update_failed": "更新链接失败",
+    "create_failed": "创建链接失败",
+    "ai_slug_failed": "AI 生成短链失败"
   }
 }

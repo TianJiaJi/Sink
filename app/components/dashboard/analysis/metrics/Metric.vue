@@ -33,11 +33,9 @@ async function getLinkMetrics() {
     },
   })
   if (Array.isArray(result.data)) {
-    const colors = colorGradation(result.data.length)
     total.value = result.data.reduce((acc, cur) => acc + Number(cur.count), 0)
-    metrics.value = result.data.map((item, i) => ({
+    metrics.value = result.data.map(item => ({
       ...item,
-      color: colors[i],
       percent: Math.floor(item.count / total.value * 100) || (item.count ? 1 : 0),
     }))
     top10.value = metrics.value.slice(0, 10)

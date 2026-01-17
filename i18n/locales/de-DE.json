@@ -25,7 +25,9 @@
     "tips": "Tipps",
     "preview_token": "Der Site-Token für den Vorschaumodus ist",
     "submit": "Anmelden",
-    "failed": "Anmeldung fehlgeschlagen, bitte versuche es erneut"
+    "failed": "Anmeldung fehlgeschlagen, bitte versuche es erneut",
+    "token_label": "Site-Token",
+    "token_required": "Token ist erforderlich"
   },
   "logout": {
     "title": "Abmelden?",
@@ -177,12 +179,22 @@
     "no_more": "Keine weiteren Links",
     "load_failed": "Laden der Links fehlgeschlagen,",
     "download_qr_code": "QR-Code herunterladen",
+    "form": {
+      "url": "URL",
+      "slug": "Slug",
+      "comment": "Kommentar",
+      "expiration": "Ablaufdatum",
+      "pick_date": "Datum auswählen"
+    },
     "sort": {
       "newest": "Neueste zuerst",
       "oldest": "Älteste zuerst",
       "az": "Slug A-Z",
       "za": "Slug Z-A",
       "tip": "Hinweis: Nur für geladene Links"
-    }
+    },
+    "update_failed": "Link konnte nicht aktualisiert werden",
+    "create_failed": "Link konnte nicht erstellt werden",
+    "ai_slug_failed": "KI-Slug konnte nicht generiert werden"
   }
 }
