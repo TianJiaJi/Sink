@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "nuxt dev --port 7465",
+    "analyze": "nuxt analyze",
     "build": "NODE_OPTIONS=--max-old-space-size=8192 nuxt build",
     "build:map": "node scripts/build-map.js",
     "build:colo": "node scripts/build-colo.js",
@@ -19,8 +20,8 @@
     "wrangler": "wrangler",
     "deploy": "npm run deploy:pages",
     "deploy:pages": "wrangler pages deploy dist",
-    "deploy:worker": "wrangler deploy",
-    "preview": "wrangler dev",
+    "deploy:worker": "wrangler deploy .output/server/index.mjs --assets .output/public",
+    "preview": "wrangler dev --remote .output/server/index.mjs --assets .output/public ",
     "postinstall": "npm run build:map && nuxt prepare",
     "prepare": "simple-git-hooks"
   },
