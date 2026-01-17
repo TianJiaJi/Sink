@@ -62,7 +62,7 @@ const formattedStars = computed(() => {
                           text-xs text-muted-foreground tabular-nums
                         "
                       >
-                        {{ formattedStars }}
+                        {{ formattedStars }} Stars
                       </span>
                     </template>
                   </a>

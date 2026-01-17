@@ -3,17 +3,6 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 
 const { currentPage, pageTitle } = useDashboardRoute()
-
-onNuxtReady(() => {
-  const preloadGlobe = () => import('@/components/dashboard/realtime/Globe.vue')
-
-  if ('requestIdleCallback' in window) {
-    requestIdleCallback(preloadGlobe)
-  }
-  else {
-    setTimeout(preloadGlobe, 2000)
-  }
-})
 </script>
 
 <template>
