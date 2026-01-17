@@ -9,6 +9,9 @@ const realtimeStore = useDashboardRealtimeStore()
 const stats = ref<CounterData>({ visits: 0, visitors: 0, referers: 0 })
 
 async function getRealtimeStats() {
+  if (realtimeStore.timeRange.startAt === 0) {
+    return
+  }
   const result = await useAPI<{ data: CounterData[] }>('/api/stats/counters', {
     query: {
       startAt: realtimeStore.timeRange.startAt,
@@ -24,7 +27,7 @@ watch([() => realtimeStore.timeRange, () => realtimeStore.filters], getRealtimeS
   deep: true,
 })
 
-onMounted(async () => {
+onMounted(() => {
   getRealtimeStats()
 })
 </script>

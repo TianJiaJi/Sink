@@ -8,6 +8,9 @@ const logs = ref<LogEvent[]>([])
 const logskey = ref(0)
 
 async function getEvents() {
+  if (realtimeStore.timeRange.startAt === 0) {
+    return
+  }
   const data = await useAPI<LogEvent[]>('/api/logs/events', {
     query: {
       startAt: realtimeStore.timeRange.startAt,

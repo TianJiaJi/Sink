@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { getLocalTimeZone, now } from '@internationalized/date'
-import { useUrlSearchParams } from '@vueuse/core'
 
 const emit = defineEmits<{
   'update:timeRange': [value: [number, number], key: string]
 }>()
 
-const timeRange = ref('last-1h')
+const realtimeStore = useDashboardRealtimeStore()
+const timeRange = ref(realtimeStore.timeName || 'last-1h')
 const tz = getLocalTimeZone()
+
+watch(() => realtimeStore.timeName, (newName) => {
+  if (newName && newName !== timeRange.value) {
+    timeRange.value = newName
+  }
+})
 
 watch(timeRange, (newValue) => {
   switch (newValue) {
@@ -39,27 +45,6 @@ watch(timeRange, (newValue) => {
       break
   }
 }, { deep: true })
-
-function restoreTimeRange() {
-  try {
-    const searchParams = useUrlSearchParams('history')
-    if (searchParams.time && typeof searchParams.time === 'string') {
-      timeRange.value = searchParams.time
-      triggerRef(timeRange)
-    }
-  }
-  catch (error) {
-    console.error('restore searchParams error', error)
-  }
-}
-
-defineExpose({
-  restoreTimeRange,
-})
-
-onBeforeMount(() => {
-  restoreTimeRange()
-})
 </script>
 
 <template>

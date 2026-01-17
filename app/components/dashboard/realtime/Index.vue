@@ -1,21 +1,10 @@
 <script setup lang="ts">
-import { getLocalTimeZone, now } from '@internationalized/date'
 import { useIntersectionObserver } from '@vueuse/core'
 
 const realtimeStore = useDashboardRealtimeStore()
 
 const globeContainer = useTemplateRef('globeContainer')
 const showGlobe = ref(false)
-const tz = getLocalTimeZone()
-
-function initTimeRange() {
-  if (realtimeStore.timeRange.startAt === 0) {
-    realtimeStore.updateTimeRange([
-      date2unix(now(tz).subtract({ hours: 1 })),
-      date2unix(now(tz)),
-    ])
-  }
-}
 
 const { stop } = useIntersectionObserver(
   globeContainer,
@@ -30,7 +19,7 @@ const { stop } = useIntersectionObserver(
 
 onBeforeMount(() => {
   realtimeStore.restoreFromUrl()
-  initTimeRange()
+  realtimeStore.initDefaultTimeRange()
 })
 </script>
 
