@@ -62,6 +62,7 @@ const effectiveFilters = computed(() =>
 
 const OneHour = 60 * 60
 const OneDay = 24 * 60 * 60
+
 function getUnit(startAt: number, endAt: number): 'minute' | 'hour' | 'day' {
   if (startAt && endAt && endAt - startAt <= OneHour)
     return 'minute'
@@ -70,6 +71,14 @@ function getUnit(startAt: number, endAt: number): 'minute' | 'hour' | 'day' {
     return 'hour'
 
   return 'day'
+}
+
+function parseTimeString(time: string): number {
+  if (time.includes(' ')) {
+    const [date, hour] = time.split(' ')
+    return new Date(`${date}T${hour.padStart(2, '0')}:00:00`).getTime()
+  }
+  return new Date(time).getTime()
 }
 
 async function getLinkViews() {
@@ -104,15 +113,12 @@ onMounted(async () => {
 
 type Data = ViewDataPoint
 
-function formatXAxis(tick: number, index: number): string {
-  if (Number.isInteger(index) && views.value[index]) {
-    const { startAt, endAt } = effectiveTimeRange.value
-    if (getUnit(startAt, endAt) === 'hour')
-      return views.value[index].time.split(' ')[1] || ''
+function formatXAxis(timestamp: number): string {
+  const { startAt, endAt } = effectiveTimeRange.value
+  if (getUnit(startAt, endAt) === 'hour')
+    return shortTime(timestamp / 1000)
 
-    return views.value[index].time
-  }
-  return ''
+  return shortDate(timestamp / 1000)
 }
 </script>
 
@@ -137,13 +143,13 @@ function formatXAxis(tick: number, index: number): string {
         <template v-if="isAreaMode">
           <template v-for="cat in categories" :key="cat">
             <VisArea
-              :x="(d: Data, i: number) => i"
+              :x="(d: Data) => parseTimeString(d.time)"
               :y="(d: Data) => d[cat as keyof Data] as number"
               :color="chartConfig[cat]?.color ?? 'var(--chart-1)'"
               :opacity="0.4"
             />
             <VisLine
-              :x="(d: Data, i: number) => i"
+              :x="(d: Data) => parseTimeString(d.time)"
               :y="(d: Data) => d[cat as keyof Data] as number"
               :color="chartConfig[cat]?.color ?? 'var(--chart-1)'"
               :line-width="2"
@@ -153,7 +159,7 @@ function formatXAxis(tick: number, index: number): string {
 
         <template v-else>
           <VisGroupedBar
-            :x="(d: Data, i: number) => i"
+            :x="(d: Data) => parseTimeString(d.time)"
             :y="categories.map(cat => (d: Data) => d[cat as keyof Data] as number)"
             :color="categories.map(cat => chartConfig[cat]?.color ?? 'var(--chart-1)')"
             :rounded-corners="4"
@@ -161,18 +167,18 @@ function formatXAxis(tick: number, index: number): string {
         </template>
 
         <VisAxis
-          v-if="mode === 'full'"
+          v-if="mode === 'full' && views.length"
           type="x"
-          :x="(d: Data, i: number) => i"
+          :x="(d: Data) => parseTimeString(d.time)"
+          :num-ticks="7"
           :tick-format="formatXAxis"
           :tick-line="false"
           :domain-line="false"
           :grid-line="false"
         />
 
-        <!-- Y 轴 -->
         <VisAxis
-          v-if="mode === 'full'"
+          v-if="mode === 'full' && views.length"
           type="y"
           :tick-format="formatNumber"
           :tick-line="false"
