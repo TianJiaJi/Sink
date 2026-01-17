@@ -74,14 +74,18 @@ function copyLink() {
               />
             </div>
 
-            <TooltipText
-              :text="link.comment || link.title || link.description"
-              content-class="max-w-[90svw] break-all"
-            >
-              <p class="truncate text-sm">
-                {{ link.comment || link.title || link.description }}
-              </p>
-            </TooltipText>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <p class="truncate text-sm">
+                    {{ link.comment || link.title || link.description }}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent class="max-w-[90svw] break-all">
+                  <p>{{ link.comment || link.title || link.description }}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           <a

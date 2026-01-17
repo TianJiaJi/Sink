@@ -1,4 +1,3 @@
-import type { Component } from 'vue'
 import { Activity, ChartArea, FolderSync, Link } from 'lucide-vue-next'
 
 export interface DashboardRouteConfig {

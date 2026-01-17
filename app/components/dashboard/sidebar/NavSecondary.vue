@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import { Languages, Laptop, Moon, Sun } from 'lucide-vue-next'
 import { GitHubIcon } from 'vue3-simple-icons'
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar'
+import { useSidebar } from '@/components/ui/sidebar'
 
 const { github } = useAppConfig()
 const colorMode = useColorMode()

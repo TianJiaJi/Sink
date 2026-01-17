@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
-import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar'
+import { useSidebar } from '@/components/ui/sidebar'
 
 defineProps<{
   platformItems: {

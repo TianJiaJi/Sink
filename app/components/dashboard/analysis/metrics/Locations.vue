@@ -3,7 +3,7 @@ import type { ChartConfig } from '@/components/ui/chart'
 import type { AreaData } from '@/types'
 import { VisSingleContainer, VisTooltip, VisTopoJSONMap, VisTopoJSONMapSelectors } from '@unovis/vue'
 import { useMounted } from '@vueuse/core'
-import { h, render } from 'vue'
+import { render } from 'vue'
 import { ChartTooltipContent } from '@/components/ui/chart'
 
 const isMounted = useMounted()

@@ -1,16 +1,6 @@
 <script setup lang="ts">
 import { ChevronsUpDown, LogOut } from 'lucide-vue-next'
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar'
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/ui/sidebar'
+import { useSidebar } from '@/components/ui/sidebar'
 
 interface User {
   name: string

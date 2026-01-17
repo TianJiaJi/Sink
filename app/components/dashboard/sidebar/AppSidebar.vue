@@ -1,15 +1,4 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar'
-
 interface NavItem {
   title: string
   url: string
