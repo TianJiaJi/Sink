@@ -1,16 +1,19 @@
 import { ImportDataSchema } from '@@/schemas/import'
 import { nanoid } from '@@/schemas/link'
 
+interface ImportResultItem {
+  index: number
+  slug: string
+  url: string
+}
+
 interface ImportResult {
   success: number
   skipped: number
   failed: number
-  failedItems: {
-    index: number
-    slug: string
-    url: string
-    reason: string
-  }[]
+  successItems: ImportResultItem[]
+  skippedItems: ImportResultItem[]
+  failedItems: (ImportResultItem & { reason: string })[]
 }
 
 export default eventHandler(async (event) => {
@@ -30,6 +33,8 @@ export default eventHandler(async (event) => {
     success: 0,
     skipped: 0,
     failed: 0,
+    successItems: [],
+    skippedItems: [],
     failedItems: [],
   }
 
@@ -41,6 +46,7 @@ export default eventHandler(async (event) => {
       const existingLink = await getLink(event, slug)
 
       if (existingLink) {
+        result.skippedItems.push({ index: i, slug, url: linkData.url })
         result.skipped++
         continue
       }
@@ -60,6 +66,7 @@ export default eventHandler(async (event) => {
       }
 
       await putLink(event, link)
+      result.successItems.push({ index: i, slug, url: linkData.url })
       result.success++
     }
     catch (error) {

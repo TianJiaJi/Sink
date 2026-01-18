@@ -4,16 +4,19 @@ import { ImportDataSchema } from '@@/schemas/import'
 import { AlertCircle, CheckCircle, Download, SkipForward, Upload, XCircle } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 
+interface ImportResultItem {
+  index: number
+  slug: string
+  url: string
+}
+
 interface ImportResult {
   success: number
   skipped: number
   failed: number
-  failedItems: {
-    index: number
-    slug: string
-    url: string
-    reason: string
-  }[]
+  successItems: ImportResultItem[]
+  skippedItems: ImportResultItem[]
+  failedItems: (ImportResultItem & { reason: string })[]
 }
 
 const { t } = useI18n()
@@ -96,6 +99,8 @@ async function handleImport() {
     success: 0,
     skipped: 0,
     failed: 0,
+    successItems: [],
+    skippedItems: [],
     failedItems: [],
   }
 
@@ -117,6 +122,14 @@ async function handleImport() {
       result.success += batchResult.success
       result.skipped += batchResult.skipped
       result.failed += batchResult.failed
+      result.successItems.push(...batchResult.successItems.map(item => ({
+        ...item,
+        index: item.index + batchStart,
+      })))
+      result.skippedItems.push(...batchResult.skippedItems.map(item => ({
+        ...item,
+        index: item.index + batchStart,
+      })))
       result.failedItems.push(...batchResult.failedItems.map(item => ({
         ...item,
         index: item.index + batchStart,
@@ -147,6 +160,44 @@ async function handleImport() {
   if (result.success > 0) {
     toast.success(t('migrate.import.result.success_message', { count: result.success }))
   }
+}
+
+function downloadSuccessItems() {
+  if (!importResult.value || importResult.value.successItems.length === 0)
+    return
+
+  const successLinks = importResult.value.successItems.map((item) => {
+    const originalLink = parsedData.value?.links[item.index]
+    return { ...originalLink }
+  })
+
+  const exportData = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    count: successLinks.length,
+    links: successLinks,
+  }
+
+  saveAsJson(exportData, `sink-import-success-${Date.now()}.json`)
+}
+
+function downloadSkippedItems() {
+  if (!importResult.value || importResult.value.skippedItems.length === 0)
+    return
+
+  const skippedLinks = importResult.value.skippedItems.map((item) => {
+    const originalLink = parsedData.value?.links[item.index]
+    return { ...originalLink }
+  })
+
+  const exportData = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    count: skippedLinks.length,
+    links: skippedLinks,
+  }
+
+  saveAsJson(exportData, `sink-import-skipped-${Date.now()}.json`)
 }
 
 function downloadFailedItems() {
@@ -279,9 +330,25 @@ function reset() {
           </div>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
           <Button variant="outline" @click="reset">
             {{ $t('migrate.import.import_more') }}
+          </Button>
+          <Button
+            v-if="importResult.success > 0"
+            variant="default"
+            @click="downloadSuccessItems"
+          >
+            <Download class="mr-2 h-4 w-4" />
+            {{ $t('migrate.import.download_success') }}
+          </Button>
+          <Button
+            v-if="importResult.skipped > 0"
+            variant="secondary"
+            @click="downloadSkippedItems"
+          >
+            <Download class="mr-2 h-4 w-4" />
+            {{ $t('migrate.import.download_skipped') }}
           </Button>
           <Button
             v-if="importResult.failed > 0"

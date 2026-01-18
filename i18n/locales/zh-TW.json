@@ -220,6 +220,8 @@
       "button": "開始導入",
       "importing": "導入中...",
       "import_more": "繼續導入",
+      "download_success": "下載成功項",
+      "download_skipped": "下載跳過項",
       "download_failed": "下載失敗項",
       "result": {
         "title": "導入結果",

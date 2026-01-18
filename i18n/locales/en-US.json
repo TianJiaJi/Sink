@@ -230,6 +230,8 @@
       "button": "Start Import",
       "importing": "Importing...",
       "import_more": "Import More",
+      "download_success": "Download Success Items",
+      "download_skipped": "Download Skipped Items",
       "download_failed": "Download Failed Items",
       "result": {
         "title": "Import Result",

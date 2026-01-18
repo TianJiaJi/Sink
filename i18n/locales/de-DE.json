@@ -220,6 +220,8 @@
       "button": "Import starten",
       "importing": "Importiere...",
       "import_more": "Weitere importieren",
+      "download_success": "Erfolgreiche herunterladen",
+      "download_skipped": "Übersprungene herunterladen",
       "download_failed": "Fehlgeschlagene herunterladen",
       "result": {
         "title": "Importergebnis",

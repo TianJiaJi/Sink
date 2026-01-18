@@ -220,6 +220,8 @@
       "button": "Bắt đầu nhập",
       "importing": "Đang nhập...",
       "import_more": "Nhập thêm",
+      "download_success": "Tải về các mục thành công",
+      "download_skipped": "Tải về các mục đã bỏ qua",
       "download_failed": "Tải về các mục thất bại",
       "result": {
         "title": "Kết quả nhập",
