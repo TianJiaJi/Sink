@@ -3,6 +3,22 @@ import { join } from 'node:path'
 
 // Tweet IDs to fetch
 const TWEET_IDS = [
+  '1990813013247492308', // @xmok_
+  '1876990358250246628', // @ianhowells
+  '1931199560489251052', // @indie_maker_fox
+  '1944683470627741966', // @allentown521
+  '1925250262870237555', // @Mokkapps
+  '1795169172873413116', // @GitHubGPT
+  '1953003326317920422', // @ossalternative
+  '1809763345320624271', // @f_sugar
+  '1833125667568804284', // @bitdoze
+  '1817702576629985685', // @HiTw93
+  '1846465874389356916', // @luoleiorg
+  '1796478331522781460', // @LuoSays
+  '1905626254931624281', // @DeBill_me
+  '1930301401323975179', // @lakphy
+  '1961700003459862799', // @wey_gu
+  '1794746047136411723', // @NoPeople404
   '1988243083558035901', // @yeahwong
   '1808150012058390969', // @m1ssuo
   '1893594908147270073', // @hellokaton
@@ -46,7 +62,10 @@ async function fetchTweet(id) {
 async function main() {
   console.log('Fetching testimonials from Twitter...')
 
-  const results = await Promise.all(TWEET_IDS.map(fetchTweet))
+  // Shuffle TWEET_IDS for random order
+  const shuffledIds = [...TWEET_IDS].sort(() => Math.random() - 0.5)
+
+  const results = await Promise.all(shuffledIds.map(fetchTweet))
   const testimonials = results.filter(Boolean)
 
   if (testimonials.length === 0) {
