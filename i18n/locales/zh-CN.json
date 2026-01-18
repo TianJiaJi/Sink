@@ -107,6 +107,16 @@
     },
     "twitter": {
       "follow": "在 X(Twitter) 上关注我"
+    },
+    "stats": {
+      "title": "Sink 数据",
+      "subtitle": "受到全球开发者的信赖",
+      "stars": "GitHub Stars",
+      "forks": "Forks"
+    },
+    "testimonials": {
+      "title": "用户好评",
+      "subtitle": "看看开发者们怎么说"
     }
   },
   "dashboard": {

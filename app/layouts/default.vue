@@ -1,243 +1,219 @@
 <script setup lang="ts">
-import { Ellipsis, X } from 'lucide-vue-next'
+import { Menu, Star, X } from 'lucide-vue-next'
 import { GitHubIcon, TelegramIcon, XIcon } from 'vue3-simple-icons'
 
 const showMenu = ref(false)
 const { title, telegram, twitter, github } = useAppConfig()
+const { stats } = useGithubStats()
 </script>
 
 <template>
-  <main class="flex min-h-screen flex-col">
+  <div class="flex min-h-screen flex-col">
     <!-- Header -->
-    <section class="pb-6">
-      <nav class="relative z-50 container h-24 select-none">
-        <div
-          class="
-            relative mx-auto flex h-24 flex-wrap items-center justify-between
-            overflow-hidden border-b border-gray-200 px-0 font-medium
-            md:overflow-visible
-            lg:justify-center
-          "
-        >
-          <div class="flex h-full w-1/4 items-center justify-start pr-4">
-            <a
-              href="/"
-              :title="title"
-              class="
-                flex items-center space-x-2 py-4 text-xl font-black
-                text-gray-900
-                md:py-0
-                dark:text-gray-100
-              "
-            >
-              <span
-                class="flex h-8 w-8 items-center justify-center rounded-full"
-              >
-                <img
-                  src="/sink.png"
-                  :alt="title"
-                  class="h-full w-full rounded-full"
-                >
-              </span>
-              <span class="mx-2">{{ title }}</span>
-            </a>
-          </div>
-
+    <header>
+      <nav
+        :data-state="showMenu && 'active'"
+        class="fixed z-20 w-full border-b bg-background/50 backdrop-blur-3xl"
+      >
+        <div class="mx-auto max-w-6xl px-6 transition-all duration-300">
           <div
             class="
-              top-0 left-0 h-full w-full items-start bg-gray-900/50 p-4 text-sm
-              md:relative md:flex md:w-3/4 md:items-center md:bg-transparent
-              md:p-0
-              lg:text-base
+              relative flex flex-wrap items-center justify-between gap-6 py-3
+              lg:gap-0 lg:py-4
             "
-            :class="{ 'fixed flex': showMenu, 'hidden': !showMenu }"
-            @touchmove.prevent
           >
             <div
               class="
-                h-auto w-full flex-col overflow-hidden rounded-lg bg-background
-                md:relative md:flex md:flex-row md:overflow-visible
-                md:rounded-none
+                flex w-full items-center justify-between gap-12
+                lg:w-auto
               "
             >
-              <a
-                href="/"
+              <NuxtLink
+                to="/"
                 :title="title"
-                class="
-                  inline-flex h-16 w-auto items-center px-4 text-xl leading-none
-                  font-black text-gray-900
-                  md:hidden
-                  dark:text-gray-100
-                "
+                aria-label="home"
+                class="flex items-center space-x-2"
               >
                 <span
-                  class="
-                    flex h-8 w-8 items-center justify-center rounded-full
-                    bg-gray-900 text-white
-                  "
+                  class="flex size-8 items-center justify-center rounded-full"
                 >
                   <img
                     src="/sink.png"
                     :alt="title"
-                    class="h-full w-full rounded-full"
+                    class="size-full rounded-full"
                   >
                 </span>
-                <span class="mx-2">{{ title }}</span>
-              </a>
-              <div class="mx-4 w-auto" />
+                <span class="text-xl font-black">{{ title }}</span>
+              </NuxtLink>
+
+              <button
+                aria-label="Toggle Menu"
+                :aria-expanded="showMenu"
+                aria-controls="mobile-menu"
+                class="
+                  relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5
+                  lg:hidden
+                "
+                @click="showMenu = !showMenu"
+              >
+                <Menu
+                  class="m-auto size-6 duration-200" :class="[
+                    showMenu && 'scale-0 rotate-180 opacity-0',
+                  ]"
+                />
+                <X
+                  class="absolute inset-0 m-auto size-6 duration-200" :class="[
+                    showMenu ? 'scale-100 rotate-0 opacity-100' : `
+                      scale-0 -rotate-180 opacity-0
+                    `,
+                  ]"
+                />
+              </button>
+            </div>
+
+            <div
+              id="mobile-menu"
+              class="
+                mb-6 w-full flex-wrap items-center justify-end space-y-8
+                rounded-3xl border bg-background p-6 shadow-2xl
+                shadow-zinc-300/20
+                md:flex-nowrap
+                lg:m-0 lg:flex lg:w-fit lg:items-center lg:gap-6 lg:space-y-0
+                lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none
+                dark:shadow-none dark:lg:bg-transparent
+              " :class="[
+                showMenu ? 'block' : 'hidden',
+              ]"
+            >
               <div
                 class="
-                  flex w-full flex-col items-start justify-end pt-4
-                  md:flex-row md:items-center md:py-0
+                  flex w-full flex-col items-center space-y-3
+                  sm:flex-row sm:gap-3 sm:space-y-0
+                  md:w-fit
                 "
               >
-                <a
-                  class="
-                    mr-0 w-full cursor-pointer px-6 py-2 text-gray-700
-                    md:mr-2 md:w-auto md:px-3
-                    lg:mr-3
-                    dark:text-gray-300
-                  "
-                  href="/dashboard"
-                  :title="`${title} ${$t('dashboard.title')}`"
-                >{{ $t('dashboard.title') }}</a>
-                <a
-                  :href="github"
-                  target="_blank"
-                  :title="$t('layouts.footer.social.github')"
-                  class="
-                    mr-2 inline-flex w-full items-center bg-gray-900 px-6 py-3
-                    text-sm leading-4 font-medium text-white
-                    hover:bg-gray-800
-                    focus:ring-0 focus:ring-gray-800 focus:ring-offset-2
-                    focus:outline-hidden
-                    md:w-auto md:rounded-full md:px-3 md:focus:ring-2
-                  "
+                <Button
+                  as-child
+                  variant="outline"
+                  size="sm"
                 >
-                  <GitHubIcon
-                    class="mr-1 h-5 w-5"
-                  />
-                  {{ $t('layouts.footer.social.github') }}</a>
+                  <a
+                    :href="github"
+                    target="_blank"
+                    :title="$t('layouts.footer.social.github')"
+                    class="flex items-center gap-1.5"
+                  >
+                    <GitHubIcon class="size-4" />
+                    <Star class="size-3" />
+                    <span class="tabular-nums">{{ stats.stars }}</span>
+                  </a>
+                </Button>
 
                 <SwitchLanguage />
-
                 <SwitchTheme />
               </div>
             </div>
           </div>
-
-          <div
-            class="
-              absolute right-0 flex h-10 w-10 cursor-pointer flex-col
-              items-center justify-center rounded-full
-              hover:bg-muted
-              md:hidden
-            "
-            :class="{ 'right-2': showMenu }"
-            @click="showMenu = !showMenu"
-          >
-            <Ellipsis
-              v-show="!showMenu"
-              class="h-6 w-6"
-            />
-            <X
-              v-show="showMenu"
-              class="h-6 w-6"
-            />
-          </div>
         </div>
       </nav>
-    </section>
+    </header>
 
     <!-- Main Content -->
-    <section class="flex flex-1">
-      <div class="container">
-        <slot />
-      </div>
-    </section>
+    <main class="flex-1 pt-20">
+      <slot />
+    </main>
 
     <!-- Footer -->
-    <section class="md:pt-6">
-      <div
-        class="
-          container flex flex-col items-center py-8
-          sm:flex-row
-        "
-      >
-        <a
-          href="https://sink.cool"
+    <footer class="border-t bg-background py-8">
+      <div class="mx-auto max-w-6xl px-6">
+        <div
           class="
-            text-xl leading-none font-black text-gray-900 select-none
-            dark:text-gray-100
-          "
-          :title="title"
-        >{{ title }}</a>
-        <a
-          class="
-            mt-4 text-sm text-gray-500
-            sm:mt-0 sm:ml-4 sm:border-l sm:border-gray-200 sm:pl-4
-          "
-          href="https://html.zone"
-          target="_blank"
-          title="HTML.ZONE"
-        >
-          &copy; {{ new Date().getFullYear() }} {{ $t('layouts.footer.copyright') }}
-        </a>
-        <span
-          class="
-            mt-4 inline-flex justify-center space-x-5
-            sm:mt-0 sm:ml-auto sm:justify-start
+            flex flex-col items-center gap-6 pt-2
+            md:flex-row md:justify-between
           "
         >
-          <a
-            v-if="telegram"
-            :href="telegram"
-            target="_blank"
-            :title="$t('layouts.footer.social.telegram')"
+          <div
             class="
-              text-gray-400
-              hover:text-gray-500
+              flex flex-col items-center gap-4
+              md:flex-row md:gap-6
             "
           >
-            <span class="sr-only">{{ $t('layouts.footer.social.telegram') }}</span>
-            <TelegramIcon
-              class="h-6 w-6"
-            />
-          </a>
+            <NuxtLink
+              to="/"
+              :title="title"
+              aria-label="home"
+              class="block size-fit"
+            >
+              <div class="flex items-center space-x-2">
+                <span
+                  class="flex size-8 items-center justify-center rounded-full"
+                >
+                  <img
+                    src="/sink.png"
+                    :alt="title"
+                    class="size-full rounded-full"
+                  >
+                </span>
+                <span class="text-xl font-black">{{ title }}</span>
+              </div>
+            </NuxtLink>
 
-          <a
-            v-if="twitter"
-            :href="twitter"
-            target="_blank"
-            :title="$t('layouts.footer.social.twitter')"
-            class="
-              text-gray-400
-              hover:text-gray-500
-            "
-          >
-            <span class="sr-only">{{ $t('layouts.footer.social.twitter') }}</span>
-            <XIcon
-              class="h-6 w-6"
-            />
-          </a>
+            <small class="block text-center text-sm text-muted-foreground">
+              &copy; {{ new Date().getFullYear() }}
+              <a
+                href="https://html.zone"
+                target="_blank"
+                title="HTML.ZONE"
+                class="hover:text-primary"
+              >
+                {{ $t('layouts.footer.copyright') }}
+              </a>
+            </small>
+          </div>
 
-          <a
-            v-if="github"
-            :href="github"
-            target="_blank"
-            :title="$t('layouts.footer.social.github')"
-            class="
-              text-gray-400
-              hover:text-gray-500
-            "
-          >
-            <span class="sr-only">{{ $t('layouts.footer.social.github') }}</span>
-            <GitHubIcon
-              class="h-6 w-6"
-            />
-          </a>
-        </span>
+          <div class="flex justify-center gap-6 text-sm">
+            <a
+              v-if="twitter"
+              :href="twitter"
+              target="_blank"
+              rel="noopener noreferrer"
+              :aria-label="$t('layouts.footer.social.twitter')"
+              class="
+                block text-muted-foreground
+                hover:text-primary
+              "
+            >
+              <XIcon class="size-6" />
+            </a>
+            <a
+              v-if="telegram"
+              :href="telegram"
+              target="_blank"
+              rel="noopener noreferrer"
+              :aria-label="$t('layouts.footer.social.telegram')"
+              class="
+                block text-muted-foreground
+                hover:text-primary
+              "
+            >
+              <TelegramIcon class="size-6" />
+            </a>
+            <a
+              v-if="github"
+              :href="github"
+              target="_blank"
+              rel="noopener noreferrer"
+              :aria-label="$t('layouts.footer.social.github')"
+              class="
+                block text-muted-foreground
+                hover:text-primary
+              "
+            >
+              <GitHubIcon class="size-6" />
+            </a>
+          </div>
+        </div>
       </div>
-    </section>
-  </main>
+    </footer>
+  </div>
 </template>

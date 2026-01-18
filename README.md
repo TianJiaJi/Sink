@@ -141,6 +141,7 @@ We currently do not support native MCP Server, but we have OpenAPI documentation
 1. [**Cloudflare**](https://www.cloudflare.com/)
 2. [**NuxtHub**](https://hub.nuxt.com/)
 3. [**Astroship**](https://astroship.web3templates.com/)
+4. [**Tailark**](https://tailark.com/)
 
 ## ☕ Sponsor
 
