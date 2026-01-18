@@ -177,6 +177,7 @@ const { stats } = useGithubStats()
               :href="twitter"
               target="_blank"
               rel="noopener noreferrer"
+              :title="$t('layouts.footer.social.twitter')"
               :aria-label="$t('layouts.footer.social.twitter')"
               class="
                 block text-muted-foreground
@@ -190,6 +191,7 @@ const { stats } = useGithubStats()
               :href="telegram"
               target="_blank"
               rel="noopener noreferrer"
+              :title="$t('layouts.footer.social.telegram')"
               :aria-label="$t('layouts.footer.social.telegram')"
               class="
                 block text-muted-foreground
@@ -203,6 +205,7 @@ const { stats } = useGithubStats()
               :href="github"
               target="_blank"
               rel="noopener noreferrer"
+              :title="$t('layouts.footer.social.github')"
               :aria-label="$t('layouts.footer.social.github')"
               class="
                 block text-muted-foreground

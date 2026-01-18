@@ -1,5 +1,9 @@
 <script setup lang="ts">
 const { currentPage, pageTitle } = useDashboardRoute()
+
+useSeoMeta({
+  robots: 'noindex, nofollow',
+})
 </script>
 
 <template>

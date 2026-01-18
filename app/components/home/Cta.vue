@@ -40,7 +40,7 @@ const { github } = useAppConfig()
               size="lg"
               variant="outline"
             >
-              <NuxtLink to="/dashboard">
+              <NuxtLink to="/dashboard" :title="$t('dashboard.title')">
                 {{ $t('dashboard.title') }}
               </NuxtLink>
             </Button>

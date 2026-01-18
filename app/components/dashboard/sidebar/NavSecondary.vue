@@ -41,6 +41,7 @@ const formattedStars = computed(() => {
                   <a
                     :href="github"
                     target="_blank"
+                    :title="$t('sidebar.github')"
                     class="
                       flex h-8 items-center justify-center gap-1.5 rounded-md
                       px-2

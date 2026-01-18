@@ -46,7 +46,7 @@ const settingsItems = computed<NavItem[]>(() => [
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size="lg" as-child>
-            <NuxtLink to="/">
+            <NuxtLink to="/" :title="title">
               <div
                 class="
                   flex aspect-square size-8 items-center justify-center

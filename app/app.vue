@@ -2,9 +2,10 @@
 import 'vue-sonner/style.css'
 
 const { title, description, image } = useAppConfig()
+const route = useRoute()
 
 useSeoMeta({
-  title: `${title} - ${description}`,
+  title: `${title} - Link Shortener with Analytics`,
   description,
   ogType: 'website',
   ogTitle: title,
@@ -28,6 +29,10 @@ useHead({
     },
   ],
   link: [
+    {
+      rel: 'canonical',
+      href: computed(() => `https://sink.cool${route.path}`),
+    },
     {
       rel: 'icon',
       type: 'image/png',
