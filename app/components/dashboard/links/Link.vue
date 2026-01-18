@@ -74,14 +74,18 @@ function copyLink() {
               />
             </div>
 
-            <TooltipText
-              :text="link.comment || link.title || link.description"
-              content-class="max-w-[90svw] break-all"
-            >
-              <p class="truncate text-sm">
-                {{ link.comment || link.title || link.description }}
-              </p>
-            </TooltipText>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <p class="truncate text-sm">
+                    {{ link.comment || link.title || link.description }}
+                  </p>
+                </TooltipTrigger>
+                <TooltipContent class="max-w-[90svw] break-all">
+                  <p>{{ link.comment || link.title || link.description }}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           <a
@@ -165,8 +169,8 @@ function copyLink() {
                 ><CalendarPlus2 class="mr-1 h-4 w-4" /> {{ shortDate(link.createdAt) }}</span>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Created At: {{ longDate(link.createdAt) }}</p>
-                <p>Updated At: {{ longDate(link.updatedAt) }}</p>
+                <p>{{ $t('links.created_at') }}: {{ longDate(link.createdAt) }}</p>
+                <p>{{ $t('links.updated_at') }}: {{ longDate(link.updatedAt) }}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -180,7 +184,7 @@ function copyLink() {
                   ><Hourglass class="mr-1 h-4 w-4" /> {{ shortDate(link.expiration) }}</span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Expires At: {{ longDate(link.expiration) }}</p>
+                  <p>{{ $t('links.expires_at') }}: {{ longDate(link.expiration) }}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

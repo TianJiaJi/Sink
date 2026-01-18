@@ -53,7 +53,8 @@
   "nav": {
     "links": "Links",
     "analysis": "Analysis",
-    "realtime": "Realtime"
+    "realtime": "Realtime",
+    "migrate": "Import/Export"
   },
   "sidebar": {
     "subtitle": "Link Shortener",
@@ -61,9 +62,13 @@
     "settings": "Settings",
     "import": "Import",
     "export": "Export",
-    "github": "GitHub"
+    "github": "GitHub",
+    "stars": "Stars"
   },
   "home": {
+    "hero": {
+      "github_repo": "GitHub Repo"
+    },
     "features": {
       "title": "Features",
       "subtitle": "Simple and sufficient functionality",
@@ -179,6 +184,7 @@
     "no_more": "No more links",
     "load_failed": "Loading links failed,",
     "download_qr_code": "Download QR Code",
+    "change_qr_color": "Change QR code color",
     "form": {
       "url": "URL",
       "slug": "Slug",
@@ -196,5 +202,38 @@
     "update_failed": "Failed to update link",
     "create_failed": "Failed to create link",
     "ai_slug_failed": "Failed to generate AI slug"
+  },
+  "migrate": {
+    "export": {
+      "title": "Export Links",
+      "description": "Download all your links as a JSON file",
+      "button": "Export All",
+      "total_links": "Total links",
+      "success": "Export successful",
+      "failed": "Export failed"
+    },
+    "import": {
+      "title": "Import Links",
+      "description": "Upload a JSON file to import links",
+      "dropzone": "Drop JSON file here or click to upload",
+      "links_found": "links found",
+      "button": "Start Import",
+      "importing": "Importing...",
+      "import_more": "Import More",
+      "download_failed": "Download Failed Items",
+      "result": {
+        "title": "Import Result",
+        "success": "Successfully imported",
+        "skipped": "Skipped (already exists)",
+        "failed": "Failed",
+        "success_message": "{count} links imported successfully"
+      },
+      "errors": {
+        "invalid_json": "Invalid JSON file",
+        "invalid_format": "Invalid file format. Please use a file exported from Sink.",
+        "no_links": "No links found in file",
+        "parse_error": "Failed to parse file"
+      }
+    }
   }
 }

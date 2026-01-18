@@ -34,6 +34,7 @@ export default defineNuxtConfig({
     public: {
       previewMode: '',
       slugDefaultLength: '6',
+      kvBatchLimit: '50',
     },
   },
   routeRules: {
@@ -105,6 +106,9 @@ export default defineNuxtConfig({
   },
   typescript: {
     strict: false,
+    tsConfig: {
+      include: ['../schemas/**/*'],
+    },
   },
   eslint: {
     config: {

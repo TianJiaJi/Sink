@@ -9,7 +9,7 @@ const { twitter } = useAppConfig()
   <a
     :href="twitter"
     target="_blank"
-    title="X(Twitter)"
+    :title="$t('layouts.footer.social.twitter')"
     class="
       mx-auto my-4 inline-flex items-center space-x-1 rounded-lg bg-muted px-3
       py-1 text-sm font-medium

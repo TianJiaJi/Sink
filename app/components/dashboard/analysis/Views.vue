@@ -3,10 +3,6 @@ import type { ChartConfig } from '@/components/ui/chart'
 import type { ViewDataPoint } from '@/types'
 import { VisArea, VisAxis, VisGroupedBar, VisLine, VisXYContainer } from '@unovis/vue'
 import {
-  ChartContainer,
-  ChartCrosshair,
-  ChartLegendContent,
-  ChartTooltip,
   ChartTooltipContent,
   componentToString,
 } from '@/components/ui/chart'

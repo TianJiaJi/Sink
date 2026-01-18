@@ -1,16 +1,4 @@
 <script setup lang="ts">
-import type { Component } from 'vue'
-import { Import, Upload } from 'lucide-vue-next'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar'
-
 interface NavItem {
   title: string
   url: string
@@ -44,16 +32,10 @@ const platformItems = computed<NavItem[]>(() => [
 
 const settingsItems = computed<NavItem[]>(() => [
   {
-    title: 'sidebar.import',
-    url: '#',
-    icon: Import,
-    isActive: false,
-  },
-  {
-    title: 'sidebar.export',
-    url: '#',
-    icon: Upload,
-    isActive: false,
+    title: 'nav.migrate',
+    url: '/dashboard/migrate',
+    icon: DASHBOARD_ROUTES.migrate.icon,
+    isActive: isActive('migrate'),
   },
 ])
 </script>

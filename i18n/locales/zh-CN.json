@@ -53,7 +53,8 @@
   "nav": {
     "links": "链接",
     "analysis": "分析",
-    "realtime": "实时"
+    "realtime": "实时",
+    "migrate": "导入/导出"
   },
   "sidebar": {
     "subtitle": "短链接服务",
@@ -61,9 +62,13 @@
     "settings": "设置",
     "import": "导入",
     "export": "导出",
-    "github": "GitHub"
+    "github": "GitHub",
+    "stars": "Stars"
   },
   "home": {
+    "hero": {
+      "github_repo": "GitHub 仓库"
+    },
     "features": {
       "title": "功能特点",
       "subtitle": "简单而实用的功能",
@@ -179,6 +184,7 @@
     "no_more": "没有更多链接",
     "load_failed": "加载链接失败,",
     "download_qr_code": "下载二维码",
+    "change_qr_color": "更改二维码颜色",
     "form": {
       "url": "链接地址",
       "slug": "短链",
@@ -196,5 +202,38 @@
     "update_failed": "更新链接失败",
     "create_failed": "创建链接失败",
     "ai_slug_failed": "AI 生成短链失败"
+  },
+  "migrate": {
+    "export": {
+      "title": "导出链接",
+      "description": "将所有链接下载为 JSON 文件",
+      "button": "导出全部",
+      "total_links": "链接总数",
+      "success": "导出成功",
+      "failed": "导出失败"
+    },
+    "import": {
+      "title": "导入链接",
+      "description": "上传 JSON 文件以导入链接",
+      "dropzone": "拖拽 JSON 文件到此处或点击上传",
+      "links_found": "条链接",
+      "button": "开始导入",
+      "importing": "导入中...",
+      "import_more": "继续导入",
+      "download_failed": "下载失败项",
+      "result": {
+        "title": "导入结果",
+        "success": "成功导入",
+        "skipped": "已跳过（已存在）",
+        "failed": "失败",
+        "success_message": "成功导入 {count} 条链接"
+      },
+      "errors": {
+        "invalid_json": "无效的 JSON 文件",
+        "invalid_format": "文件格式无效，请使用从 Sink 导出的文件",
+        "no_links": "文件中未找到链接",
+        "parse_error": "文件解析失败"
+      }
+    }
   }
 }

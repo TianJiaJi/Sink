@@ -109,13 +109,13 @@ onMounted(() => {
             dark:border-gray-600
           "
           :style="{ backgroundColor: color }"
-          title="Change QR code color"
+          :title="$t('links.change_qr_color')"
         >
           <input
             v-model="color"
             type="color"
             class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-            title="Change QR code color"
+            :title="$t('links.change_qr_color')"
           >
         </div>
       </div>
