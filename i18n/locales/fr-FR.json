@@ -171,6 +171,7 @@
     "delete_confirm_title": "Êtes-vous absolument sûr ?",
     "delete_confirm_desc": "Cette action est irréversible. Cela supprimera votre lien des serveurs.",
     "delete_success": "Suppression réussie !",
+    "delete_failed": "Échec de la suppression !",
     "update_success": "Lien mis à jour avec succès",
     "create_success": "Lien créé avec succès",
     "preview_mode_tip": "Le lien en mode aperçu est valide jusqu'à 5 minutes.",

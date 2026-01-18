@@ -10,14 +10,20 @@ const { t } = useI18n()
 const linksStore = useDashboardLinksStore()
 
 async function deleteLink() {
-  await useAPI('/api/link/delete', {
-    method: 'POST',
-    body: {
-      slug: props.link.slug,
-    },
-  })
-  linksStore.notifyLinkUpdate(props.link, 'delete')
-  toast(t('links.delete_success'))
+  try {
+    await useAPI('/api/link/delete', {
+      method: 'POST',
+      body: {
+        slug: props.link.slug,
+      },
+    })
+    linksStore.notifyLinkUpdate(props.link, 'delete')
+    toast(t('links.delete_success'))
+  }
+  catch (error) {
+    console.error(error)
+    toast.error(t('links.delete_failed'))
+  }
 }
 </script>
 

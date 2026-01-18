@@ -1,6 +1,5 @@
 import type { NitroFetchOptions, NitroFetchRequest } from 'nitropack'
 import { defu } from 'defu'
-import { toast } from 'vue-sonner'
 
 type APIOptions = Omit<NitroFetchOptions<NitroFetchRequest>, 'headers'> & {
   headers?: Record<string, string>
@@ -17,9 +16,6 @@ export function useAPI<T = unknown>(api: string, options?: APIOptions): Promise<
     if (error?.status === 401) {
       localStorage.removeItem('SinkSiteToken')
       navigateTo('/dashboard/login')
-    }
-    if (error?.data?.statusMessage) {
-      toast.error(error?.data?.statusMessage)
     }
     return Promise.reject(error)
   }) as Promise<T>

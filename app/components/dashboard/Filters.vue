@@ -20,7 +20,12 @@ const isOpen = ref(false)
 const selectedLinks = ref<string[]>([])
 
 async function getLinks() {
-  links.value = await useAPI('/api/link/search')
+  try {
+    links.value = await useAPI('/api/link/search')
+  }
+  catch (error) {
+    console.error(error)
+  }
 }
 
 onMounted(() => {

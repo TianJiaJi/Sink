@@ -48,7 +48,12 @@ function selectLink(link: Link | undefined) {
 }
 
 async function getLinks() {
-  links.value = await useAPI('/api/link/search') as Link[]
+  try {
+    links.value = await useAPI('/api/link/search') as Link[]
+  }
+  catch (error) {
+    console.error(error)
+  }
 }
 
 onMounted(() => {

@@ -171,6 +171,7 @@
     "delete_confirm_title": "Bist du dir absolut sicher?",
     "delete_confirm_desc": "Diese Aktion kann nicht rückgängig gemacht werden. Dadurch wird dein Link wirklich von den Servern gelöscht.",
     "delete_success": "Erfolgreich gelöscht!",
+    "delete_failed": "Löschen fehlgeschlagen!",
     "update_success": "Link erfolgreich aktualisiert",
     "create_success": "Link erfolgreich erstellt",
     "preview_mode_tip": "Der Link im Vorschaumodus ist bis zu 5 Minuten gültig.",

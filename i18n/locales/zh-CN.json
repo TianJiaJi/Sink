@@ -181,6 +181,7 @@
     "delete_confirm_title": "确定要删除吗？",
     "delete_confirm_desc": "此操作无法撤销。这将从服务器中永久删除您的链接。",
     "delete_success": "删除成功！",
+    "delete_failed": "删除失败！",
     "update_success": "链接更新成功",
     "create_success": "链接创建成功",
     "preview_mode_tip": "预览模式下的链接最多有效5分钟。",

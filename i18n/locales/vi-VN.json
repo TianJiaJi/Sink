@@ -171,6 +171,7 @@
     "delete_confirm_title": "Bạn có chắc chắn không?",
     "delete_confirm_desc": "Hành động này không thể hoàn tác. Điều này sẽ xóa hoàn toàn liên kết khỏi máy chủ.",
     "delete_success": "Xóa thành công!",
+    "delete_failed": "Xóa thất bại!",
     "update_success": "Cập nhật liên kết thành công",
     "create_success": "Tạo liên kết thành công",
     "preview_mode_tip": "Liên kết ở chế độ xem trước có hiệu lực trong 5 phút.",

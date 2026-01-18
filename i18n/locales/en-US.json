@@ -181,6 +181,7 @@
     "delete_confirm_title": "Are you absolutely sure?",
     "delete_confirm_desc": "This action cannot be undone. This will really delete your link from servers.",
     "delete_success": "Delete successful!",
+    "delete_failed": "Delete failed!",
     "update_success": "Link updated successfully",
     "create_success": "Link created successfully",
     "preview_mode_tip": "The preview mode link is valid for up to 5 minutes.",
