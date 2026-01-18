@@ -1,5 +1,15 @@
 <script setup lang="ts">
+import { useScroll } from '@vueuse/core'
+
 const { currentPage, pageTitle } = useDashboardRoute()
+const route = useRoute()
+
+const scrollContainer = ref<HTMLElement | null>(null)
+const { y } = useScroll(scrollContainer)
+
+watch(() => route.fullPath, () => {
+  y.value = 0
+})
 
 useSeoMeta({
   robots: 'noindex, nofollow',
@@ -64,7 +74,7 @@ useSeoMeta({
           </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4">
+        <div ref="scrollContainer" class="flex-1 overflow-y-auto p-4">
           <slot />
         </div>
       </div>
