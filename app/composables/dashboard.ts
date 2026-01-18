@@ -8,7 +8,12 @@ export interface DashboardRouteConfig {
 
 export const DASHBOARD_ROUTES: Record<string, DashboardRouteConfig> = {
   links: {
-    paths: ['/dashboard/links', '/dashboard/link'],
+    paths: ['/dashboard/links'],
+    titleKey: 'nav.links',
+    icon: Link,
+  },
+  link: {
+    paths: ['/dashboard/link'],
     titleKey: 'nav.links',
     icon: Link,
   },
