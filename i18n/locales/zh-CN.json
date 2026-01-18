@@ -62,9 +62,13 @@
     "settings": "设置",
     "import": "导入",
     "export": "导出",
-    "github": "GitHub"
+    "github": "GitHub",
+    "stars": "Stars"
   },
   "home": {
+    "hero": {
+      "github_repo": "GitHub 仓库"
+    },
     "features": {
       "title": "功能特点",
       "subtitle": "简单而实用的功能",
@@ -180,6 +184,7 @@
     "no_more": "没有更多链接",
     "load_failed": "加载链接失败,",
     "download_qr_code": "下载二维码",
+    "change_qr_color": "更改二维码颜色",
     "form": {
       "url": "链接地址",
       "slug": "短链",

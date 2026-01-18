@@ -99,12 +99,12 @@ const { title, telegram, twitter, github } = useAppConfig()
                     dark:text-gray-300
                   "
                   href="/dashboard"
-                  :title="`${title} Dashboard`"
+                  :title="`${title} ${$t('dashboard.title')}`"
                 >{{ $t('dashboard.title') }}</a>
                 <a
                   :href="github"
                   target="_blank"
-                  title="Github"
+                  :title="$t('layouts.footer.social.github')"
                   class="
                     mr-2 inline-flex w-full items-center bg-gray-900 px-6 py-3
                     text-sm leading-4 font-medium text-white
@@ -117,7 +117,7 @@ const { title, telegram, twitter, github } = useAppConfig()
                   <GitHubIcon
                     class="mr-1 h-5 w-5"
                   />
-                  GitHub</a>
+                  {{ $t('layouts.footer.social.github') }}</a>
 
                 <SwitchLanguage />
 
@@ -181,7 +181,7 @@ const { title, telegram, twitter, github } = useAppConfig()
           target="_blank"
           title="HTML.ZONE"
         >
-          &copy; {{ new Date().getFullYear() }} Products of HTML.ZONE
+          &copy; {{ new Date().getFullYear() }} {{ $t('layouts.footer.copyright') }}
         </a>
         <span
           class="
@@ -193,13 +193,13 @@ const { title, telegram, twitter, github } = useAppConfig()
             v-if="telegram"
             :href="telegram"
             target="_blank"
-            title="Telegram"
+            :title="$t('layouts.footer.social.telegram')"
             class="
               text-gray-400
               hover:text-gray-500
             "
           >
-            <span class="sr-only">Telegram</span>
+            <span class="sr-only">{{ $t('layouts.footer.social.telegram') }}</span>
             <TelegramIcon
               class="h-6 w-6"
             />
@@ -209,13 +209,13 @@ const { title, telegram, twitter, github } = useAppConfig()
             v-if="twitter"
             :href="twitter"
             target="_blank"
-            title="Twitter"
+            :title="$t('layouts.footer.social.twitter')"
             class="
               text-gray-400
               hover:text-gray-500
             "
           >
-            <span class="sr-only">Twitter</span>
+            <span class="sr-only">{{ $t('layouts.footer.social.twitter') }}</span>
             <XIcon
               class="h-6 w-6"
             />
@@ -225,13 +225,13 @@ const { title, telegram, twitter, github } = useAppConfig()
             v-if="github"
             :href="github"
             target="_blank"
-            title="GitHub"
+            :title="$t('layouts.footer.social.github')"
             class="
               text-gray-400
               hover:text-gray-500
             "
           >
-            <span class="sr-only">GitHub</span>
+            <span class="sr-only">{{ $t('layouts.footer.social.github') }}</span>
             <GitHubIcon
               class="h-6 w-6"
             />

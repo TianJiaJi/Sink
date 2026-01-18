@@ -62,9 +62,13 @@
     "settings": "Settings",
     "import": "Import",
     "export": "Export",
-    "github": "GitHub"
+    "github": "GitHub",
+    "stars": "Stars"
   },
   "home": {
+    "hero": {
+      "github_repo": "GitHub Repo"
+    },
     "features": {
       "title": "Features",
       "subtitle": "Simple and sufficient functionality",
@@ -180,6 +184,7 @@
     "no_more": "No more links",
     "load_failed": "Loading links failed,",
     "download_qr_code": "Download QR Code",
+    "change_qr_color": "Change QR code color",
     "form": {
       "url": "URL",
       "slug": "Slug",

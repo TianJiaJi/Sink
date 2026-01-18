@@ -36,7 +36,7 @@ const { title, description, github } = useAppConfig()
         <HomeLink
           href="/dashboard"
           target="_blank"
-          title="Dashboard"
+          :title="$t('dashboard.title')"
           class="flex items-center justify-center gap-1"
           rel="noopener"
         >
@@ -50,14 +50,14 @@ const { title, description, github } = useAppConfig()
           type="outline"
           rel="noopener"
           :href="github"
-          title="Github"
+          :title="$t('layouts.footer.social.github')"
           class="flex items-center justify-center gap-1"
           target="_blank"
         >
           <GitHubIcon
             class="h-5 w-5"
           />
-          GitHub Repo
+          {{ $t('home.hero.github_repo') }}
         </HomeLink>
       </div>
     </div>

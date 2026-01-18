@@ -62,9 +62,13 @@
     "settings": "Einstellungen",
     "import": "Importieren",
     "export": "Exportieren",
-    "github": "GitHub"
+    "github": "GitHub",
+    "stars": "Stars"
   },
   "home": {
+    "hero": {
+      "github_repo": "GitHub-Repository"
+    },
     "features": {
       "title": "Funktionen",
       "subtitle": "Einfache und effektive Funktionalität.",
@@ -180,6 +184,7 @@
     "no_more": "Keine weiteren Links",
     "load_failed": "Laden der Links fehlgeschlagen,",
     "download_qr_code": "QR-Code herunterladen",
+    "change_qr_color": "QR-Code-Farbe ändern",
     "form": {
       "url": "URL",
       "slug": "Slug",

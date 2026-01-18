@@ -169,8 +169,8 @@ function copyLink() {
                 ><CalendarPlus2 class="mr-1 h-4 w-4" /> {{ shortDate(link.createdAt) }}</span>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Created At: {{ longDate(link.createdAt) }}</p>
-                <p>Updated At: {{ longDate(link.updatedAt) }}</p>
+                <p>{{ $t('links.created_at') }}: {{ longDate(link.createdAt) }}</p>
+                <p>{{ $t('links.updated_at') }}: {{ longDate(link.updatedAt) }}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -184,7 +184,7 @@ function copyLink() {
                   ><Hourglass class="mr-1 h-4 w-4" /> {{ shortDate(link.expiration) }}</span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Expires At: {{ longDate(link.expiration) }}</p>
+                  <p>{{ $t('links.expires_at') }}: {{ longDate(link.expiration) }}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

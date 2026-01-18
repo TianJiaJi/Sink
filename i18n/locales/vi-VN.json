@@ -62,9 +62,13 @@
     "settings": "Cài đặt",
     "import": "Nhập",
     "export": "Xuất",
-    "github": "GitHub"
+    "github": "GitHub",
+    "stars": "Stars"
   },
   "home": {
+    "hero": {
+      "github_repo": "Kho GitHub"
+    },
     "features": {
       "title": "Tính năng",
       "subtitle": "Đơn giản và đủ dùng",
@@ -180,6 +184,7 @@
     "no_more": "Không còn liên kết nào",
     "load_failed": "Tải liên kết thất bại,",
     "download_qr_code": "Tải mã QR",
+    "change_qr_color": "Thay đổi màu mã QR",
     "form": {
       "url": "URL",
       "slug": "Slug",

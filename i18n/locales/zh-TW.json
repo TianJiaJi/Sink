@@ -62,9 +62,13 @@
     "settings": "設定",
     "import": "導入",
     "export": "導出",
-    "github": "GitHub"
+    "github": "GitHub",
+    "stars": "Stars"
   },
   "home": {
+    "hero": {
+      "github_repo": "GitHub 倉庫"
+    },
     "features": {
       "title": "功能特色",
       "subtitle": "簡單而實用的功能",
@@ -180,6 +184,7 @@
     "no_more": "沒有更多連結",
     "load_failed": "加載連接失敗,",
     "download_qr_code": "下載QR code",
+    "change_qr_color": "更改二維碼顏色",
     "form": {
       "url": "連結地址",
       "slug": "短連結",

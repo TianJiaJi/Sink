@@ -56,13 +56,13 @@ const formattedStars = computed(() => {
                           text-xs text-muted-foreground tabular-nums
                         "
                       >
-                        {{ formattedStars }} Stars
+                        {{ formattedStars }} {{ $t('sidebar.stars') }}
                       </span>
                     </template>
                   </a>
                 </TooltipTrigger>
                 <TooltipContent :side="state === 'collapsed' ? 'right' : 'top'">
-                  <p>GitHub</p>
+                  <p>{{ $t('sidebar.github') }}</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
