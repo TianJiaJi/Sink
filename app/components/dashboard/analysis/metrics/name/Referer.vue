@@ -1,7 +1,7 @@
-<script setup>
-defineProps({
-  name: String,
-})
+<script setup lang="ts">
+defineProps<{
+  name?: string
+}>()
 </script>
 
 <template>
@@ -22,7 +22,7 @@ defineProps({
       <AvatarFallback>
         <img
           src="/icon.png"
-          alt="Sink"
+          :alt="name"
           loading="lazy"
         >
       </AvatarFallback>
