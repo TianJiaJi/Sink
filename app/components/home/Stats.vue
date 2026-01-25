@@ -28,11 +28,16 @@ const { stats } = useGithubStats()
 
       <div
         class="
-          grid gap-12 divide-y
+          grid gap-0 divide-y
           md:grid-cols-2 md:gap-2 md:divide-x md:divide-y-0
         "
       >
-        <div class="space-y-4 text-center">
+        <div
+          class="
+            space-y-4 pb-6 text-center
+            md:pb-0
+          "
+        >
           <ClientOnly>
             <template #fallback>
               <Skeleton class="mx-auto h-12 w-24" />
@@ -47,7 +52,7 @@ const { stats } = useGithubStats()
         </div>
         <div
           class="
-            space-y-4 pt-12 text-center
+            space-y-4 pt-6 text-center
             md:pt-0
           "
         >
