@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { stats, status } = useGithubStats()
+const { stats } = useGithubStats()
 </script>
 
 <template>
@@ -33,16 +33,14 @@ const { stats, status } = useGithubStats()
         "
       >
         <div class="space-y-4 text-center">
-          <Skeleton
-            v-if="status === 'pending'"
-            class="mx-auto h-12 w-24"
-          />
-          <div
-            v-else
-            class="text-5xl font-bold tabular-nums"
-          >
-            {{ stats.stars }}
-          </div>
+          <ClientOnly>
+            <template #fallback>
+              <Skeleton class="mx-auto h-12 w-24" />
+            </template>
+            <div class="text-5xl font-bold tabular-nums">
+              {{ stats.stars }}
+            </div>
+          </ClientOnly>
           <p class="text-muted-foreground">
             {{ $t('home.stats.stars') }}
           </p>
@@ -53,16 +51,14 @@ const { stats, status } = useGithubStats()
             md:pt-0
           "
         >
-          <Skeleton
-            v-if="status === 'pending'"
-            class="mx-auto h-12 w-24"
-          />
-          <div
-            v-else
-            class="text-5xl font-bold tabular-nums"
-          >
-            {{ stats.forks }}
-          </div>
+          <ClientOnly>
+            <template #fallback>
+              <Skeleton class="mx-auto h-12 w-24" />
+            </template>
+            <div class="text-5xl font-bold tabular-nums">
+              {{ stats.forks }}
+            </div>
+          </ClientOnly>
           <p class="text-muted-foreground">
             {{ $t('home.stats.forks') }}
           </p>
