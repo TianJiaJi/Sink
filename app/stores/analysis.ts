@@ -1,5 +1,7 @@
+import { defineStore } from '#imports'
 import { useUrlSearchParams } from '@vueuse/core'
 import { safeDestr } from 'destr'
+import { ref } from 'vue'
 
 export const useDashboardAnalysisStore = defineStore('dashboard-analysis', () => {
   const searchParams = useUrlSearchParams('history')

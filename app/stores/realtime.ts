@@ -1,6 +1,9 @@
+import { defineStore } from '#imports'
 import { getLocalTimeZone, now } from '@internationalized/date'
 import { useUrlSearchParams } from '@vueuse/core'
 import { safeDestr } from 'destr'
+import { ref } from 'vue'
+import { date2unix } from '@/utils/time'
 
 export const useDashboardRealtimeStore = defineStore('dashboard-realtime', () => {
   const searchParams = useUrlSearchParams('history')

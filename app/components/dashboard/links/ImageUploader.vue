@@ -4,23 +4,15 @@ import { toast } from 'vue-sonner'
 import { IMAGE_ALLOWED_TYPES, IMAGE_MAX_SIZE } from '@/utils/image'
 
 const props = defineProps<{
-  modelValue?: string
   slug: string
 }>()
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string | undefined]
-}>()
+const imageUrl = defineModel<string>()
 
 const { t } = useI18n()
 const uploading = ref(false)
 const dragOver = ref(false)
-const fileInput = ref<HTMLInputElement>()
-
-const imageUrl = computed({
-  get: () => props.modelValue,
-  set: value => emit('update:modelValue', value),
-})
+const fileInput = useTemplateRef<HTMLInputElement>('fileInput')
 
 async function handleFile(file: File) {
   if (!IMAGE_ALLOWED_TYPES.includes(file.type)) {

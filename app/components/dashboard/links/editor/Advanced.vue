@@ -153,7 +153,8 @@ const defaultOpenItems = computed(() => {
                 :name="field.name"
                 :model-value="field.state.value"
                 :aria-invalid="getAriaInvalid(field)"
-                placeholder="https://play.google.com/store/apps/..."
+                placeholder="https://play.google.com/store/apps/…"
+                autocomplete="off"
                 @blur="field.handleBlur"
                 @input="field.handleChange(($event.target as HTMLInputElement).value)"
               />
@@ -178,7 +179,8 @@ const defaultOpenItems = computed(() => {
                 :name="field.name"
                 :model-value="field.state.value"
                 :aria-invalid="getAriaInvalid(field)"
-                placeholder="https://apps.apple.com/app/..."
+                placeholder="https://apps.apple.com/app/…"
+                autocomplete="off"
                 @blur="field.handleBlur"
                 @input="field.handleChange(($event.target as HTMLInputElement).value)"
               />

@@ -14,7 +14,7 @@ const className = cn(
   'relative mx-auto my-1 min-h-fit w-full cursor-pointer rounded-2xl border',
   // animation styles
   `
-    transform-gpu transition-all duration-200 ease-in-out
+    transform-gpu transition-transform duration-200 ease-in-out
     hover:scale-[103%]
   `,
   // light styles

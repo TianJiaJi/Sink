@@ -18,13 +18,13 @@ const customDateRange = ref<DateRange | undefined>()
 const locale = getLocale()
 const tz = getLocalTimeZone()
 
-function updateCustomDate(customDateValue) {
+function updateCustomDate(customDateValue: DateValue) {
   emit('update:dateRange', [date2unix(customDateValue, 'start'), date2unix(customDateValue, 'end')])
   openCustomDateRange.value = false
   customDate.value = undefined
 }
 
-function updateCustomDateRange(customDateRangeValue) {
+function updateCustomDateRange(customDateRangeValue: DateRange) {
   if (customDateRangeValue.start && customDateRangeValue.end) {
     emit('update:dateRange', [date2unix(customDateRangeValue.start, 'start'), date2unix(customDateRangeValue.end, 'end')])
     openCustomDateRange.value = false
@@ -32,8 +32,8 @@ function updateCustomDateRange(customDateRangeValue) {
   }
 }
 
-function isDateDisabled(dateValue) {
-  return dateValue.toDate() > new Date()
+function isDateDisabled(dateValue: DateValue) {
+  return dateValue.toDate(tz) > new Date()
 }
 
 watch(dateRange, (newValue) => {
@@ -153,7 +153,7 @@ onBeforeMount(() => {
           :model-value="customDate"
           weekday-format="short"
           :is-date-disabled="isDateDisabled"
-          @update:model-value="updateCustomDate"
+          @update:model-value="(date) => date && updateCustomDate(date)"
         />
       </TabsContent>
       <TabsContent
