@@ -1,53 +1,144 @@
 <script setup lang="ts">
 import type { DateValue } from '@internationalized/date'
+import type { Component } from 'vue'
+import type { AnyFieldApi, LinkFormData } from '@/types'
 import { today } from '@internationalized/date'
-import { CalendarIcon, ChevronDown } from 'lucide-vue-next'
+import { CalendarIcon } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
   form: {
-    Field: any
-    getFieldValue: (name: string) => any
-    setFieldValue: (name: string, value: any) => void
+    Field: Component
+    getFieldValue: (name: keyof LinkFormData) => LinkFormData[keyof LinkFormData]
   }
   validateOptionalUrl: (ctx: { value: string }) => string | undefined
-  validateComment: (ctx: { value: string }) => string | undefined
-  isInvalid: (field: any) => boolean
-  getAriaInvalid: (field: any) => string | undefined
+  isInvalid: (field: AnyFieldApi) => boolean
+  getAriaInvalid: (field: AnyFieldApi) => string | undefined
   formatErrors: (errors: unknown[]) => string[]
   currentSlug: string
 }>()
 
-const advancedOpen = ref(false)
 const datePickerOpen = ref(false)
+
+// Compute default open items based on existing values
+const defaultOpenItems = computed(() => {
+  const items: string[] = []
+  if (props.form.getFieldValue('expiration')) {
+    items.push('expiration')
+  }
+  if (props.form.getFieldValue('title') || props.form.getFieldValue('description') || props.form.getFieldValue('image')) {
+    items.push('og')
+  }
+  if (props.form.getFieldValue('google') || props.form.getFieldValue('apple')) {
+    items.push('device')
+  }
+  return items
+})
 </script>
 
 <template>
-  <Collapsible v-model:open="advancedOpen" class="space-y-2">
-    <CollapsibleTrigger as-child>
-      <Button
-        type="button"
-        variant="ghost"
-        class="
-          flex w-full justify-between px-0
-          hover:bg-transparent
-        "
-      >
-        <span class="font-medium">{{ $t('links.form.more_options') }}</span>
-        <ChevronDown
-          class="h-4 w-4 transition-transform"
-          :class="{ 'rotate-180': advancedOpen }"
-        />
-      </Button>
-    </CollapsibleTrigger>
-    <CollapsibleContent class="space-y-6 pt-2">
-      <!-- Device Redirect -->
-      <div class="space-y-4">
-        <h4 class="text-sm font-medium text-muted-foreground">
-          {{ $t('links.form.device_redirect') }}
-        </h4>
+  <Accordion type="multiple" :default-value="defaultOpenItems" class="w-full">
+    <AccordionItem value="expiration">
+      <AccordionTrigger>{{ $t('links.form.expiration') }}</AccordionTrigger>
+      <AccordionContent>
+        <props.form.Field v-slot="{ field }" name="expiration">
+          <Field :data-invalid="isInvalid(field)">
+            <Popover v-model:open="datePickerOpen">
+              <PopoverTrigger as-child>
+                <Button
+                  :id="field.name"
+                  variant="outline"
+                  :class="cn(
+                    'w-full justify-start text-left font-normal',
+                    !field.state.value && 'text-muted-foreground',
+                  )"
+                >
+                  <CalendarIcon class="mr-2 h-4 w-4" />
+                  {{
+                    field.state.value
+                      ? field.state.value.toDate(getTimeZone()).toLocaleDateString()
+                      : $t('links.form.pick_date')
+                  }}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent class="w-auto p-0" align="start">
+                <Calendar
+                  :model-value="field.state.value"
+                  :default-placeholder="today(getTimeZone())"
+                  layout="month-and-year"
+                  initial-focus
+                  @update:model-value="(v: DateValue | undefined) => {
+                    field.handleChange(v)
+                    datePickerOpen = false
+                  }"
+                />
+              </PopoverContent>
+            </Popover>
+            <FieldError
+              v-if="isInvalid(field)"
+              :errors="formatErrors(field.state.meta.errors)"
+            />
+          </Field>
+        </props.form.Field>
+      </AccordionContent>
+    </AccordionItem>
+
+    <AccordionItem value="og">
+      <AccordionTrigger>{{ $t('links.form.og_settings') }}</AccordionTrigger>
+      <AccordionContent>
         <FieldGroup>
-          <!-- Google Play URL -->
+          <props.form.Field v-slot="{ field }" name="title">
+            <Field>
+              <FieldLabel :for="field.name">
+                {{ $t('links.form.og_title') }}
+              </FieldLabel>
+              <Input
+                :id="field.name"
+                :name="field.name"
+                :model-value="field.state.value"
+                :placeholder="$t('links.form.og_title_placeholder')"
+                @blur="field.handleBlur"
+                @input="field.handleChange(($event.target as HTMLInputElement).value)"
+              />
+            </Field>
+          </props.form.Field>
+
+          <props.form.Field v-slot="{ field }" name="description">
+            <Field>
+              <FieldLabel :for="field.name">
+                {{ $t('links.form.og_description') }}
+              </FieldLabel>
+              <Textarea
+                :id="field.name"
+                :name="field.name"
+                :model-value="field.state.value"
+                :placeholder="$t('links.form.og_description_placeholder')"
+                @blur="field.handleBlur"
+                @input="field.handleChange(($event.target as HTMLTextAreaElement).value)"
+              />
+            </Field>
+          </props.form.Field>
+
+          <props.form.Field v-slot="{ field }" name="image">
+            <Field>
+              <FieldLabel :for="field.name">
+                {{ $t('links.form.og_image') }}
+              </FieldLabel>
+              <DashboardLinksImageUploader
+                :model-value="field.state.value"
+                :slug="currentSlug"
+                @update:model-value="field.handleChange($event || '')"
+              />
+            </Field>
+          </props.form.Field>
+        </FieldGroup>
+      </AccordionContent>
+    </AccordionItem>
+
+    <AccordionItem value="device">
+      <AccordionTrigger>{{ $t('links.form.device_redirect') }}</AccordionTrigger>
+      <AccordionContent>
+        <FieldGroup>
           <props.form.Field
             v-slot="{ field }"
             name="google"
@@ -73,7 +164,6 @@ const datePickerOpen = ref(false)
             </Field>
           </props.form.Field>
 
-          <!-- App Store URL -->
           <props.form.Field
             v-slot="{ field }"
             name="apple"
@@ -99,144 +189,7 @@ const datePickerOpen = ref(false)
             </Field>
           </props.form.Field>
         </FieldGroup>
-      </div>
-
-      <Separator />
-
-      <!-- OpenGraph Settings -->
-      <div class="space-y-4">
-        <h4 class="text-sm font-medium text-muted-foreground">
-          {{ $t('links.form.og_settings') }}
-        </h4>
-        <FieldGroup>
-          <!-- Title -->
-          <props.form.Field v-slot="{ field }" name="title">
-            <Field>
-              <FieldLabel :for="field.name">
-                {{ $t('links.form.og_title') }}
-              </FieldLabel>
-              <Input
-                :id="field.name"
-                :name="field.name"
-                :model-value="field.state.value"
-                :placeholder="$t('links.form.og_title_placeholder')"
-                @blur="field.handleBlur"
-                @input="field.handleChange(($event.target as HTMLInputElement).value)"
-              />
-            </Field>
-          </props.form.Field>
-
-          <!-- Description -->
-          <props.form.Field v-slot="{ field }" name="description">
-            <Field>
-              <FieldLabel :for="field.name">
-                {{ $t('links.form.og_description') }}
-              </FieldLabel>
-              <Textarea
-                :id="field.name"
-                :name="field.name"
-                :model-value="field.state.value"
-                :placeholder="$t('links.form.og_description_placeholder')"
-                @blur="field.handleBlur"
-                @input="field.handleChange(($event.target as HTMLTextAreaElement).value)"
-              />
-            </Field>
-          </props.form.Field>
-
-          <!-- Image -->
-          <props.form.Field v-slot="{ field }" name="image">
-            <Field>
-              <FieldLabel :for="field.name">
-                {{ $t('links.form.og_image') }}
-              </FieldLabel>
-              <DashboardLinksImageUploader
-                :model-value="field.state.value"
-                :slug="currentSlug"
-                @update:model-value="field.handleChange($event || '')"
-              />
-            </Field>
-          </props.form.Field>
-        </FieldGroup>
-      </div>
-
-      <Separator />
-
-      <!-- Advanced Settings -->
-      <div class="space-y-4">
-        <h4 class="text-sm font-medium text-muted-foreground">
-          {{ $t('links.form.advanced') }}
-        </h4>
-        <FieldGroup>
-          <!-- Comment Field -->
-          <props.form.Field
-            v-slot="{ field }"
-            name="comment"
-            :validators="{ onBlur: validateComment }"
-          >
-            <Field :data-invalid="isInvalid(field)">
-              <FieldLabel :for="field.name">
-                {{ $t('links.form.comment') }}
-              </FieldLabel>
-              <Textarea
-                :id="field.name"
-                :name="field.name"
-                :model-value="field.state.value"
-                :aria-invalid="getAriaInvalid(field)"
-                @blur="field.handleBlur"
-                @input="field.handleChange(($event.target as HTMLTextAreaElement).value)"
-              />
-              <FieldError
-                v-if="isInvalid(field)"
-                :errors="formatErrors(field.state.meta.errors)"
-              />
-            </Field>
-          </props.form.Field>
-
-          <!-- Expiration Date Picker -->
-          <props.form.Field v-slot="{ field }" name="expiration">
-            <Field :data-invalid="isInvalid(field)">
-              <FieldLabel :for="field.name">
-                {{ $t('links.form.expiration') }}
-              </FieldLabel>
-              <Popover v-model:open="datePickerOpen">
-                <PopoverTrigger as-child>
-                  <Button
-                    :id="field.name"
-                    variant="outline"
-                    :class="cn(
-                      'w-full justify-start text-left font-normal',
-                      !field.state.value && 'text-muted-foreground',
-                    )"
-                  >
-                    <CalendarIcon class="mr-2 h-4 w-4" />
-                    {{
-                      field.state.value
-                        ? field.state.value.toDate(getTimeZone()).toLocaleDateString()
-                        : $t('links.form.pick_date')
-                    }}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent class="w-auto p-0" align="start">
-                  <Calendar
-                    :model-value="field.state.value"
-                    :default-placeholder="today(getTimeZone())"
-                    layout="month-and-year"
-                    initial-focus
-                    @update:model-value="(v: DateValue | undefined) => {
-                      field.handleChange(v)
-                      datePickerOpen = false
-                    }"
-                  />
-                </PopoverContent>
-              </Popover>
-              <FieldError
-                v-if="isInvalid(field)"
-                :errors="formatErrors(field.state.meta.errors)"
-              />
-            </Field>
-          </props.form.Field>
-        </FieldGroup>
-      </div>
-    </CollapsibleContent>
-  </Collapsible>
+      </AccordionContent>
+    </AccordionItem>
+  </Accordion>
 </template>

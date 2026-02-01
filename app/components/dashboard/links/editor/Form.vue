@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { DateValue } from '@internationalized/date'
-import type { Link } from '@/types'
+import type { AnyFieldApi, Link, LinkFormData } from '@/types'
 import { LinkSchema, nanoid } from '@@/schemas/link'
 import { useForm } from '@tanstack/vue-form'
 import { Shuffle, Sparkles } from 'lucide-vue-next'
@@ -32,13 +31,13 @@ const form = useForm({
     comment: props.link.comment ?? '',
     expiration: props.link.expiration
       ? unix2date(props.link.expiration)
-      : undefined as DateValue | undefined,
+      : undefined,
     google: props.link.google ?? '',
     apple: props.link.apple ?? '',
     title: props.link.title ?? '',
     description: props.link.description ?? '',
     image: props.link.image ?? '',
-  },
+  } satisfies LinkFormData,
   onSubmit: async ({ value }) => {
     try {
       const linkData = {
@@ -85,11 +84,11 @@ const validateSlug = makeValidator(slugValidator)
 const validateComment = makeValidator(commentValidator)
 const validateOptionalUrl = makeValidator(optionalUrlValidator)
 
-function isInvalid(field: { state: { meta: { isTouched: boolean, isValid: boolean } } }) {
+function isInvalid(field: AnyFieldApi) {
   return field.state.meta.isTouched && !field.state.meta.isValid
 }
 
-function getAriaInvalid(field: { state: { meta: { isTouched: boolean, isValid: boolean } } }) {
+function getAriaInvalid(field: AnyFieldApi) {
   return isInvalid(field) ? 'true' : undefined
 }
 
@@ -143,7 +142,7 @@ defineExpose({ randomSlug })
 <template>
   <form
     id="link-editor-form"
-    class="space-y-4 px-1"
+    class="w-full space-y-4 px-1"
     @submit.prevent="form.handleSubmit"
   >
     <p
@@ -154,7 +153,6 @@ defineExpose({ randomSlug })
     </p>
 
     <FieldGroup>
-      <!-- URL Field -->
       <form.Field
         v-slot="{ field }"
         name="url"
@@ -180,7 +178,6 @@ defineExpose({ randomSlug })
         </Field>
       </form.Field>
 
-      <!-- Slug Field -->
       <form.Field
         v-slot="{ field }"
         name="slug"
@@ -219,13 +216,35 @@ defineExpose({ randomSlug })
           />
         </Field>
       </form.Field>
+
+      <form.Field
+        v-slot="{ field }"
+        name="comment"
+        :validators="{ onBlur: validateComment }"
+      >
+        <Field :data-invalid="isInvalid(field)">
+          <FieldLabel :for="field.name">
+            {{ $t('links.form.comment') }}
+          </FieldLabel>
+          <Textarea
+            :id="field.name"
+            :name="field.name"
+            :model-value="field.state.value"
+            :aria-invalid="getAriaInvalid(field)"
+            @blur="field.handleBlur"
+            @input="field.handleChange(($event.target as HTMLTextAreaElement).value)"
+          />
+          <FieldError
+            v-if="isInvalid(field)"
+            :errors="formatErrors(field.state.meta.errors)"
+          />
+        </Field>
+      </form.Field>
     </FieldGroup>
 
-    <!-- Advanced Options -->
     <DashboardLinksEditorAdvanced
       :form="form"
       :validate-optional-url="validateOptionalUrl"
-      :validate-comment="validateComment"
       :is-invalid="isInvalid"
       :get-aria-invalid="getAriaInvalid"
       :format-errors="formatErrors"
