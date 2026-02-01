@@ -95,6 +95,30 @@
       "link_expiration": {
         "title": "Link Expiration",
         "description": "Set expiration dates for your links"
+      },
+      "device_routing": {
+        "title": "Device Routing",
+        "description": "Redirect iOS/Android users to App Store links"
+      },
+      "og_preview": {
+        "title": "Social Preview",
+        "description": "Custom OpenGraph previews for social media"
+      },
+      "realtime_analytics": {
+        "title": "Real-time Analytics",
+        "description": "Live 3D globe and real-time event logs"
+      },
+      "qr_code": {
+        "title": "QR Code",
+        "description": "Generate QR codes for your short links"
+      },
+      "import_export": {
+        "title": "Import/Export",
+        "description": "Bulk migration via JSON files"
+      },
+      "multi_language": {
+        "title": "Multi-language",
+        "description": "Full i18n support for the dashboard"
       }
     },
     "cta": {

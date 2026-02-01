@@ -95,6 +95,30 @@
       "link_expiration": {
         "title": "Expiration des liens",
         "description": "Définissez des dates d'expiration pour vos liens"
+      },
+      "device_routing": {
+        "title": "Routage par appareil",
+        "description": "Redirigez les utilisateurs iOS/Android vers les stores d'apps"
+      },
+      "og_preview": {
+        "title": "Aperçu social",
+        "description": "Aperçus OpenGraph personnalisés pour les réseaux sociaux"
+      },
+      "realtime_analytics": {
+        "title": "Analyses en temps réel",
+        "description": "Globe 3D en direct et journaux d'événements"
+      },
+      "qr_code": {
+        "title": "Code QR",
+        "description": "Générez des codes QR pour vos liens courts"
+      },
+      "import_export": {
+        "title": "Import/Export",
+        "description": "Migration en masse via fichiers JSON"
+      },
+      "multi_language": {
+        "title": "Multilingue",
+        "description": "Support i18n complet pour le tableau de bord"
       }
     },
     "cta": {

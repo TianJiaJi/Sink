@@ -95,6 +95,30 @@
       "link_expiration": {
         "title": "短連結過期",
         "description": "為您的短連結設定過期日期"
+      },
+      "device_routing": {
+        "title": "裝置路由",
+        "description": "iOS/Android 用戶自動跳轉應用商店"
+      },
+      "og_preview": {
+        "title": "社交預覽",
+        "description": "自訂社交媒體 OpenGraph 預覽"
+      },
+      "realtime_analytics": {
+        "title": "即時分析",
+        "description": "3D 地球視覺化和即時事件日誌"
+      },
+      "qr_code": {
+        "title": "QR Code",
+        "description": "為短連結生成 QR Code"
+      },
+      "import_export": {
+        "title": "匯入/匯出",
+        "description": "透過 JSON 檔案批次遷移"
+      },
+      "multi_language": {
+        "title": "多語言",
+        "description": "儀表板完整的國際化支援"
       }
     },
     "cta": {

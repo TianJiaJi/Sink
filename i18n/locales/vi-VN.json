@@ -95,6 +95,30 @@
       "link_expiration": {
         "title": "Hết hạn liên kết",
         "description": "Đặt ngày hết hạn cho liên kết"
+      },
+      "device_routing": {
+        "title": "Điều hướng thiết bị",
+        "description": "Chuyển hướng người dùng iOS/Android đến App Store"
+      },
+      "og_preview": {
+        "title": "Xem trước mạng xã hội",
+        "description": "Tùy chỉnh OpenGraph cho mạng xã hội"
+      },
+      "realtime_analytics": {
+        "title": "Phân tích thời gian thực",
+        "description": "Địa cầu 3D trực tiếp và nhật ký sự kiện"
+      },
+      "qr_code": {
+        "title": "Mã QR",
+        "description": "Tạo mã QR cho liên kết rút gọn"
+      },
+      "import_export": {
+        "title": "Nhập/Xuất",
+        "description": "Di chuyển hàng loạt qua tệp JSON"
+      },
+      "multi_language": {
+        "title": "Đa ngôn ngữ",
+        "description": "Hỗ trợ i18n đầy đủ cho bảng điều khiển"
       }
     },
     "cta": {

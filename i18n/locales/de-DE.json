@@ -95,6 +95,30 @@
       "link_expiration": {
         "title": "Link-Ablaufdatum",
         "description": "Lege Ablaufdaten für deine Links fest"
+      },
+      "device_routing": {
+        "title": "Geräte-Routing",
+        "description": "iOS/Android-Nutzer zu App-Store-Links weiterleiten"
+      },
+      "og_preview": {
+        "title": "Social Preview",
+        "description": "Benutzerdefinierte OpenGraph-Vorschauen für soziale Medien"
+      },
+      "realtime_analytics": {
+        "title": "Echtzeit-Analysen",
+        "description": "Live-3D-Globus und Echtzeit-Ereignisprotokolle"
+      },
+      "qr_code": {
+        "title": "QR-Code",
+        "description": "Generiere QR-Codes für deine Kurzlinks"
+      },
+      "import_export": {
+        "title": "Import/Export",
+        "description": "Massenmigration über JSON-Dateien"
+      },
+      "multi_language": {
+        "title": "Mehrsprachig",
+        "description": "Vollständige i18n-Unterstützung für das Dashboard"
       }
     },
     "cta": {
