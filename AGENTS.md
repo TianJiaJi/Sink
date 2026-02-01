@@ -121,15 +121,15 @@ const emit = defineEmits<{ update: [link: Link] }>()
 
 ### Naming Conventions
 
-| Item            | Convention          | Example                  |
-| --------------- | ------------------- | ------------------------ |
-| Components      | PascalCase          | `LinkEditor.vue`         |
-| Composables     | `use` prefix        | `useDashboardRoute()`    |
-| Stores          | `use...Store`       | `useDashboardLinksStore` |
-| API routes      | method suffix       | `create.post.ts`         |
-| Directories     | kebab-case          | `dashboard/links/`       |
-| Functions/vars  | camelCase           | `getLink`                |
-| Constants       | UPPER_SNAKE_CASE    | `DASHBOARD_ROUTES`       |
+| Item           | Convention       | Example                  |
+| -------------- | ---------------- | ------------------------ |
+| Components     | PascalCase       | `LinkEditor.vue`         |
+| Composables    | `use` prefix     | `useDashboardRoute()`    |
+| Stores         | `use...Store`    | `useDashboardLinksStore` |
+| API routes     | method suffix    | `create.post.ts`         |
+| Directories    | kebab-case       | `dashboard/links/`       |
+| Functions/vars | camelCase        | `getLink`                |
+| Constants      | UPPER_SNAKE_CASE | `DASHBOARD_ROUTES`       |
 
 ### Error Handling
 
@@ -169,10 +169,14 @@ const { KV, ANALYTICS, AI } = event.context.cloudflare.env
 
 ```vue
 <!-- Good -->
-<button aria-label="Open menu">...</button>
+<button aria-label="Open menu">
+...
+</button>
 
 <!-- Bad -->
-<button :aria-label="$t('menu.open')">...</button>
+<button :aria-label="$t('menu.open')">
+...
+</button>
 ```
 
 ## Commits
