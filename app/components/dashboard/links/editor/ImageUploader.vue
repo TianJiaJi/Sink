@@ -87,8 +87,8 @@ function openFilePicker() {
     <div
       v-if="!imageUrl"
       class="
-        relative flex h-32 cursor-pointer items-center justify-center rounded-md
-        border-2 border-dashed transition-colors
+        relative flex aspect-[1200/630] cursor-pointer items-center
+        justify-center rounded-md border-2 border-dashed transition-colors
       "
       :class="[
         dragOver ? 'border-primary bg-primary/5' : `
@@ -120,7 +120,7 @@ function openFilePicker() {
       <img
         :src="imageUrl"
         alt="Preview"
-        class="h-32 w-full rounded-md object-cover"
+        class="aspect-[1200/630] w-full rounded-md object-cover"
       >
       <Button
         type="button"

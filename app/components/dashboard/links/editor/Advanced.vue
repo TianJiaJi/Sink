@@ -124,7 +124,7 @@ const defaultOpenItems = computed(() => {
               <FieldLabel :for="field.name">
                 {{ $t('links.form.og_image') }}
               </FieldLabel>
-              <DashboardLinksImageUploader
+              <DashboardLinksEditorImageUploader
                 :model-value="field.state.value"
                 :slug="currentSlug"
                 @update:model-value="field.handleChange($event || '')"
