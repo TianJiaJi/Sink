@@ -107,6 +107,16 @@
     },
     "twitter": {
       "follow": "Theo dõi tôi trên X (Twitter)"
+    },
+    "stats": {
+      "title": "Số liệu Sink",
+      "subtitle": "Được tin dùng bởi các nhà phát triển trên toàn thế giới",
+      "stars": "Stars trên GitHub",
+      "forks": "Forks"
+    },
+    "testimonials": {
+      "title": "Người dùng yêu thích",
+      "subtitle": "Xem các nhà phát triển nói gì về Sink"
     }
   },
   "dashboard": {
@@ -191,7 +201,23 @@
       "slug": "Slug",
       "comment": "Ghi chú",
       "expiration": "Hết hạn",
-      "pick_date": "Chọn ngày"
+      "pick_date": "Chọn ngày",
+      "device_redirect": "Chuyển hướng theo thiết bị",
+      "google_play": "URL Google Play",
+      "app_store": "URL App Store",
+      "og_settings": "Cài đặt OpenGraph",
+      "og_title": "Tiêu đề",
+      "og_title_placeholder": "Để trống sẽ sử dụng tên miền URL",
+      "og_description": "Mô tả",
+      "og_description_placeholder": "Mô tả liên kết",
+      "og_image": "Hình ảnh",
+      "advanced": "Nâng cao",
+      "image_invalid_type": "Vui lòng tải lên tệp hình ảnh",
+      "image_size_limit": "Kích thước hình ảnh không được vượt quá 5MB",
+      "image_upload_success": "Tải lên hình ảnh thành công",
+      "image_upload_failed": "Tải lên hình ảnh thất bại",
+      "image_upload_hint": "Nhấp hoặc kéo thả để tải lên hình ảnh",
+      "image_ratio_hint": "Khuyến nghị: 1200×630"
     },
     "sort": {
       "newest": "Mới nhất trước",
