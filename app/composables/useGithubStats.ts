@@ -1,3 +1,6 @@
+import { useAppConfig, useFetch, useNuxtApp } from '#imports'
+import { computed } from 'vue'
+
 export function useGithubStats() {
   const { github } = useAppConfig()
   const repo = github.replace('https://github.com/', '')
@@ -13,7 +16,7 @@ export function useGithubStats() {
         stars: res.stargazers_count,
         forks: res.forks_count,
       }),
-      getCachedData: key => useNuxtApp().payload.data[key],
+      getCachedData: (key: string) => useNuxtApp().payload.data[key],
     },
   )
 

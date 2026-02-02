@@ -1,4 +1,4 @@
-import type { Link } from '@/types'
+import type { Link } from '@@/schemas/link'
 import { escape } from 'es-toolkit/string'
 import { parseURL } from 'ufo'
 

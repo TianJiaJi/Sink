@@ -4,25 +4,15 @@ import { toast } from 'vue-sonner'
 import { IMAGE_ALLOWED_TYPES, IMAGE_MAX_SIZE } from '@/utils/image'
 
 const props = defineProps<{
-  modelValue?: string
   slug: string
 }>()
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string | undefined]
-}>()
+const imageUrl = defineModel<string>()
 
 const { t } = useI18n()
 const uploading = ref(false)
 const dragOver = ref(false)
-const fileInput = ref<HTMLInputElement>()
-
-const imageUrl = computed({
-  get: () => props.modelValue,
-  set: value => emit('update:modelValue', value),
-})
-
-const canUpload = computed(() => !!props.slug)
+const fileInput = useTemplateRef<HTMLInputElement>('fileInput')
 
 async function handleFile(file: File) {
   if (!canUpload.value) {
@@ -102,8 +92,8 @@ function openFilePicker() {
     <div
       v-if="!imageUrl"
       class="
-        relative flex aspect-[1200/630] items-center justify-center rounded-md
-        border-2 border-dashed transition-colors
+        relative flex aspect-[1200/630] cursor-pointer items-center
+        justify-center rounded-md border-2 border-dashed transition-colors
       "
       :class="[
         !canUpload ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
@@ -136,7 +126,7 @@ function openFilePicker() {
       <img
         :src="imageUrl"
         alt="Preview"
-        class="h-full w-full rounded-md object-cover"
+        class="aspect-[1200/630] w-full rounded-md object-cover"
       >
       <Button
         type="button"
