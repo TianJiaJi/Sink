@@ -1,4 +1,4 @@
-import { useAppConfig, useFetch, useNuxtApp } from '#imports'
+import { useAppConfig, useFetch } from '#imports'
 import { computed } from 'vue'
 
 export function useGithubStats() {
@@ -16,7 +16,11 @@ export function useGithubStats() {
         stars: res.stargazers_count,
         forks: res.forks_count,
       }),
-      getCachedData: (key: string) => useNuxtApp().payload.data[key],
+      getCachedData: (key, nuxtApp) => nuxtApp.payload?.data?.[key] ?? nuxtApp.static?.data?.[key],
+      onResponseError: ({ response }) => {
+        // Silently handle GitHub API errors (rate limit, network issues, etc.)
+        console.warn(`[useGithubStats] GitHub API error: ${response.status}`)
+      },
     },
   )
 
