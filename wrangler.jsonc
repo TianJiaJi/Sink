@@ -13,6 +13,14 @@
   ],
   "keep_vars": true,
   "upload_source_maps": true,
+  "observability": {
+    "logs": {
+      "enabled": true
+    },
+    "traces": {
+      "enabled": true
+    }
+  },
   "ai": {
     "binding": "AI",
     "remote": true
