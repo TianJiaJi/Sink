@@ -40,7 +40,7 @@ const defaultOpenItems = computed(() => {
   <Accordion type="multiple" :default-value="defaultOpenItems" class="w-full">
     <AccordionItem value="expiration">
       <AccordionTrigger>{{ $t('links.form.expiration') }}</AccordionTrigger>
-      <AccordionContent>
+      <AccordionContent class="px-1">
         <props.form.Field v-slot="{ field }" name="expiration">
           <Field :data-invalid="isInvalid(field)">
             <Popover v-model:open="datePickerOpen">
@@ -85,7 +85,7 @@ const defaultOpenItems = computed(() => {
 
     <AccordionItem value="og">
       <AccordionTrigger>{{ $t('links.form.og_settings') }}</AccordionTrigger>
-      <AccordionContent>
+      <AccordionContent class="px-1">
         <FieldGroup>
           <props.form.Field v-slot="{ field }" name="title">
             <Field>
@@ -137,7 +137,7 @@ const defaultOpenItems = computed(() => {
 
     <AccordionItem value="device">
       <AccordionTrigger>{{ $t('links.form.device_redirect') }}</AccordionTrigger>
-      <AccordionContent>
+      <AccordionContent class="px-1">
         <FieldGroup>
           <props.form.Field
             v-slot="{ field }"

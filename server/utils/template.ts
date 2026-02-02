@@ -11,7 +11,6 @@ export function generateOgHtml(link: Link, targetUrl: string, baseUrl: string): 
 
   const metaTags = [
     `<meta property="og:title" content="${escape(title)}">`,
-    `<meta property="og:url" content="${escape(link.url)}">`,
     link.description ? `<meta property="og:description" content="${escape(link.description)}">` : '',
     hasImage ? `<meta property="og:image" content="${escape(imageUrl!)}">` : '',
     `<meta name="twitter:card" content="${twitterCard}">`,

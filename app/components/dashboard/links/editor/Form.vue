@@ -132,7 +132,7 @@ async function aiSlug() {
   }
 }
 
-const currentSlug = computed(() => form.getFieldValue('slug') || 'temp')
+const currentSlug = form.useStore(state => state.values.slug || '')
 
 const { previewMode } = useRuntimeConfig().public
 
