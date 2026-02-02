@@ -10,6 +10,9 @@ export function generateOgHtml(link: Link, targetUrl: string, baseUrl: string): 
   const imageUrl = hasImage && link.image!.startsWith('/') ? `${baseUrl}${link.image}` : link.image
 
   const metaTags = [
+    link.description ? `<meta name="description" content="${escape(link.description)}">` : '',
+    `<meta property="og:type" content="website">`,
+    `<meta property="og:url" content="${escape(baseUrl)}/${escape(link.slug)}">`,
     `<meta property="og:title" content="${escape(title)}">`,
     link.description ? `<meta property="og:description" content="${escape(link.description)}">` : '',
     hasImage ? `<meta property="og:image" content="${escape(imageUrl!)}">` : '',
@@ -23,9 +26,9 @@ export function generateOgHtml(link: Link, targetUrl: string, baseUrl: string): 
 <html>
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="refresh" content="0;url=${escape(targetUrl)}">
     <title>${escape(title)}</title>
     ${metaTags}
+    <meta http-equiv="refresh" content="1;url=${escape(targetUrl)}">
 </head>
 <body>
     <p>Redirecting to <a href="${escape(targetUrl)}">${escape(targetUrl)}</a>...</p>
