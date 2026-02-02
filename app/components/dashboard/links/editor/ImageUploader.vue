@@ -10,6 +10,7 @@ const props = defineProps<{
 const imageUrl = defineModel<string>()
 
 const { t } = useI18n()
+const canUpload = computed(() => !!props.slug?.trim())
 const uploading = ref(false)
 const dragOver = ref(false)
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput')
