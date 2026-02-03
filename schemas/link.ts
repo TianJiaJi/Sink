@@ -26,3 +26,12 @@ export const LinkSchema = z.object({
 })
 
 export type Link = z.infer<typeof LinkSchema>
+
+export interface ExportData {
+  version: string
+  exportedAt: string
+  count: number
+  links: Link[]
+  cursor?: string
+  list_complete: boolean
+}

@@ -22,3 +22,18 @@ export const ImportDataSchema = z.object({
 
 export type ImportData = z.infer<typeof ImportDataSchema>
 export type ImportLink = z.infer<typeof ImportLinkSchema>
+
+export interface ImportResultItem {
+  index: number
+  slug: string
+  url: string
+}
+
+export interface ImportResult {
+  success: number
+  skipped: number
+  failed: number
+  successItems: ImportResultItem[]
+  skippedItems: ImportResultItem[]
+  failedItems: (ImportResultItem & { reason: string })[]
+}
