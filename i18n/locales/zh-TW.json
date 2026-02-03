@@ -95,6 +95,30 @@
       "link_expiration": {
         "title": "短連結過期",
         "description": "為您的短連結設定過期日期"
+      },
+      "device_routing": {
+        "title": "裝置路由",
+        "description": "iOS/Android 用戶自動跳轉應用商店"
+      },
+      "og_preview": {
+        "title": "社交預覽",
+        "description": "自訂社交媒體 OpenGraph 預覽"
+      },
+      "realtime_analytics": {
+        "title": "即時分析",
+        "description": "3D 地球視覺化和即時事件日誌"
+      },
+      "qr_code": {
+        "title": "QR Code",
+        "description": "為短連結生成 QR Code"
+      },
+      "import_export": {
+        "title": "匯入/匯出",
+        "description": "透過 JSON 檔案批次遷移"
+      },
+      "multi_language": {
+        "title": "多語言",
+        "description": "儀表板完整的國際化支援"
       }
     },
     "cta": {
@@ -126,6 +150,8 @@
     "visitors": "訪客人數",
     "referers": "引薦來源",
     "stats": "的統計",
+    "trend": "趨勢",
+    "weekly_trend": "週度趨勢",
     "custom_date": "自定義日期",
     "date": "日期",
     "date_range": "日期範圍",
@@ -201,7 +227,25 @@
       "slug": "短連結",
       "comment": "備註",
       "expiration": "過期時間",
-      "pick_date": "選擇日期"
+      "pick_date": "選擇日期",
+      "device_redirect": "設備跳轉",
+      "google_play": "Google Play 連結",
+      "app_store": "App Store 連結",
+      "og_settings": "OpenGraph 設置",
+      "og_title": "標題",
+      "og_title_placeholder": "留空則使用 URL 域名",
+      "og_description": "描述",
+      "og_description_placeholder": "連結描述",
+      "og_image": "圖片",
+      "advanced": "進階設置",
+      "more_options": "更多選項",
+      "image_invalid_type": "請上傳圖片檔案",
+      "image_size_limit": "圖片大小不能超過 5MB",
+      "image_upload_success": "圖片上傳成功",
+      "image_upload_failed": "圖片上傳失敗",
+      "image_upload_hint": "點擊或拖曳上傳圖片",
+      "image_ratio_hint": "建議尺寸：1200×630",
+      "slug_required": "請先輸入短連結"
     },
     "sort": {
       "newest": "最新",
