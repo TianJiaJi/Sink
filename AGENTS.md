@@ -18,15 +18,16 @@ app/                    # Nuxt 4 application
   │   └── home/         # Landing page components
   ├── composables/      # Vue composables (camelCase)
   ├── pages/            # File-based routing
-  ├── stores/           # Pinia stores
   ├── types/            # TypeScript types
   ├── utils/            # Utility functions
   └── lib/              # Shared helpers
+layers/dashboard/       # Dashboard layer (extends app/)
+  └── app/              # Dashboard-specific composables, types, middleware
 server/                 # Nitro server (Cloudflare Workers)
-  ├── api/              # API endpoints
+  ├── api/              # API endpoints (method suffix: create.post.ts)
   └── utils/            # Server utilities
-schemas/                # Zod validation schemas
-tests/                  # Vitest tests
+schemas/                # Zod validation schemas (shared client/server)
+tests/                  # Vitest tests (Cloudflare Workers pool)
 ```
 
 ## Commands
@@ -34,18 +35,19 @@ tests/                  # Vitest tests
 Use **pnpm** (v10+) with **Node.js 22+**.
 
 ```bash
+# Development
 pnpm dev                  # Start dev server (port 7465)
 pnpm build                # Production build
 pnpm preview              # Worker preview via wrangler
 pnpm lint:fix             # ESLint with auto-fix
 pnpm types:check          # TypeScript type check
 
-# Testing (Vitest + Cloudflare Workers pool)
+# Testing (Vitest + @cloudflare/vitest-pool-workers)
 pnpm vitest               # Watch mode
 pnpm vitest run           # CI mode (run once)
-pnpm vitest tests/sink.spec.ts           # Single file
-pnpm vitest tests/api/link.spec.ts       # Single API test
-pnpm vitest -t "returns 200"             # Pattern match
+pnpm vitest tests/api/link.spec.ts       # Single test file
+pnpm vitest -t "creates new link"        # Match test name pattern
+pnpm vitest --reporter=verbose           # Verbose output
 
 # Deployment
 pnpm deploy:pages         # Deploy to Cloudflare Pages
@@ -56,22 +58,22 @@ pnpm deploy:worker        # Deploy to Cloudflare Workers
 
 Uses `@antfu/eslint-config`. Run `pnpm lint:fix` before committing.
 
-- **Indentation**: 2 spaces | **Quotes**: Single | **Semicolons**: None | **Trailing commas**: Always
+**Formatting**: 2-space indent | Single quotes | No semicolons | Trailing commas
 
 ### TypeScript
 
-- Use TypeScript for all code; prefer `interface` for objects, `type` for unions
+- Use TypeScript everywhere; prefer `interface` for objects, `type` for unions
 - Avoid `any`; use proper types or `unknown`
-- Use Zod for runtime validation (see `schemas/`)
+- Use Zod for runtime validation in `schemas/`
 
 ```typescript
-interface Link { id: string, url: string, slug: string }
-
+// schemas/link.ts - shared validation
 export const LinkSchema = z.object({
   id: z.string().trim().max(26),
   url: z.string().trim().url().max(2048),
-  slug: z.string().trim().max(2048),
+  slug: z.string().trim().max(2048).regex(slugRegex),
 })
+export type Link = z.infer<typeof LinkSchema>
 ```
 
 ### Vue Components
@@ -93,21 +95,20 @@ const emit = defineEmits<{ update: [link: Link] }>()
 
 ### Imports
 
-- **Prefer Nuxt auto-imports** (`ref`, `computed`, `useFetch`, etc.)
-- Explicit imports: external libs (`import { z } from 'zod'`), types (`import type { Link } from '@/types'`), icons (`import { Copy } from 'lucide-vue-next'`)
-- Path aliases: `@/` (app), `@@/` (root)
+- **Prefer Nuxt auto-imports**: `ref`, `computed`, `useFetch`, `useState`, etc.
+- **Explicit imports for**: external libs (`import { z } from 'zod'`), types (`import type { Link } from '@/types'`), icons (`import { Copy } from 'lucide-vue-next'`)
+- **Path aliases**: `@/` (app), `@@/` (root)
 
 ### Naming Conventions
 
-| Item           | Convention       | Example                  |
-| -------------- | ---------------- | ------------------------ |
-| Components     | PascalCase       | `LinkEditor.vue`         |
-| Composables    | `use` prefix     | `useDashboardRoute()`    |
-| Stores         | `use...Store`    | `useDashboardLinksStore` |
-| API routes     | method suffix    | `create.post.ts`         |
-| Directories    | kebab-case       | `dashboard/links/`       |
-| Functions/vars | camelCase        | `getLink`                |
-| Constants      | UPPER_SNAKE_CASE | `DASHBOARD_ROUTES`       |
+| Item           | Convention       | Example               |
+| -------------- | ---------------- | --------------------- |
+| Components     | PascalCase       | `LinkEditor.vue`      |
+| Composables    | `use` prefix     | `useDashboardRoute()` |
+| API routes     | method suffix    | `create.post.ts`      |
+| Directories    | kebab-case       | `dashboard/links/`    |
+| Functions/vars | camelCase        | `getLink`             |
+| Constants      | UPPER_SNAKE_CASE | `DASHBOARD_ROUTES`    |
 
 ### Error Handling
 
@@ -123,10 +124,11 @@ export default eventHandler(async (event) => {
 
 ## Cloudflare Bindings
 
-Access via `event.context.cloudflare.env`:
+Access via destructuring `event.context`:
 
 ```typescript
-const { KV, ANALYTICS, AI, R2 } = event.context.cloudflare.env
+const { cloudflare } = event.context
+const { KV, ANALYTICS, AI, R2 } = cloudflare.env
 ```
 
 | Binding     | Type             | Purpose                    |
@@ -136,9 +138,28 @@ const { KV, ANALYTICS, AI, R2 } = event.context.cloudflare.env
 | `AI`        | Workers AI       | AI-powered slug generation |
 | `R2`        | R2 Bucket        | Data backup & file storage |
 
+## Testing Patterns
+
+Tests use `@cloudflare/vitest-pool-workers` with real Cloudflare bindings.
+
+```typescript
+// tests/api/link.spec.ts
+import { describe, expect, it } from 'vitest'
+import { fetchWithAuth, postJson } from '../utils'
+
+describe.sequential('/api/link/create', () => {
+  it('creates new link with valid data', async () => {
+    const response = await postJson('/api/link/create', { url: 'https://example.com', slug: 'test' })
+    expect(response.status).toBe(201)
+  })
+})
+```
+
+Use `describe.sequential` for tests that share state. Test utilities in `tests/utils.ts`.
+
 ## UI Components
 
-- Use shadcn-vue from `app/components/ui/` — **Never edit** (auto-generated)
+- Use shadcn-vue from `app/components/ui/` - **Never edit** (auto-generated)
 - Use `ResponsiveModal` for mobile-optimized dialogs
 - Use Tailwind CSS v4 for styling
 

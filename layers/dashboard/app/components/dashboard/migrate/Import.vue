@@ -227,6 +227,7 @@ function reset() {
           ref="fileInput"
           type="file"
           accept=".json"
+          class="cursor-pointer"
           @change="handleFileSelect"
         />
       </div>
