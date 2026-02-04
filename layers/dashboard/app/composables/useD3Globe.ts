@@ -3,7 +3,7 @@ import type { GeoPath, GeoPermissibleObjects, GeoProjection } from 'd3-geo'
 import type { Timer } from 'd3-timer'
 import type { Ref } from 'vue'
 import { drag } from 'd3-drag'
-import { easeCubicIn, easeCubicOut } from 'd3-ease'
+import { easeCubicOut } from 'd3-ease'
 import { geoCircle, geoInterpolate, geoOrthographic, geoPath } from 'd3-geo'
 import { select } from 'd3-selection'
 import { timer } from 'd3-timer'
@@ -303,11 +303,11 @@ export function useD3Globe(
 
       // Use easing for smooth animations
       const easedRadiusProgress = easeCubicOut(rawProgress)
-      const easedOpacityProgress = easeCubicIn(rawProgress)
 
       const currentRadius = easedRadiusProgress * maxRadius
-      const strokeOpacity = 0.8 * (1 - easedOpacityProgress)
-      const fillOpacity = 0.15 * (1 - easedOpacityProgress)
+      // Use radius progress for opacity - outer circles are lighter
+      const strokeOpacity = 0.6 * (1 - easedRadiusProgress) ** 2
+      const fillOpacity = 0.15 * (1 - easedRadiusProgress)
 
       ripplePath
         .attr('d', pathGenerator!(circleGenerator.radius(currentRadius)()))
