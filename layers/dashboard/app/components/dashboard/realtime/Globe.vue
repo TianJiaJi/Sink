@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { GlobeConfig } from '#layers/dashboard/app/composables/useD3Globe'
 import type { GeoPermissibleObjects } from 'd3-geo'
-import type { GlobeConfig } from '../../../composables/useD3Globe'
 import type { AreaData, ColoData, CurrentLocation, GeoJSONData, LocationData } from '@/types'
 import type { TrafficEventParams } from '@/utils/events'
 import { useDebounceFn, useElementSize, watchDeep } from '@vueuse/core'

@@ -1,4 +1,4 @@
-import { LinkSchema, nanoid } from '@@/schemas/link'
+import { LinkSchema, nanoid } from '#shared/schemas/link'
 import { IMAGE_ALLOWED_TYPES, IMAGE_MAX_SIZE } from '@/utils/image'
 
 const slugValidator = LinkSchema.shape.slug

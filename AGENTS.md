@@ -13,7 +13,7 @@ Sink is a link shortener with analytics, running 100% on Cloudflare. Uses Nuxt 4
 ```
 app/                    # Nuxt 4 application
   ├── components/       # Vue components (PascalCase)
-  │   ├── ui/           # shadcn-vue components (DO NOT EDIT)
+  │   ├── ui/           # shadcn-vue components (DO NOT EDIT - auto-generated)
   │   ├── dashboard/    # Dashboard components
   │   └── home/         # Landing page components
   ├── composables/      # Vue composables (camelCase)
@@ -22,7 +22,6 @@ app/                    # Nuxt 4 application
   ├── utils/            # Utility functions
   └── lib/              # Shared helpers
 layers/dashboard/       # Dashboard layer (extends app/)
-  └── app/              # Dashboard-specific composables, types, middleware
 server/                 # Nitro server (Cloudflare Workers)
   ├── api/              # API endpoints (method suffix: create.post.ts)
   └── utils/            # Server utilities
@@ -47,7 +46,6 @@ pnpm vitest               # Watch mode
 pnpm vitest run           # CI mode (run once)
 pnpm vitest tests/api/link.spec.ts       # Single test file
 pnpm vitest -t "creates new link"        # Match test name pattern
-pnpm vitest --reporter=verbose           # Verbose output
 
 # Deployment
 pnpm deploy:pages         # Deploy to Cloudflare Pages
@@ -96,8 +94,7 @@ const emit = defineEmits<{ update: [link: Link] }>()
 ### Imports
 
 - **Prefer Nuxt auto-imports**: `ref`, `computed`, `useFetch`, `useState`, etc.
-- **Explicit imports for**: external libs (`import { z } from 'zod'`), types (`import type { Link } from '@/types'`), icons (`import { Copy } from 'lucide-vue-next'`)
-- **Path aliases**: `@/` (app), `@@/` (root)
+- **Explicit imports for**: external libs, types (`import type { Link } from '@/types'`), icons (`import { Copy } from 'lucide-vue-next'`)
 
 ### Naming Conventions
 
@@ -140,10 +137,9 @@ const { KV, ANALYTICS, AI, R2 } = cloudflare.env
 
 ## Testing Patterns
 
-Tests use `@cloudflare/vitest-pool-workers` with real Cloudflare bindings.
+Tests use `@cloudflare/vitest-pool-workers` with real Cloudflare bindings (single worker, shared storage).
 
 ```typescript
-// tests/api/link.spec.ts
 import { describe, expect, it } from 'vitest'
 import { fetchWithAuth, postJson } from '../utils'
 
@@ -155,36 +151,20 @@ describe.sequential('/api/link/create', () => {
 })
 ```
 
-Use `describe.sequential` for tests that share state. Test utilities in `tests/utils.ts`.
+**Test utilities** (`tests/utils.ts`): `fetchWithAuth`, `postJson`, `putJson`, `fetch`
+
+Use `describe.sequential` for tests that share state.
 
 ## UI Components
 
 - Use shadcn-vue from `app/components/ui/` - **Never edit** (auto-generated)
 - Use `ResponsiveModal` for mobile-optimized dialogs
 - Use Tailwind CSS v4 for styling
-
-## Accessibility
-
-Use static English for `aria-label` (no `$t()` translations):
-
-```vue
-<button aria-label="Open menu">
-...
-</button>  <!-- Good -->
-
-<button :aria-label="$t('menu.open')">
-...
-</button>  <!-- Bad -->
-```
+- Use static English for `aria-label` (no `$t()` translations)
 
 ## Commits
 
 Follow Conventional Commits: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`
-
-```
-feat: add link expiration
-fix: correct analytics filter
-```
 
 ## Pre-commit
 

@@ -1,4 +1,4 @@
-import type { LinkSchema } from '@@/schemas/link'
+import type { LinkSchema } from '#shared/schemas/link'
 import type { H3Event } from 'h3'
 import type { z } from 'zod'
 

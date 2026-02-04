@@ -79,11 +79,6 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
-  typescript: {
-    tsConfig: {
-      include: ['../schemas/**/*'],
-    },
-  },
   eslint: {
     config: {
       standalone: false,
