@@ -1,10 +1,9 @@
-import type { GlobeConfig } from '#layers/dashboard/app/composables/useD3Globe'
 import type { ComputedRef, Ref, ShallowRef } from 'vue'
-import type { AreaData, ColoData, CurrentLocation, GeoJSONData, LocationData, TrafficEventParams } from '@/types'
-import { computed, ref, shallowRef } from 'vue'
+import type { AreaData, ColoData, CurrentLocation, GeoJSONData, LocationData } from '@/types'
 import { watchDeep } from '@vueuse/core'
-import { useDashboardRealtimeStore } from './realtime'
+import { computed, ref, shallowRef } from 'vue'
 import { useAPI } from '@/utils/api'
+import { useDashboardRealtimeStore } from './realtime'
 
 interface RawLocationData {
   latitude: number
@@ -31,6 +30,18 @@ export function useGlobeData() {
   const currentLocation = ref<CurrentLocation>({})
   const countryStats = shallowRef<Map<string, number>>(new Map())
 
+  // Request version for race condition control
+  let requestVersion = 0
+
+  const getBaseQuery = () => ({
+    startAt: realtimeStore.timeRange.startAt,
+    endAt: realtimeStore.timeRange.endAt,
+    ...realtimeStore.filters,
+  })
+
+  const nextRequestVersion = () => ++requestVersion
+  const isStale = (version: number) => version !== requestVersion
+
   const highest = computed(() => Math.max(...locations.value.map(l => l.count), 1))
   const maxCountryVisits = computed(() => Math.max(...countryStats.value.values(), 1))
 
@@ -49,15 +60,17 @@ export function useGlobeData() {
     currentLocation.value = data
   }
 
-  async function getCountryStats() {
+  async function getCountryStats(version: number) {
     const result = await useAPI<{ data: AreaData[] }>('/api/stats/metrics', {
       query: {
         type: 'country',
-        startAt: realtimeStore.timeRange.startAt,
-        endAt: realtimeStore.timeRange.endAt,
-        ...realtimeStore.filters,
+        ...getBaseQuery(),
       },
     })
+
+    // Discard stale response
+    if (isStale(version))
+      return
 
     const statsMap = new Map<string, number>()
     if (Array.isArray(result.data)) {
@@ -68,14 +81,16 @@ export function useGlobeData() {
     countryStats.value = statsMap
   }
 
-  async function getLiveLocations() {
+  async function getLiveLocations(version: number) {
     const result = await useAPI<{ data: RawLocationData[] }>('/api/logs/locations', {
       query: {
-        startAt: realtimeStore.timeRange.startAt,
-        endAt: realtimeStore.timeRange.endAt,
-        ...realtimeStore.filters,
+        ...getBaseQuery(),
       },
     })
+
+    // Discard stale response
+    if (isStale(version))
+      return
 
     locations.value = result.data?.map(e => ({
       lat: e.latitude,
@@ -85,19 +100,21 @@ export function useGlobeData() {
   }
 
   async function init() {
+    const version = nextRequestVersion()
     await Promise.all([
-      getLiveLocations(),
+      getLiveLocations(version),
       getCurrentLocation(),
       getGlobeJSON(),
       getColosJSON(),
-      getCountryStats(),
+      getCountryStats(version),
     ])
   }
 
   async function refresh() {
+    const version = nextRequestVersion()
     await Promise.all([
-      getLiveLocations(),
-      getCountryStats(),
+      getLiveLocations(version),
+      getCountryStats(version),
     ])
   }
 
@@ -115,105 +132,4 @@ export function useGlobeData() {
     init,
     refresh,
   }
-}
-
-export interface TrafficEventContext {
-  colos: ShallowRef<Record<string, ColoData>>
-  arcColor: ComputedRef<string>
-  globe: {
-    getProjection: () => any
-    drawArc: (arcData: any, duration?: number) => symbol
-    drawRipple: (rippleData: any) => symbol
-  }
-}
-
-export function useTrafficEvent(ctx: TrafficEventContext) {
-  const pendingTimeouts = new Set<ReturnType<typeof setTimeout>>()
-
-  function handleTrafficEvent({ props }: TrafficEventParams, { delay = 2000 }: { delay?: number } = {}) {
-    const projection = ctx.globe.getProjection()
-    if (!projection)
-      return
-
-    const { item } = props
-    if (item.latitude == null || item.longitude == null || !item.COLO) {
-      console.warn('Missing location data for traffic event', item)
-      return
-    }
-
-    const endLat = ctx.colos.value[item.COLO]?.lat
-    const endLng = ctx.colos.value[item.COLO]?.lon
-
-    if (endLat === undefined || endLng === undefined) {
-      console.warn(`Missing COLO coordinates for ${item.COLO}`)
-      return
-    }
-
-    // Skip if too close
-    const isNear = Math.abs(endLat - item.latitude) < 5 && Math.abs(endLng - item.longitude) < 5
-    if (isNear) {
-      console.info(`from ${item.city} to ${item.COLO} is near, skip`)
-      return
-    }
-
-    console.info(`from ${item.city}(${item.latitude}, ${item.longitude}) to ${item.COLO}(${endLat}, ${endLng})`)
-
-    // Draw arc
-    ctx.globe.drawArc({
-      startLat: item.latitude,
-      startLng: item.longitude,
-      endLat,
-      endLng,
-      color: ctx.arcColor.value,
-    }, delay)
-
-    // Draw start ripple (small)
-    ctx.globe.drawRipple({
-      lat: item.latitude,
-      lng: item.longitude,
-      maxRadius: 0.75,
-      duration: delay * 0.6,
-      color: ctx.arcColor.value,
-    })
-
-    // Draw end ripple after delay (larger)
-    const timeoutId = setTimeout(() => {
-      pendingTimeouts.delete(timeoutId)
-      ctx.globe.drawRipple({
-        lat: endLat,
-        lng: endLng,
-        maxRadius: 3,
-        duration: delay,
-        color: ctx.arcColor.value,
-      })
-    }, delay)
-    pendingTimeouts.add(timeoutId)
-  }
-
-  function cleanup() {
-    pendingTimeouts.forEach(id => clearTimeout(id))
-    pendingTimeouts.clear()
-  }
-
-  return {
-    handleTrafficEvent,
-    cleanup,
-  }
-}
-
-export function createGlobeConfig(
-  width: Ref<number>,
-  height: Ref<number>,
-  currentLocation: Ref<CurrentLocation>,
-): ComputedRef<GlobeConfig> {
-  return computed<GlobeConfig>(() => ({
-    width: width.value,
-    height: height.value || width.value,
-    sensitivity: 75,
-    autoRotateSpeed: 0.3,
-    initialRotation: [
-      currentLocation.value.longitude != null ? -currentLocation.value.longitude : 0,
-      currentLocation.value.latitude != null ? -currentLocation.value.latitude : -20,
-    ],
-  }))
 }
