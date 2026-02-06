@@ -1,11 +1,5 @@
 <script setup lang="ts">
 import { useDebounceFn, useElementSize } from '@vueuse/core'
-import {
-  createGlobeConfig,
-  useGlobeData,
-  useTrafficEvent,
-} from './useGlobeData'
-import { useGlobeColors, useGlobeRenderer } from './useGlobeRenderer'
 
 // Traffic event bus (auto-imported from app/composables)
 const trafficEventBus = useTrafficEventBus()

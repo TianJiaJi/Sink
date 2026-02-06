@@ -3,6 +3,8 @@ import type { VisiblePoint } from '#layers/dashboard/app/composables/useGlobeWor
 import type { GeoPermissibleObjects, GeoProjection } from 'd3-geo'
 import type { ComputedRef, Ref, ShallowRef } from 'vue'
 import type { GeoJSONData, LocationData } from '@/types'
+import { computed } from 'vue'
+import { useColorMode } from '@vueuse/core'
 import { color as d3Color } from 'd3-color'
 import { geoGraticule, geoPath } from 'd3-geo'
 import { scaleSequentialSqrt } from 'd3-scale'
