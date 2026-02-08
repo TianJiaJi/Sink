@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { useMediaQuery, useScroll } from '@vueuse/core'
+import { useScroll } from '@vueuse/core'
 
-const { currentPage, pageTitle } = useDashboardRoute()
+const { pageTitle } = useDashboardRoute()
 const route = useRoute()
-
-const isDesktop = useMediaQuery('(min-width: 640px)')
 
 const scrollContainer = ref<HTMLElement | null>(null)
 const { y } = useScroll(scrollContainer)
@@ -46,21 +44,10 @@ useSeoMeta({
             <DashboardPageBreadcrumb :title="$t(pageTitle ?? 'dashboard.title')" />
           </div>
 
-          <div class="flex flex-1 items-center justify-end gap-2">
-            <div v-if="isDesktop" class="flex items-center gap-2">
-              <DashboardHeaderActions :page="currentPage" />
-            </div>
-          </div>
-
-          <template v-if="!isDesktop">
-            <div class="flex flex-wrap items-center gap-2">
-              <DashboardHeaderActions :page="currentPage" :mobile-buttons="true" />
-            </div>
-
-            <div class="w-full">
-              <DashboardHeaderActions :page="currentPage" :mobile-search="true" />
-            </div>
-          </template>
+          <div
+            id="dashboard-header-actions"
+            class="flex flex-1 flex-wrap items-center justify-end gap-2"
+          />
         </header>
 
         <div ref="scrollContainer" class="flex-1 overflow-y-auto p-4">
