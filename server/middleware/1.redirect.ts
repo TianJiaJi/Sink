@@ -76,7 +76,8 @@ export default eventHandler(async (event) => {
 
       const userAgent = getHeader(event, 'user-agent') || ''
       const query = getQuery(event)
-      const buildTarget = (url: string) => redirectWithQuery ? withQuery(url, query) : url
+      const shouldRedirectWithQuery = link.redirectWithQuery ?? redirectWithQuery
+      const buildTarget = (url: string) => shouldRedirectWithQuery ? withQuery(url, query) : url
 
       const deviceRedirectUrl = getDeviceRedirectUrl(userAgent, link)
       if (deviceRedirectUrl) {

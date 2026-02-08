@@ -32,8 +32,8 @@ const defaultOpenItems = computed(() => {
   if (props.form.getFieldValue('google') || props.form.getFieldValue('apple')) {
     items.push('device')
   }
-  if (props.form.getFieldValue('cloaking')) {
-    items.push('cloaking')
+  if (props.form.getFieldValue('cloaking') || props.form.getFieldValue('redirectWithQuery')) {
+    items.push('link_settings')
   }
   return items
 })
@@ -138,28 +138,50 @@ const defaultOpenItems = computed(() => {
       </AccordionContent>
     </AccordionItem>
 
-    <AccordionItem value="cloaking">
+    <AccordionItem value="link_settings">
       <AccordionTrigger>{{ $t('links.form.link_settings') }}</AccordionTrigger>
       <AccordionContent class="px-1">
-        <props.form.Field v-slot="{ field }" name="cloaking">
-          <Field>
-            <div class="flex items-center justify-between">
-              <div class="space-y-0.5">
-                <FieldLabel :for="field.name">
-                  {{ $t('links.form.cloaking_label') }}
-                </FieldLabel>
-                <p class="text-xs text-muted-foreground">
-                  {{ $t('links.form.cloaking_description') }}
-                </p>
+        <FieldGroup>
+          <props.form.Field v-slot="{ field }" name="redirectWithQuery">
+            <Field>
+              <div class="flex items-center justify-between">
+                <div class="space-y-0.5">
+                  <FieldLabel :for="field.name">
+                    {{ $t('links.form.redirect_with_query_label') }}
+                  </FieldLabel>
+                  <p class="text-xs text-muted-foreground">
+                    {{ $t('links.form.redirect_with_query_description') }}
+                  </p>
+                </div>
+                <Switch
+                  :id="field.name"
+                  :model-value="field.state.value"
+                  @update:model-value="field.handleChange"
+                />
               </div>
-              <Switch
-                :id="field.name"
-                :model-value="field.state.value"
-                @update:model-value="field.handleChange"
-              />
-            </div>
-          </Field>
-        </props.form.Field>
+            </Field>
+          </props.form.Field>
+
+          <props.form.Field v-slot="{ field }" name="cloaking">
+            <Field>
+              <div class="flex items-center justify-between">
+                <div class="space-y-0.5">
+                  <FieldLabel :for="field.name">
+                    {{ $t('links.form.cloaking_label') }}
+                  </FieldLabel>
+                  <p class="text-xs text-muted-foreground">
+                    {{ $t('links.form.cloaking_description') }}
+                  </p>
+                </div>
+                <Switch
+                  :id="field.name"
+                  :model-value="field.state.value"
+                  @update:model-value="field.handleChange"
+                />
+              </div>
+            </Field>
+          </props.form.Field>
+        </FieldGroup>
       </AccordionContent>
     </AccordionItem>
 

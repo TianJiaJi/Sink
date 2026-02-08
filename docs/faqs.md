@@ -74,7 +74,18 @@ If you control the destination site, you can whitelist your short link domain by
 Content-Security-Policy: frame-ancestors 'self' your-short-domain.com
 ```
 
-## 10. How does the Import/Export feature work?
+## 10. What is Redirect with Query Parameters?
+
+When enabled, query parameters from the short link URL are appended to the destination URL. For example, visiting `https://s.ink/my-link?ref=twitter` would redirect to `https://example.com/page?ref=twitter`.
+
+### Per-link vs Global
+
+- **Global setting**: Set `NUXT_REDIRECT_WITH_QUERY=true` to enable for all links by default.
+- **Per-link override**: Toggle **Redirect with Query Parameters** in the **Link Settings** section when creating or editing a link. This overrides the global setting for that specific link.
+
+If a link has no per-link setting, it falls back to the global configuration.
+
+## 11. How does the Import/Export feature work?
 
 Import and Export are designed to work within Cloudflare Workers' KV operation limits (50 per request by default).
 
