@@ -45,6 +45,40 @@ export function generateCloakingHtml(link: Link, targetUrl: string, baseUrl: str
 </html>`
 }
 
+export function generatePasswordHtml(slug: string, hasError: boolean = false): string {
+  return `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>Password Required</title>
+    <style>
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{font-family:-apple-system,system-ui,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fafafa}
+      .card{background:#fff;border:1px solid #e5e5e5;border-radius:8px;padding:2rem;width:100%;max-width:360px;margin:1rem}
+      h1{font-size:1.125rem;font-weight:600;margin-bottom:1.5rem;text-align:center}
+      .error{color:#dc2626;font-size:.875rem;margin-bottom:1rem;text-align:center}
+      label{display:block;font-size:.875rem;font-weight:500;margin-bottom:.5rem}
+      input[type=password]{width:100%;padding:.5rem .75rem;border:1px solid #d4d4d4;border-radius:6px;font-size:.875rem;outline:none}
+      input[type=password]:focus{border-color:#a3a3a3;box-shadow:0 0 0 2px rgba(163,163,163,.2)}
+      button{width:100%;margin-top:1rem;padding:.5rem;background:#171717;color:#fff;border:none;border-radius:6px;font-size:.875rem;font-weight:500;cursor:pointer}
+      button:hover{background:#404040}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>Password Required</h1>${hasError ? '\n        <p class="error">Incorrect password</p>' : ''}
+        <form method="POST" action="/${escape(slug)}">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autofocus placeholder="Enter password">
+            <button type="submit">Continue</button>
+        </form>
+    </div>
+</body>
+</html>`
+}
+
 export function generateOgHtml(link: Link, targetUrl: string, baseUrl: string): string {
   const { title, tags } = buildMetaTags(link, baseUrl)
 
