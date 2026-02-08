@@ -32,6 +32,9 @@ const defaultOpenItems = computed(() => {
   if (props.form.getFieldValue('google') || props.form.getFieldValue('apple')) {
     items.push('device')
   }
+  if (props.form.getFieldValue('cloaking')) {
+    items.push('cloaking')
+  }
   return items
 })
 </script>
@@ -132,6 +135,31 @@ const defaultOpenItems = computed(() => {
             </Field>
           </props.form.Field>
         </FieldGroup>
+      </AccordionContent>
+    </AccordionItem>
+
+    <AccordionItem value="cloaking">
+      <AccordionTrigger>{{ $t('links.form.link_settings') }}</AccordionTrigger>
+      <AccordionContent class="px-1">
+        <props.form.Field v-slot="{ field }" name="cloaking">
+          <Field>
+            <div class="flex items-center justify-between">
+              <div class="space-y-0.5">
+                <FieldLabel :for="field.name">
+                  {{ $t('links.form.cloaking_label') }}
+                </FieldLabel>
+                <p class="text-xs text-muted-foreground">
+                  {{ $t('links.form.cloaking_description') }}
+                </p>
+              </div>
+              <Switch
+                :id="field.name"
+                :model-value="field.state.value"
+                @update:model-value="field.handleChange"
+              />
+            </div>
+          </Field>
+        </props.form.Field>
       </AccordionContent>
     </AccordionItem>
 

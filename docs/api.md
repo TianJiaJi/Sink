@@ -90,6 +90,7 @@ Content-Type: application/json
 | `ogTitle`       | `string` | ❌       | OpenGraph title                         |
 | `ogDescription` | `string` | ❌       | OpenGraph description                   |
 | `ogImage`       | `string` | ❌       | OpenGraph image URL                     |
+| `cloaking`      | `boolean`| ❌       | Enable link cloaking (mask destination URL with short link) |
 
 ## CORS
 

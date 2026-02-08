@@ -90,6 +90,14 @@ export default eventHandler(async (event) => {
         return html
       }
 
+      if (link.cloaking) {
+        const baseUrl = `${getRequestProtocol(event)}://${getRequestHost(event)}`
+        const html = generateCloakingHtml(link, buildTarget(link.url), baseUrl)
+        setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
+        setHeader(event, 'Cache-Control', 'no-cache')
+        return html
+      }
+
       return sendRedirect(event, buildTarget(link.url), +redirectStatusCode)
     }
     else {
