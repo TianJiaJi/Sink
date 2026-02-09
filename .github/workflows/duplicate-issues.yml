@@ -6,7 +6,7 @@ on:
 
 jobs:
   check-duplicates:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       issues: write
