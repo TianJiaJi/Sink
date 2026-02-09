@@ -22,6 +22,14 @@ const links = ref<Link[]>([])
 const isOpen = ref(false)
 const selectedLinks = ref<string[]>(props.filters?.slug?.split(',').filter(Boolean) ?? [])
 
+// Sync selectedLinks when props.filters changes (e.g., store restore/clear)
+watch(() => props.filters?.slug, (newSlug) => {
+  const newValue = newSlug?.split(',').filter(Boolean) ?? []
+  if (JSON.stringify(newValue) !== JSON.stringify(selectedLinks.value)) {
+    selectedLinks.value = newValue
+  }
+})
+
 async function getLinks() {
   try {
     links.value = await useAPI<Link[]>('/api/link/search')
