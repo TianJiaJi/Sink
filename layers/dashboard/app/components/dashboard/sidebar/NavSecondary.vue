@@ -6,7 +6,7 @@ const { coffee } = useAppConfig()
 const colorMode = useColorMode()
 const { setLocale, locales } = useI18n()
 const { state } = useSidebar()
-const { hasUpdate, latestVersion } = useVersionCheck()
+const { hasUpdate, currentVersion, latestVersion } = useVersionCheck()
 </script>
 
 <template>
@@ -67,7 +67,7 @@ const { hasUpdate, latestVersion } = useVersionCheck()
                     </a>
                   </TooltipTrigger>
                   <TooltipContent :side="state === 'collapsed' ? 'right' : 'top'">
-                    <p>{{ $t('sidebar.update', { version: latestVersion }) }}</p>
+                    <p>{{ $t('sidebar.update', { current: currentVersion, version: latestVersion }) }}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

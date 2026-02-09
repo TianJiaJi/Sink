@@ -65,7 +65,7 @@
     "coffee": "Kauf mir einen Kaffee",
     "github": "GitHub",
     "stars": "Stars",
-    "update": "Neue Version {version} verfügbar"
+    "update": "Neue Version {version} verfügbar (aktuell: {current})"
   },
   "home": {
     "hero": {
