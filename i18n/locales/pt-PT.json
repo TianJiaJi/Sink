@@ -253,7 +253,7 @@
       "image_size_limit": "O tamanho da imagem não pode exceder 5MB",
       "image_upload_success": "Imagem carregada com sucesso",
       "image_upload_failed": "Falha ao carregar imagem",
-      "image_upload_hint": "Clique ou arraste para carregar a imagem",
+      "image_upload_hint": "Clica ou arrasta para carregar a imagem",
       "image_ratio_hint": "Recomendado: 1200×630",
       "slug_required": "Por favor, insere um slug primeiro"
     },
@@ -280,7 +280,7 @@
     "import": {
       "title": "Importar links",
       "description": "Carrega um ficheiro JSON para importar links",
-      "dropzone": "Arrasta o ficheiro JSON aqui ou clique para carregar",
+      "dropzone": "Arrasta o ficheiro JSON aqui ou clica para carregar",
       "links_found": "links encontrados",
       "button": "Iniciar importação",
       "importing": "A importar...",
