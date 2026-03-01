@@ -58,8 +58,22 @@ export default eventHandler(async (event) => {
     createdAt: existingLink.createdAt,
     updatedAt: Math.floor(Date.now() / 1000),
   }
-  if (link.password === undefined) {
-    delete newLink.password
+  const optionalFields = [
+    'comment',
+    'title',
+    'description',
+    'image',
+    'apple',
+    'google',
+    'cloaking',
+    'redirectWithQuery',
+    'password',
+    'expiration',
+  ] as const
+  for (const field of optionalFields) {
+    if (link[field] === undefined) {
+      delete newLink[field]
+    }
   }
   await putLink(event, newLink)
   setResponseStatus(event, 201)

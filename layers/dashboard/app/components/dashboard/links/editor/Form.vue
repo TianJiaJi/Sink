@@ -55,8 +55,8 @@ const form = useForm({
         title: value.title || undefined,
         description: value.description || undefined,
         image: value.image || undefined,
-        cloaking: value.cloaking || undefined,
-        redirectWithQuery: value.redirectWithQuery || undefined,
+        cloaking: value.cloaking,
+        redirectWithQuery: value.redirectWithQuery,
         password: value.password || undefined,
       }
       const { link: newLink } = await useAPI<{ link: Link }>(

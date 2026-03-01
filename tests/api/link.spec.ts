@@ -191,6 +191,34 @@ describe.sequential('/api/link/edit', () => {
     expect(removeData.link.password).toBeUndefined()
   })
 
+  it('removes optional fields when not provided in edit', async () => {
+    const slug = testLinkPayload.slug
+
+    // Set optional fields
+    const setResponse = await putJson('/api/link/edit', {
+      ...testLinkPayload,
+      comment: 'test comment',
+      title: 'test title',
+      cloaking: true,
+      redirectWithQuery: true,
+    })
+    expect(setResponse.status).toBe(201)
+    const setData = await setResponse.json() as { link: { comment?: string, title?: string, cloaking?: boolean, redirectWithQuery?: boolean } }
+    expect(setData.link.comment).toBe('test comment')
+    expect(setData.link.title).toBe('test title')
+    expect(setData.link.cloaking).toBe(true)
+    expect(setData.link.redirectWithQuery).toBe(true)
+
+    // Edit without optional fields (user cleared them)
+    const removeResponse = await putJson('/api/link/edit', { url: testLinkPayload.url, slug })
+    expect(removeResponse.status).toBe(201)
+    const removeData = await removeResponse.json() as { link: { comment?: string, title?: string, cloaking?: boolean, redirectWithQuery?: boolean } }
+    expect(removeData.link.comment).toBeUndefined()
+    expect(removeData.link.title).toBeUndefined()
+    expect(removeData.link.cloaking).toBeUndefined()
+    expect(removeData.link.redirectWithQuery).toBeUndefined()
+  })
+
   it('returns 404 when editing non-existent link', async () => {
     const payload = { url: 'https://example.com', slug: 'non-existent-slug-for-edit-12345' }
     const response = await putJson('/api/link/edit', payload)
