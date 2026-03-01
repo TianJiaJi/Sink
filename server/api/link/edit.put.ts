@@ -25,6 +25,7 @@ defineRouteMeta({
               cloaking: { type: 'boolean', description: 'Enable link cloaking (mask destination URL)' },
               redirectWithQuery: { type: 'boolean', description: 'Append query parameters to destination URL' },
               password: { type: 'string', description: 'Password protection for the link' },
+              unsafe: { type: 'boolean', description: 'Mark link as unsafe, showing a warning page before redirect' },
             },
           },
         },
@@ -51,6 +52,14 @@ export default eventHandler(async (event) => {
     })
   }
 
+  // Auto-detect unsafe URL when URL changes and unsafe not explicitly set
+  if (link.unsafe === undefined && link.url !== existingLink.url) {
+    const safe = await isSafeUrl(event, link.url)
+    if (!safe) {
+      link.unsafe = true
+    }
+  }
+
   const newLink = {
     ...existingLink,
     ...link,
@@ -69,6 +78,7 @@ export default eventHandler(async (event) => {
     'redirectWithQuery',
     'password',
     'expiration',
+    'unsafe',
   ] as const
   for (const field of optionalFields) {
     if (link[field] === undefined) {

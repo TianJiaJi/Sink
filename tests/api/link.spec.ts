@@ -236,6 +236,47 @@ describe.sequential('/api/link/edit', () => {
   })
 })
 
+describe.sequential('/api/link/edit unsafe', () => {
+  const unsafePayload = { ...testLinkPayload, url: 'https://example.com', slug: 'unsafe-test-link' }
+
+  it('creates link with unsafe flag', async () => {
+    const response = await postJson('/api/link/create', { ...unsafePayload, unsafe: true })
+    expect(response.status).toBe(201)
+
+    const data = await response.json() as { link: { unsafe?: boolean } }
+    expect(data.link.unsafe).toBe(true)
+  })
+
+  it('queries link with unsafe flag', async () => {
+    const response = await fetchWithAuth(`/api/link/query?slug=${unsafePayload.slug}`)
+    expect(response.status).toBe(200)
+
+    const data = await response.json() as { unsafe?: boolean }
+    expect(data.unsafe).toBe(true)
+  })
+
+  it('removes unsafe flag when not provided in edit', async () => {
+    const response = await putJson('/api/link/edit', { url: unsafePayload.url, slug: unsafePayload.slug })
+    expect(response.status).toBe(201)
+
+    const data = await response.json() as { link: { unsafe?: boolean } }
+    expect(data.link.unsafe).toBeUndefined()
+  })
+
+  it('sets unsafe flag via edit', async () => {
+    const response = await putJson('/api/link/edit', { ...unsafePayload, unsafe: true })
+    expect(response.status).toBe(201)
+
+    const data = await response.json() as { link: { unsafe?: boolean } }
+    expect(data.link.unsafe).toBe(true)
+  })
+
+  it('deletes unsafe test link', async () => {
+    const response = await postJson('/api/link/delete', { slug: unsafePayload.slug })
+    expect(response.status).toBe(204)
+  })
+})
+
 describe.sequential('/api/link/delete', () => {
   it('deletes link with valid slug and auth', async () => {
     const response = await postJson('/api/link/delete', { slug: testLinkPayload.slug })
