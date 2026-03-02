@@ -61,5 +61,12 @@ export default eventHandler(async (event) => {
 
   const response = await AI.run(aiModel as keyof AiModels, { messages }) as AiChatResponse
 
-  return destr(response.response ?? response.choices?.[0]?.message?.content)
+  let content = response.response ?? response.choices?.[0]?.message?.content ?? ''
+  // Strip markdown code block wrapper (e.g. ```json\n{...}\n```)
+  const codeBlockMatch = content.match(/```\w*\n([^`]+)```/)
+  if (codeBlockMatch?.[1]) {
+    content = codeBlockMatch[1].trim()
+  }
+
+  return destr(content)
 })
