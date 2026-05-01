@@ -74,7 +74,7 @@ export default eventHandler(async (event) => {
     if (link) {
       let locale: RedirectLocale | undefined
       const getLocale = () => {
-        locale ??= resolveRedirectLocale(getHeader(event, 'accept-language'))
+        locale ??= resolveRedirectLocale(event)
         return locale
       }
       const sendNoStoreHtml = (html: string) => {
