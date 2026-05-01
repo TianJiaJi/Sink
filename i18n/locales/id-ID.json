@@ -1,6 +1,6 @@
 {
   "common": {
-    "i18n": "Multi Bahasa",
+    "i18n": "Multibahasa",
     "abbreviations": "Id",
     "current_language": "Bahasa Indonesia",
     "try_again": "Coba lagi",
@@ -36,7 +36,7 @@
   },
   "layouts": {
     "footer": {
-      "copyright": "Produk dari HTML.ZONE",
+      "copyright": "Sebuah produk dari HTML.ZONE",
       "social": {
         "email": "Email",
         "telegram": "Telegram",
@@ -62,7 +62,7 @@
     "settings": "Pengaturan",
     "import": "Impor",
     "export": "Ekspor",
-    "coffee": "Traktir kopi",
+    "coffee": "Traktir Kopi",
     "github": "GitHub",
     "stars": "Bintang",
     "update": "Versi baru {version} tersedia (saat ini: {current})"
@@ -83,7 +83,7 @@
         "description": "Pantau analitik tautan dan kumpulkan statistik"
       },
       "serverless": {
-        "title": "Tanpa Server",
+        "title": "Serverless",
         "description": "Deploy tanpa perlu server tradisional"
       },
       "customizable_slug": {
@@ -99,8 +99,8 @@
         "description": "Atur tanggal kedaluwarsa untuk tautan"
       },
       "device_routing": {
-        "title": "Routing Perangkat",
-        "description": "Alihkan pengguna iOS/Android ke App Store"
+        "title": "Pengalihan Perangkat",
+        "description": "Alihkan pengguna iOS/Android ke tautan App Store"
       },
       "og_preview": {
         "title": "Pratinjau Sosial",
@@ -108,7 +108,7 @@
       },
       "realtime_analytics": {
         "title": "Analitik Real-time",
-        "description": "Globe 3D langsung dan log event real-time"
+        "description": "Globe 3D langsung dan log peristiwa real-time"
       },
       "qr_code": {
         "title": "Kode QR",
@@ -119,7 +119,7 @@
         "description": "Migrasi massal melalui file JSON"
       },
       "multi_language": {
-        "title": "Multi Bahasa",
+        "title": "Multibahasa",
         "description": "Dukungan penuh i18n untuk dashboard"
       }
     },
@@ -236,20 +236,39 @@
       "link_settings": "Pengaturan Tautan",
       "redirect_with_query_label": "Redirect dengan Parameter Query",
       "redirect_with_query_description": "Tambahkan parameter query ke URL tujuan.",
-      "cloaking_label": "Aktifkan Cloaking",
-      "cloaking_description": "Menampilkan link pendek di address bar.",
+      "cloaking_label": "Aktifkan Cloaking Tautan",
+      "cloaking_description": "Tampilkan tautan pendek di bilah alamat browser, bukan URL tujuan. Mungkin tidak berfungsi pada situs yang memblokir penyematan iframe.",
       "unsafe_label": "Tandai Tidak Aman",
-      "unsafe_description": "Tampilkan peringatan sebelum redirect.",
-      "password_label": "Proteksi Password",
-      "password_description": "Wajibkan password untuk akses.",
-      "password_placeholder": "Kosongkan untuk nonaktif",
+      "unsafe_description": "Tampilkan halaman peringatan sebelum mengalihkan. Pengunjung harus mengonfirmasi untuk melanjutkan.",
+      "password_label": "Proteksi Kata Sandi",
+      "password_description": "Wajibkan kata sandi untuk mengakses tautan pendek ini.",
+      "password_placeholder": "Kosongkan untuk menonaktifkan",
       "og_settings": "Pengaturan OpenGraph",
       "og_title": "Judul",
+      "og_title_placeholder": "Kosongkan untuk menggunakan nama host URL",
       "og_description": "Deskripsi",
+      "og_description_placeholder": "Deskripsi tautan",
       "og_image": "Gambar",
       "advanced": "Lanjutan",
       "more_options": "Opsi Tambahan",
-      "slug_required": "Masukkan slug terlebih dahulu"
+      "image_invalid_type": "Harap unggah file gambar",
+      "image_size_limit": "Ukuran gambar tidak boleh melebihi 5MB",
+      "image_upload_success": "Gambar berhasil diunggah",
+      "image_upload_failed": "Gagal mengunggah gambar",
+      "image_upload_hint": "Klik atau seret untuk mengunggah gambar",
+      "image_ratio_hint": "Disarankan: 1200×630",
+      "slug_required": "Masukkan slug terlebih dahulu",
+      "utm_builder": "Pembuat UTM",
+      "utm_description": "Buat parameter UTM secara lokal dan tambahkan ke URL tujuan.",
+      "utm_preview": "Pratinjau",
+      "utm_source": "Sumber UTM",
+      "utm_medium": "Media UTM",
+      "utm_campaign": "Kampanye UTM",
+      "utm_term": "Istilah UTM",
+      "utm_content": "Konten UTM",
+      "utm_apply": "Terapkan",
+      "utm_clear": "Bersihkan",
+      "utm_invalid_url": "Masukkan URL valid untuk melihat pratinjau dan menerapkan parameter UTM."
     },
     "sort": {
       "newest": "Terbaru",
@@ -261,5 +280,48 @@
     "update_failed": "Gagal memperbarui tautan",
     "create_failed": "Gagal membuat tautan",
     "ai_slug_failed": "Gagal membuat slug AI"
+  },
+  "migrate": {
+    "backup": {
+      "title": "Cadangan Manual",
+      "description": "Picu pencadangan manual semua tautan ke bucket R2 yang dikonfigurasi",
+      "button": "Mulai Pencadangan",
+      "backing_up": "Mencadangkan...",
+      "success": "Pencadangan berhasil",
+      "failed": "Pencadangan gagal"
+    },
+    "export": {
+      "title": "Ekspor Tautan",
+      "description": "Unduh semua tautan Anda sebagai file JSON",
+      "button": "Ekspor Semua",
+      "total_links": "Total tautan",
+      "success": "Ekspor berhasil",
+      "failed": "Ekspor gagal"
+    },
+    "import": {
+      "title": "Impor Tautan",
+      "description": "Unggah file JSON untuk mengimpor tautan",
+      "dropzone": "Jatuhkan file JSON di sini atau klik untuk mengunggah",
+      "links_found": "tautan ditemukan",
+      "button": "Mulai Impor",
+      "importing": "Mengimpor...",
+      "import_more": "Impor Lagi",
+      "download_success": "Unduh Item Berhasil",
+      "download_skipped": "Unduh Item Dilewati",
+      "download_failed": "Unduh Item Gagal",
+      "result": {
+        "title": "Hasil Impor",
+        "success": "Berhasil diimpor",
+        "skipped": "Dilewati (sudah ada)",
+        "failed": "Gagal",
+        "success_message": "{count} tautan berhasil diimpor"
+      },
+      "errors": {
+        "invalid_json": "File JSON tidak valid",
+        "invalid_format": "Format file tidak valid. Gunakan file yang diekspor dari Sink.",
+        "no_links": "Tidak ada tautan yang ditemukan dalam file",
+        "parse_error": "Gagal mengurai file"
+      }
+    }
   }
 }
