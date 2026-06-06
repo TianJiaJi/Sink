@@ -117,6 +117,9 @@ describe('/', () => {
     expect(response.status).toBe(200)
     expect(html).toContain('<meta name="viewport" content="width=device-width,initial-scale=1">')
     expect(html).toContain(`<iframe src="${targetUrl}"`)
+    expect(html).toContain('allow-top-navigation-by-user-activation')
+    expect(html).toContain('allow-downloads')
+    expect(html).toContain('allow-modals')
   })
 
   it('prefers device redirect over geo redirect', async () => {
