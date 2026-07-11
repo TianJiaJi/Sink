@@ -144,11 +144,28 @@ export default eventHandler(async (event) => {
       }
 
       event.context.link = link
+      let accessLogResult: AccessLogResult | undefined
       try {
-        await useAccessLog(event)
+        accessLogResult = collectAccessLog(event)
       }
-      catch (error) {
-        console.error('Failed write access log:', error)
+      catch {
+        console.error({ event: 'access_log.collection.failed' })
+      }
+
+      if (accessLogResult) {
+        try {
+          writeAccessLog(event, accessLogResult.logs)
+        }
+        catch {
+          console.error({ event: 'access_log.write.failed' })
+        }
+
+        try {
+          queueLinkClickedWebhook(event, accessLogResult.click, link)
+        }
+        catch {
+          console.error({ event: 'webhook.scheduling.failed' })
+        }
       }
 
       if (deviceRedirectUrl) {

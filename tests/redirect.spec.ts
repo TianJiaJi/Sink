@@ -80,6 +80,25 @@ describe('/', () => {
     expect(response.headers.get('Cache-Control')).toBeNull()
   })
 
+  it('redirects when Cloudflare reports the Tor country code', async () => {
+    const slug = `country-t1-${crypto.randomUUID()}`
+    const targetUrl = 'https://example.com/tor-target'
+
+    const createResponse = await postJson('/api/link/create', {
+      url: targetUrl,
+      slug,
+    })
+    expect(createResponse.status).toBe(201)
+    createdSlugs.push(slug)
+
+    const options: CfRequestInit = { redirect: 'manual', cf: { country: 'T1' } }
+    const response = await fetch(`/${slug}`, options as RequestInit)
+
+    expect(response.status).toBeGreaterThanOrEqual(300)
+    expect(response.status).toBeLessThan(400)
+    expect(response.headers.get('Location')).toBe(targetUrl)
+  })
+
   it('shows geo URL in unsafe warning', async () => {
     const slug = `unsafe-geo-${crypto.randomUUID()}`
     const cnUrl = 'https://cn.example.com/unsafe'

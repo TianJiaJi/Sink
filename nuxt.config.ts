@@ -20,6 +20,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     siteToken: process.env.NUXT_SITE_TOKEN || crypto.randomUUID(),
+    cfAccessTeamDomain: '',
+    cfAccessAud: '',
     redirectStatusCode: '301',
     linkCacheTtl: 60,
     redirectWithQuery: false,
@@ -37,6 +39,8 @@ export default defineNuxtConfig({
     disableAutoBackup: false,
     notFoundRedirect: '',
     safeBrowsingDoh: '', // Set to DoH URL to enable auto-detection, e.g. https://family.cloudflare-dns.com/dns-query
+    webhookUrl: '',
+    webhookSecret: '',
     public: {
       previewMode: '',
       slugDefaultLength: '6',
