@@ -20,6 +20,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     siteToken: process.env.NUXT_SITE_TOKEN || crypto.randomUUID(),
+    cfAccessTeamDomain: '',
+    cfAccessAud: '',
     redirectStatusCode: '301',
     linkCacheTtl: 60,
     redirectWithQuery: false,

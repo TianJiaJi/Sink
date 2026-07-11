@@ -99,6 +99,16 @@ This feature requires:
 
 Backups are stored in R2 with the path `backups/links-{timestamp}.json` and run daily at 00:00 UTC.
 
+## `NUXT_CF_ACCESS_TEAM_DOMAIN`
+
+Optional Cloudflare Access team domain, for example `https://your-team.cloudflareaccess.com`.
+Set this together with `NUXT_CF_ACCESS_AUD` to allow a valid Cloudflare Access session to authenticate API requests as an alternative to `NUXT_SITE_TOKEN`.
+
+## `NUXT_CF_ACCESS_AUD`
+
+Optional Application Audience (AUD) tag from the Cloudflare Access application that protects the dashboard.
+Cloudflare Access authentication is enabled only when both Access variables are configured. Refer to [Cloudflare Access Authentication](cloudflare-access.md) for the required application and cookie settings.
+
 ## `NUXT_SAFE_BROWSING_DOH`
 
 Set to a DNS over HTTPS (DoH) endpoint URL to enable automatic unsafe link detection when creating or editing links. When enabled, Sink queries the DoH service to check if the destination domain is flagged as malicious. If the domain resolves to `0.0.0.0`, the link is automatically marked as unsafe and visitors will see a warning page before being redirected.

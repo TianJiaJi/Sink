@@ -18,3 +18,5 @@
 9. Enable Analytics Engine. In **Workers & Pages**, go to **Account details** in the right panel, locate **Analytics Engine**, and click **Set up** to enable the free tier. Name them `sink` and `ANALYTICS`, or else overwrite it with `NUXT_DATASET` and update your `wrangler.jsonc` accordingly
 10. Redeploy the project.
 11. To update your code, refer to the official GitHub documentation: [Syncing a fork branch from the web UI](https://docs.github.com/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-web-ui 'GitHub: Syncing a fork').
+
+To optionally protect the dashboard with Cloudflare Zero Trust while keeping short links public, refer to [Cloudflare Access Authentication](../cloudflare-access.md).
