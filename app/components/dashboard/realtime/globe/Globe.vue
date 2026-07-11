@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useDebounceFn, useElementSize } from '@vueuse/core'
-import { useGlobeColors, useGlobeData, useWebGLGlobe } from '#layers/dashboard/app/composables/globe'
+import { useGlobeColors, useGlobeData, useWebGLGlobe } from '@/composables/globe'
 
 const trafficEventBus = useTrafficEventBus()
 

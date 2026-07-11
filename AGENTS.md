@@ -11,16 +11,15 @@ Sink is a link shortener with analytics, running 100% on Cloudflare. Uses Nuxt 4
 ## Project Structure
 
 ```
-app/                    # Nuxt 4 application (main app layer)
+app/                    # Nuxt 4 application
   ├── components/       # Vue components (PascalCase)
+  │   ├── dashboard/    # Dashboard-specific components
   │   └── ui/           # shadcn-vue components (DO NOT EDIT - auto-generated)
   ├── composables/      # Vue composables (camelCase, use* prefix)
-  ├── pages/            # File-based routing
+  ├── pages/            # File-based routing, including dashboard routes
   ├── types/            # TypeScript types (re-exports from shared/)
   ├── utils/            # Utility functions
   └── lib/              # Shared helpers
-layers/dashboard/       # Dashboard layer (extends app/)
-  └── app/components/dashboard/  # Dashboard-specific components
 shared/                 # Shared code (client + server)
   ├── schemas/          # Zod validation schemas
   └── types/            # Shared TypeScript types
@@ -207,6 +206,6 @@ API routes auto-generate OpenAPI docs via `defineRouteMeta` with `openAPI` prope
 
 ## Architecture Notes
 
-- **Dashboard layer (`layers/dashboard/`) is client-only**: `ssr: false` with prerendered routes. Dashboard pages are CSR-only.
+- **Frontend rendering**: The app is client-only (`ssr: false`), with dashboard routes prerendered.
 - **Nitro preset**: `cloudflare-module` (set conditionally when not in CI)
 - **i18n**: `@nuxtjs/i18n` with `no_prefix` strategy; locales defined in `i18n/i18n.ts`
