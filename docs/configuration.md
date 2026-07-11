@@ -124,3 +124,48 @@ Default is empty (disabled). Users can still manually mark links as unsafe in th
 
 Optional custom redirect target when a slug is not found.
 If this is not set, Sink will fall back to its default 404 page.
+
+## Click Webhooks
+
+Set `NUXT_WEBHOOK_URL` to send a best-effort webhook for each click included in access statistics. An empty URL disables webhooks. Bot clicks skipped by `NUXT_DISABLE_BOT_ACCESS_LOG` are also skipped by webhooks.
+
+`NUXT_WEBHOOK_URL` must use HTTP or HTTPS. HTTPS is strongly recommended in production. `NUXT_WEBHOOK_SECRET` is optional. When configured, it must start with `whsec_`; the suffix is a Base64-encoded HMAC key between 24 and 64 bytes. Generate a 32-byte key with:
+
+```sh
+printf 'whsec_%s\n' "$(openssl rand -base64 32)"
+```
+
+Sink sends a Dub-style payload:
+
+```json
+{
+  "id": "evt_...",
+  "event": "link.clicked",
+  "createdAt": "2026-07-11T12:00:00.000Z",
+  "data": {
+    "click": {
+      "id": "clk_...",
+      "timestamp": "2026-07-11T12:00:00.000Z",
+      "country": "US",
+      "region": "California",
+      "city": "San Francisco",
+      "device": "mobile",
+      "browser": "Mobile Safari",
+      "os": "iOS",
+      "referer": "example.com"
+    },
+    "link": {
+      "id": "link-id",
+      "slug": "example"
+    }
+  }
+}
+```
+
+The click location fields contain the raw Cloudflare country code, region, and city. The device field prefers the parsed device category (such as `mobile`) and falls back to the device model.
+
+Every request includes the Standard Webhooks headers `webhook-id` and `webhook-timestamp`. When a secret is configured, Sink also sends `webhook-signature`. The signature is `v1,<base64>` for HMAC-SHA256 over `<webhook-id>.<webhook-timestamp>.<raw-body>`, using the decoded secret suffix as the key. An invalid non-empty secret fails delivery and never falls back to unsigned delivery.
+
+Without `NUXT_WEBHOOK_SECRET`, delivery is unauthenticated and unsigned. This mode is not recommended over untrusted networks; configure a secret whenever the receiver supports signature verification.
+
+Webhook payloads exclude IP addresses, coordinates, full user agents, query parameters, passwords, and destination URLs. Delivery has a 10-second timeout, accepts only 2xx responses, does not follow redirects, and is asynchronous. Failures do not affect redirects and are not retried.
