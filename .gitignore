@@ -23,6 +23,7 @@ node_modules
 .env.*
 !.env.example
 .wrangler
+wrangler.deploy.jsonc
 site
 cache
 public/world.json

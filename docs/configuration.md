@@ -2,7 +2,14 @@
 
 Sink provides some configuration options, which can be referred to in [.env.example](../.env.example).
 
-> When using Worker deployment, please note that variables with the `NUXT_PUBLIC_` prefix need to be configured in Workers' **Settings** -> **Build** -> **Variables and Secrets** and **Settings** -> **Variables and Secrets**.
+| Category          | Variables                                               | Cloudflare Workers placement                                              |
+| ----------------- | ------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Build only        | `NUXT_API_CORS`                                         | **Build variables and secrets**                                           |
+| Build and runtime | `NUXT_PUBLIC_*`                                         | Both **Build variables and secrets** and Worker **Variables and Secrets** |
+| Runtime           | Other `NUXT_*` variables mapped to Nuxt `runtimeConfig` | Worker **Variables and Secrets**                                          |
+| Deployment only   | `DEPLOY_*`                                              | Build environment or local `.env`; never Worker runtime variables         |
+
+`DEPLOY_*` variables are used by `deploy:config`, remote migrations, and CLI deployments. They generate `wrangler.deploy.jsonc` and are not application configuration.
 
 ## `NUXT_PUBLIC_PREVIEW_MODE`
 
@@ -39,8 +46,6 @@ URL parameters are not carried during link redirection by default and it is not 
 Defaults to `false`. Set to `true` to prevent browsers and CDNs from caching short-link redirects, allowing link edits and deletions to take effect promptly.
 
 ## `NUXT_HOME_URL`
-
-> If you are using Worker deployment, this variable needs to be configured in **Settings** -> **Build** -> **Variables and Secrets** and **Settings** -> **Variables and Secrets**.
 
 The default Sink homepage is the introduction page, you can replace it with your own website.
 
@@ -94,8 +99,8 @@ Set to `true` to disable the automatic daily KV backup to R2 storage. Default is
 
 This feature requires:
 
-1. R2 bucket binding configured in `wrangler.jsonc`
-2. Create R2 bucket: `wrangler r2 bucket create sink`
+1. An R2 bucket created in your Cloudflare account
+2. The R2 bucket bound in the Cloudflare dashboard for Pages, or named by `DEPLOY_R2_BUCKET_NAME` for Workers CLI deployment
 
 Backups are stored in R2 with the path `backups/links-{timestamp}.json` and run daily at 00:00 UTC.
 
