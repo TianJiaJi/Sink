@@ -38,6 +38,7 @@ describe('/', () => {
 
     expect(response.status).toBe(301)
     expect(response.headers.get('Location')).toBe(apple)
+    expect(response.headers.get('Cache-Control')).toBeNull()
   })
 
   it('redirects to geo URL when cf.country matches', async () => {
@@ -76,6 +77,7 @@ describe('/', () => {
 
     expect(response.status).toBe(301)
     expect(response.headers.get('Location')).toBe(defaultUrl)
+    expect(response.headers.get('Cache-Control')).toBeNull()
   })
 
   it('shows geo URL in unsafe warning', async () => {

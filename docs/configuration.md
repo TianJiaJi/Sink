@@ -34,6 +34,10 @@ Cache links can speed up access, but setting them too long may result in slow ch
 
 URL parameters are not carried during link redirection by default and it is not recommended to enable this feature. This is the global default; individual links can override this via the **Redirect with Query Parameters** toggle in **Link Settings**.
 
+## `NUXT_REDIRECT_NO_STORE`
+
+Defaults to `false`. Set to `true` to prevent browsers and CDNs from caching short-link redirects, allowing link edits and deletions to take effect promptly.
+
 ## `NUXT_HOME_URL`
 
 > If you are using Worker deployment, this variable needs to be configured in **Settings** -> **Build** -> **Variables and Secrets** and **Settings** -> **Variables and Secrets**.
