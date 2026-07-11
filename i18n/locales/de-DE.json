@@ -205,6 +205,14 @@
     }
   },
   "links": {
+    "migration_gate": {
+      "loading": "Links werden vorbereitet",
+      "scanned": "{count} Links geprüft",
+      "failed_title": "Link-Migration fehlgeschlagen",
+      "failed_description": "Ihre Links sind bis zum Abschluss der KV-zu-D1-Migration nicht verfügbar.",
+      "retry": "Erneut versuchen",
+      "open_migration": "Migration öffnen"
+    },
     "create": "Link erstellen",
     "edit": "Link bearbeiten",
     "delete_confirm_title": "Bist du dir absolut sicher?",
@@ -214,7 +222,9 @@
     "update_success": "Link erfolgreich aktualisiert",
     "create_success": "Link erfolgreich erstellt",
     "preview_mode_tip": "Der Link im Vorschaumodus ist bis zu 5 Minuten gültig.",
-    "search_placeholder": "Links suchen...",
+    "search_placeholder": "Links suchen…",
+    "search_loading": "Suche läuft…",
+    "search_failed": "Suche fehlgeschlagen.",
     "no_results": "Keine Links gefunden.",
     "group_title": "Links",
     "copy_success": "Erfolgreich kopiert!",
@@ -363,6 +373,24 @@
     "duration_ms": "{duration} ms"
   },
   "migrate": {
+    "d1": {
+      "title": "KV-zu-D1-Migration",
+      "description": "Link-Datensätze von Workers KV nach D1 kopieren. Vorhandene D1-Datensätze bleiben erhalten.",
+      "status_title": "Migrationsstatus",
+      "status_pending": "Die Migration ist noch nicht abgeschlossen.",
+      "status_completed": "Migration abgeschlossen.",
+      "completed_at": "Abgeschlossen am {date}",
+      "run_again": "Erneut ausführen",
+      "running": "Migration läuft…",
+      "success": "Migration erfolgreich abgeschlossen.",
+      "failed": "Migration fehlgeschlagen",
+      "scanned": "Geprüft",
+      "inserted": "Eingefügt",
+      "skipped": "Übersprungen",
+      "expired": "Abgelaufen",
+      "failed_count": "Fehlgeschlagen",
+      "no_marker": "Keine Abschlussmarkierung gefunden."
+    },
     "access_export": {
       "title": "Export Access Data",
       "description": "Download access statistics as a CSV file",

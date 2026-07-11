@@ -40,12 +40,27 @@ export async function getStoredLink(slug: string) {
   return await env.KV.get<Link>(`link:${slug}`, { type: 'json' })
 }
 
+export async function getD1Link(slug: string) {
+  return await env.DB.prepare('SELECT * FROM links WHERE slug = ?').bind(slug).first<Record<string, unknown>>()
+}
+
 export async function deleteStoredLink(slug: string) {
-  await env.KV.delete(`link:${slug}`)
+  await Promise.all([
+    env.KV.delete(`link:${slug}`),
+    env.DB.prepare('DELETE FROM links WHERE slug = ?').bind(slug).run(),
+    env.DB.prepare('DELETE FROM link_tombstones WHERE slug = ?').bind(slug).run(),
+  ])
 }
 
 export async function deleteStoredLinks(slugs: string[]) {
   await Promise.all(slugs.map(slug => deleteStoredLink(slug)))
+}
+
+export async function clearLinkMigrationState() {
+  await Promise.all([
+    env.KV.delete('migration:kv-to-d1:v1'),
+    env.DB.prepare('DELETE FROM link_migration_runs').run(),
+  ])
 }
 
 export function expectMaskedPassword(password: string | undefined, plainText: string) {

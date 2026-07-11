@@ -205,6 +205,14 @@
     }
   },
   "links": {
+    "migration_gate": {
+      "loading": "A preparar os seus links",
+      "scanned": "{count} links verificados",
+      "failed_title": "Falha na migração dos links",
+      "failed_description": "Os seus links ficam indisponíveis até à conclusão da migração de KV para D1.",
+      "retry": "Tentar novamente",
+      "open_migration": "Abrir ferramentas de migração"
+    },
     "create": "Criar link",
     "edit": "Editar link",
     "delete_confirm_title": "Tens a certeza absoluta?",
@@ -214,7 +222,9 @@
     "update_success": "Link atualizado com sucesso",
     "create_success": "Link criado com sucesso",
     "preview_mode_tip": "O link do modo de pré-visualização é válido por até 5 minutos.",
-    "search_placeholder": "Pesquisar links...",
+    "search_placeholder": "Pesquisar links…",
+    "search_loading": "A pesquisar…",
+    "search_failed": "A pesquisa falhou.",
     "no_results": "Nenhum link encontrado.",
     "group_title": "Links",
     "copy_success": "Copiado com sucesso!",
@@ -363,6 +373,24 @@
     "duration_ms": "{duration} ms"
   },
   "migrate": {
+    "d1": {
+      "title": "Migração de KV para D1",
+      "description": "Copie os links do Workers KV para o D1 preservando os registos existentes.",
+      "status_title": "Estado da migração",
+      "status_pending": "A migração não foi concluída.",
+      "status_completed": "Migração concluída.",
+      "completed_at": "Concluída em {date}",
+      "run_again": "Executar novamente",
+      "running": "A migrar…",
+      "success": "Migração concluída com sucesso.",
+      "failed": "Falha na migração",
+      "scanned": "Verificados",
+      "inserted": "Inseridos",
+      "skipped": "Ignorados",
+      "expired": "Expirados",
+      "failed_count": "Falhas",
+      "no_marker": "Nenhum marcador de conclusão encontrado."
+    },
     "access_export": {
       "title": "Export Access Data",
       "description": "Download access statistics as a CSV file",

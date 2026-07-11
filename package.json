@@ -22,12 +22,18 @@
     "types:check": "nuxt typecheck",
     "wrangler": "wrangler",
     "gen:types": "wrangler types",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply sink --local",
+    "db:migrate:remote": "wrangler d1 migrations apply sink --remote",
     "deploy": "npm run deploy:pages",
-    "deploy:pages": "wrangler pages deploy dist",
-    "deploy:worker": "wrangler deploy .output/server/index.mjs --assets .output/public",
+    "deploy:pages": "pnpm db:migrate:remote && wrangler pages deploy dist",
+    "deploy:worker": "pnpm db:migrate:remote && wrangler deploy .output/server/index.mjs --assets .output/public",
     "preview": "wrangler dev .output/server/index.mjs --assets .output/public ",
     "postinstall": "npm run build:map && nuxt prepare",
     "prepare": "simple-git-hooks"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.1.0",
@@ -57,6 +63,7 @@
     "d3-geo": "^3.1.1",
     "d3-scale": "^4.0.2",
     "destr": "^2.0.5",
+    "drizzle-kit": "^0.31.10",
     "embla-carousel-vue": "^8.6.0",
     "es-toolkit": "^1.49.0",
     "eslint": "^10.7.0",

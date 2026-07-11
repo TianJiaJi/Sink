@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { LinkSearchItem } from '@/types'
-import { createReusableTemplate, useMagicKeys, useMediaQuery } from '@vueuse/core'
-import { useFuse } from '@vueuse/integrations/useFuse'
+import { createReusableTemplate, useDebounceFn, useMagicKeys, useMediaQuery } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 
 defineOptions({
@@ -14,17 +13,15 @@ const isDesktop = useMediaQuery('(min-width: 640px)')
 
 const router = useRouter()
 const linksSearchStore = useDashboardLinksSearchStore()
-const { links } = storeToRefs(linksSearchStore)
+const { error, links, loading } = storeToRefs(linksSearchStore)
 
 const isOpen = ref(false)
 const searchTerm = ref('')
 
-const { results: filteredLinks } = useFuse(searchTerm, links, {
-  fuseOptions: {
-    keys: ['slug', 'url', 'comment'],
-  },
-  resultLimit: 20,
-})
+const search = useDebounceFn((query: string) => {
+  if (searchTerm.value.trim() === query.trim())
+    void linksSearchStore.searchLinks(query)
+}, 300)
 
 const { Meta_K, Ctrl_K } = useMagicKeys({
   passive: false,
@@ -58,8 +55,12 @@ function selectLink(link: LinkSearchItem | undefined) {
   })
 }
 
-onMounted(() => {
-  linksSearchStore.loadLinks()
+watch(searchTerm, (query) => {
+  linksSearchStore.invalidateSearch(query)
+  if (!query.trim())
+    return
+
+  void search(query)
 })
 </script>
 
@@ -100,38 +101,56 @@ onMounted(() => {
     </Button>
   </TriggerTemplate>
   <SearchTemplate>
-    <Command class="h-auto">
+    <Command :should-filter="false" class="h-auto flex-1">
       <CommandInput v-model="searchTerm" :placeholder="$t('links.search_placeholder')" autocomplete="off" />
-    </Command>
-    <!-- disable command search -->
-    <Command class="flex-1">
       <CommandList
         class="
           max-h-none
           sm:max-h-[300px]
         "
       >
-        <CommandEmpty>
+        <div
+          v-if="loading"
+          role="status"
+          aria-live="polite"
+          class="
+            flex items-center justify-center p-6 text-sm text-muted-foreground
+          "
+        >
+          {{ $t('links.search_loading') }}
+        </div>
+        <div
+          v-else-if="error"
+          role="alert"
+          class="p-6 text-center text-sm text-destructive"
+        >
+          <p class="font-medium">
+            {{ $t('links.search_failed') }}
+          </p>
+          <p class="mt-1 text-xs wrap-break-word">
+            {{ error }}
+          </p>
+        </div>
+        <CommandEmpty v-else>
           {{ $t('links.no_results') }}
         </CommandEmpty>
-        <CommandGroup v-if="filteredLinks.length" :heading="$t('links.group_title')">
+        <CommandGroup v-if="!loading && links.length" :heading="$t('links.group_title')">
           <CommandItem
-            v-for="link in filteredLinks" :key="link.item.slug" class="
-              cursor-pointer
-            " :value="link.item" @select="selectLink(link.item)"
+            v-for="link in links" :key="link.slug" class="cursor-pointer"
+            :value="link" @select="selectLink(link)"
           >
             <div class="flex w-full gap-1">
               <div class="inline-flex flex-1 items-center gap-1 overflow-hidden">
                 <div class="text-sm font-medium">
-                  {{ link.item.slug }}
+                  {{ link.slug }}
                 </div>
                 <div class="flex-1 truncate text-xs text-muted-foreground">
-                  ({{ link.item.url }})
+                  ({{ link.url }})
                 </div>
               </div>
-              <Badge v-if="link.item.comment" variant="secondary">
+              <Badge v-if="link.comment" variant="secondary">
                 <div class="max-w-24 truncate">
-                  {{ link.item.comment }}
+                  {{ link.comment }}
                 </div>
               </Badge>
             </div>

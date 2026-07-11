@@ -53,7 +53,7 @@ export function mergeEditableLink(existingLink: Link, link: Link): Link {
     ...linkWithoutPassword,
     id: existingLink.id,
     createdAt: existingLink.createdAt,
-    updatedAt: Math.floor(Date.now() / 1000),
+    updatedAt: Math.max(Math.floor(Date.now() / 1000), existingLink.updatedAt + 1),
   }
 
   cleanupOptionalLinkFields(newLink, link)

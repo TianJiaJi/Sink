@@ -1,4 +1,4 @@
-import { cloudflareTest } from '@cloudflare/vitest-pool-workers'
+import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-pool-workers'
 import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
 
@@ -27,7 +27,7 @@ function isHandledValidationError(error: unknown): error is HandledValidationErr
     && data.stack.includes('validateData')
 }
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(async ({ mode }) => ({
   plugins: [
     cloudflareTest({
       wrangler: {
@@ -35,6 +35,9 @@ export default defineConfig(({ mode }) => ({
       },
       miniflare: {
         cf: true,
+        bindings: {
+          TEST_MIGRATIONS: await readD1Migrations('./drizzle'),
+        },
       },
     }),
   ],
@@ -42,6 +45,7 @@ export default defineConfig(({ mode }) => ({
     env: loadEnv(mode, process.cwd(), ''),
     isolate: false,
     maxWorkers: 1,
+    setupFiles: ['./tests/setup.ts'],
     testTimeout: 10_000,
     onUnhandledError(error) {
       return !isHandledValidationError(error)

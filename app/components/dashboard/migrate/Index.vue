@@ -8,6 +8,7 @@
       lg:grid-cols-2
     "
   >
+    <DashboardMigrateD1 />
     <DashboardMigrateExport />
     <DashboardMigrateImport />
     <DashboardMigrateBackup />

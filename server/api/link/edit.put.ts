@@ -48,8 +48,9 @@ export default eventHandler(async (event) => {
     })
   }
   const link = await readValidatedBody(event, EditLinkSchema.parse)
+  link.slug = normalizeSlug(event, link.slug)
 
-  const existingLink: z.infer<typeof LinkSchema> | null = await getLink(event, link.slug)
+  const existingLink: z.infer<typeof LinkSchema> | null = await getAuthoritativeLink(event, link.slug)
   if (!existingLink) {
     throw createError({
       status: 404,
@@ -63,7 +64,12 @@ export default eventHandler(async (event) => {
   const newLink = mergeEditableLink(existingLink, link)
   await applyEditableLinkPassword(newLink, link.password)
 
-  await putLink(event, newLink)
+  if (!await updateLink(event, newLink, { id: existingLink.id, updatedAt: existingLink.updatedAt })) {
+    throw createError({
+      status: 409,
+      statusText: 'Link was modified or replaced',
+    })
+  }
   setResponseStatus(event, 201)
   return buildLinkResponse(event, newLink)
 })

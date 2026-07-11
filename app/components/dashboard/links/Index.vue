@@ -8,8 +8,10 @@ const linksStore = useDashboardLinksStore()
 const links = ref<Link[]>([])
 const listComplete = ref(false)
 const listError = ref(false)
+const listLoading = ref(false)
 const limit = 24
 let cursor = ''
+let requestGeneration = 0
 
 const countersMap = ref<Record<string, CounterData>>({})
 provide('linksCountersMap', countersMap)
@@ -51,32 +53,28 @@ onMounted(() => {
   scrollContainer.value = document.querySelector('.overflow-y-auto') as HTMLElement | null
 })
 
-const displayedLinks = computed(() => {
-  const sorted = [...links.value]
-  switch (linksStore.sortBy) {
-    case 'newest':
-      return sorted.sort((a, b) => b.createdAt - a.createdAt)
-    case 'oldest':
-      return sorted.sort((a, b) => a.createdAt - b.createdAt)
-    case 'az':
-      return sorted.sort((a, b) => a.slug.localeCompare(b.slug))
-    case 'za':
-      return sorted.sort((a, b) => b.slug.localeCompare(a.slug))
-    default:
-      return sorted
-  }
-})
-
 async function getLinks() {
+  if (listLoading.value || listComplete.value)
+    return
+
+  const generation = requestGeneration
+  const requestCursor = cursor
+  listLoading.value = true
   try {
     const data = await useAPI<LinkListResponse>('/api/link/list', {
       query: {
         limit,
-        cursor,
+        cursor: requestCursor,
+        sort: linksStore.sortBy,
       },
     })
+
+    if (generation !== requestGeneration)
+      return
+
     const newLinks = data.links.filter(Boolean)
-    links.value = links.value.concat(newLinks)
+    const existingSlugs = new Set(links.value.map(link => link.slug))
+    links.value = links.value.concat(newLinks.filter(link => !existingSlugs.has(link.slug)))
     cursor = data.cursor
     listComplete.value = data.list_complete
     listError.value = false
@@ -85,12 +83,28 @@ async function getLinks() {
     fetchCounters(ids)
   }
   catch (error) {
+    if (generation !== requestGeneration)
+      return
     console.error(error)
     listError.value = true
   }
+  finally {
+    if (generation === requestGeneration)
+      listLoading.value = false
+  }
 }
 
-const { isLoading } = useInfiniteScroll(
+function resetAndLoad() {
+  requestGeneration++
+  links.value = []
+  cursor = ''
+  listComplete.value = false
+  listError.value = false
+  listLoading.value = false
+  void getLinks()
+}
+
+useInfiniteScroll(
   scrollContainer as unknown as Ref<HTMLElement | null>,
   getLinks,
   {
@@ -102,18 +116,26 @@ const { isLoading } = useInfiniteScroll(
   },
 )
 
+watch(() => linksStore.sortBy, resetAndLoad)
+
 function updateLinkList(link: Link, type: LinkUpdateType) {
   if (type === 'edit') {
-    const index = links.value.findIndex(l => l.id === link.id)
-    links.value[index] = link
+    const index = links.value.findIndex(l => l.slug === link.slug)
+    if (index >= 0)
+      links.value[index] = link
   }
   else if (type === 'delete') {
-    const index = links.value.findIndex(l => l.id === link.id)
-    links.value.splice(index, 1)
+    const index = links.value.findIndex(l => l.slug === link.slug)
+    if (index >= 0)
+      links.value.splice(index, 1)
   }
   else {
-    links.value.unshift(link)
-    linksStore.sortBy = 'newest'
+    if (linksStore.sortBy !== 'newest') {
+      linksStore.sortBy = 'newest'
+      return
+    }
+
+    links.value = [link, ...links.value.filter(item => item.slug !== link.slug)]
   }
 }
 
@@ -131,19 +153,19 @@ linksStore.onLinkUpdate(({ link, type }) => {
     "
   >
     <DashboardLinksLink
-      v-for="link in displayedLinks"
-      :key="link.id"
+      v-for="link in links"
+      :key="link.slug"
       :link="link"
     />
   </section>
   <div
-    v-if="isLoading"
+    v-if="listLoading"
     class="flex items-center justify-center"
   >
     <Loader class="animate-spin" />
   </div>
   <div
-    v-if="!isLoading && listComplete"
+    v-if="!listLoading && listComplete"
     class="flex items-center justify-center text-sm"
   >
     {{ $t('links.no_more') }}

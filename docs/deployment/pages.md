@@ -13,6 +13,7 @@
 5. Save and deploy the project.
 6. Cancel the deployment, then go to **Settings** -> **Bindings** -> **Add**:
    - **KV Namespace**: Bind the variable name `KV` to a [KV namespace](https://developers.cloudflare.com/kv/) (create a new one under **Storage & Databases** -> **KV**).
+   - **D1 Database**: Create a D1 database named `sink`, bind it with the variable name `DB`, and copy its database ID into `wrangler.jsonc`.
    - **Workers AI** (_Optional_): Bind the variable name `AI` to the Workers AI Catalog.
    - **R2 Bucket** (_Optional, for OpenGraph image upload_): Create an R2 bucket under **Storage & Databases** -> **R2**, then bind the variable name `R2` to the bucket.
    - **Analytics Engine**:
@@ -20,10 +21,11 @@
      - Return to **Settings** -> **Bindings** -> **Add** and select **Analytics engine**.
      - Bind the variable name `ANALYTICS` to the `sink` dataset.
 
-7. Add Compatibility flags
-   - Go to **Settings** -> **Runtime** -> **Compatibility flags** and set the following flags `nodejs_compat`.
-8. Redeploy the project.
-9. To update code, refer to the official GitHub documentation [Syncing a fork branch from the web UI](https://docs.github.com/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-web-ui 'GitHub: Syncing a fork').
+7. From a local checkout authenticated with Wrangler, apply the database schema with `pnpm db:migrate:remote`. Run this command before each deployment that includes new migrations.
+8. Add Compatibility flags:
+   - Go to **Settings** -> **Runtime** -> **Compatibility flags** and add `nodejs_compat`.
+9. Redeploy the project.
+10. To update code, refer to the official GitHub documentation [Syncing a fork branch from the web UI](https://docs.github.com/pull-requests/collaborating-on-github/syncing-a-fork 'GitHub: Syncing a fork').
 
 To optionally protect the dashboard with Cloudflare Zero Trust while keeping short links public, refer to [Cloudflare Access Authentication](../cloudflare-access.md).
 

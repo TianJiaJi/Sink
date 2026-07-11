@@ -90,14 +90,6 @@ export default eventHandler(async (event) => {
 
     try {
       const slug = normalizeSlug(event, linkData.slug)
-      const existingLink = await getLink(event, slug)
-
-      if (existingLink) {
-        result.skippedItems.push({ index: i, slug, url: linkData.url })
-        result.skipped++
-        continue
-      }
-
       const now = Math.floor(Date.now() / 1000)
       const link = {
         ...linkData,
@@ -107,11 +99,19 @@ export default eventHandler(async (event) => {
         updatedAt: linkData.updatedAt || now,
       }
 
+      if (link.expiration !== undefined && link.expiration <= now) {
+        throw new Error('Link expiration is in the past')
+      }
+
       if (link.password) {
         link.password = await normalizeLinkPasswordForStorage(link.password)
       }
 
-      await putLink(event, link)
+      if (!await importLink(event, link)) {
+        result.skippedItems.push({ index: i, slug, url: linkData.url })
+        result.skipped++
+        continue
+      }
       result.successItems.push({ index: i, slug, url: linkData.url })
       result.success++
     }

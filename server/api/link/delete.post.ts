@@ -35,6 +35,7 @@ export default eventHandler(async (event) => {
     })
   }
 
-  const { slug } = await readValidatedBody(event, DeleteSchema.parse)
+  const body = await readValidatedBody(event, DeleteSchema.parse)
+  const slug = normalizeSlug(event, body.slug)
   await deleteLink(event, slug)
 })

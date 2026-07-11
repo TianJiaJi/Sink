@@ -52,6 +52,10 @@ export const LinkSchema = z.object({
 
 export type Link = z.infer<typeof LinkSchema>
 
+export const StoredLinkSchema = LinkSchema.extend({
+  expiration: z.number().int().safe().optional(),
+})
+
 export interface ExportData {
   version: string
   exportedAt: string

@@ -205,6 +205,14 @@
     }
   },
   "links": {
+    "migration_gate": {
+      "loading": "正在準備連結資料",
+      "scanned": "已掃描 {count} 條連結",
+      "failed_title": "連結遷移失敗",
+      "failed_description": "KV 到 D1 遷移完成前，連結暫時無法使用。",
+      "retry": "重試",
+      "open_migration": "前往遷移工具"
+    },
     "create": "創建連結",
     "edit": "編輯連結",
     "delete_confirm_title": "確定要刪除嗎？",
@@ -214,7 +222,9 @@
     "update_success": "連結更新成功",
     "create_success": "連結創建成功",
     "preview_mode_tip": "預覽模式下的連結最多有效5分鐘",
-    "search_placeholder": "搜尋連結...",
+    "search_placeholder": "搜尋連結…",
+    "search_loading": "正在搜尋…",
+    "search_failed": "搜尋失敗。",
     "no_results": "找不到連結。",
     "group_title": "連結列表",
     "copy_success": "複製成功！",
@@ -363,6 +373,24 @@
     "duration_ms": "{duration} 毫秒"
   },
   "migrate": {
+    "d1": {
+      "title": "KV 到 D1 遷移",
+      "description": "將連結記錄從 Workers KV 複製到 D1，並保留 D1 中已有的記錄。",
+      "status_title": "遷移狀態",
+      "status_pending": "遷移尚未完成。",
+      "status_completed": "遷移已完成。",
+      "completed_at": "完成於 {date}",
+      "run_again": "再次遷移",
+      "running": "遷移中…",
+      "success": "遷移已成功完成。",
+      "failed": "遷移失敗",
+      "scanned": "已掃描",
+      "inserted": "已寫入",
+      "skipped": "已略過",
+      "expired": "已過期",
+      "failed_count": "失敗",
+      "no_marker": "找不到遷移完成標記。"
+    },
     "access_export": {
       "title": "匯出存取資料",
       "description": "將存取統計資料下載為 CSV 檔案",

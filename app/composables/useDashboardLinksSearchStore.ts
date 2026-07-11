@@ -1,14 +1,22 @@
 import type { Link, LinkSearchItem, LinkUpdateType } from '@/types'
-import { ref } from 'vue'
+import { readonly, ref, shallowRef } from 'vue'
 import { defineStore } from '#imports'
 import { useAPI } from '@/utils/api'
 
 export const useDashboardLinksSearchStore = defineStore('dashboard-links-search', () => {
   const links = ref<LinkSearchItem[]>([])
-  const loaded = ref(false)
-  const loading = ref(false)
+  const query = shallowRef('')
+  const loading = shallowRef(false)
+  const error = shallowRef<string | null>(null)
+  let searchGeneration = 0
 
-  let loadPromise: Promise<LinkSearchItem[]> | null = null
+  function invalidateSearch(searchQuery = '') {
+    searchGeneration++
+    query.value = searchQuery.trim()
+    links.value = []
+    loading.value = false
+    error.value = null
+  }
 
   function isValidUrl(url: string): boolean {
     try {
@@ -33,31 +41,41 @@ export const useDashboardLinksSearchStore = defineStore('dashboard-links-search'
     return `${trimmedUrl.slice(0, queryIndex)}${hashIndex === -1 ? '' : trimmedUrl.slice(hashIndex)}`
   }
 
-  async function loadLinks(): Promise<LinkSearchItem[]> {
-    if (loaded.value)
-      return links.value
+  async function searchLinks(searchQuery: string): Promise<LinkSearchItem[]> {
+    const normalizedQuery = searchQuery.trim()
+    const generation = ++searchGeneration
+    query.value = normalizedQuery
 
-    if (loadPromise)
-      return loadPromise
+    if (!normalizedQuery) {
+      invalidateSearch()
+      return []
+    }
 
     loading.value = true
-    const promise = useAPI<LinkSearchItem[]>('/api/link/search')
-      .then((data) => {
+    error.value = null
+    try {
+      const data = await useAPI<LinkSearchItem[]>('/api/link/search', {
+        query: {
+          q: normalizedQuery,
+          limit: 20,
+        },
+      })
+      if (generation === searchGeneration)
         links.value = data
-        loaded.value = true
-        return data
-      })
-      .catch((error) => {
-        console.error(error)
-        return links.value
-      })
-      .finally(() => {
+      return data
+    }
+    catch (cause) {
+      if (generation === searchGeneration) {
+        console.error(cause)
+        links.value = []
+        error.value = cause instanceof Error ? cause.message : String(cause)
+      }
+      return []
+    }
+    finally {
+      if (generation === searchGeneration)
         loading.value = false
-        loadPromise = null
-      })
-    loadPromise = promise
-
-    return promise
+    }
   }
 
   function syncLink(link: Link, type: LinkUpdateType) {
@@ -71,33 +89,43 @@ export const useDashboardLinksSearchStore = defineStore('dashboard-links-search'
       url: withoutUrlQuery(link.url) ?? link.url,
       comment: link.comment,
     }
+    const normalizedQuery = query.value.toLocaleLowerCase()
+    const matchesCurrentQuery = normalizedQuery
+      && [nextLink.slug, nextLink.url, nextLink.comment]
+        .some(value => value?.toLocaleLowerCase().includes(normalizedQuery))
     const index = links.value.findIndex(item => item.slug === link.slug)
     if (index === -1) {
-      links.value = [...links.value, nextLink]
+      if (matchesCurrentQuery)
+        links.value = [...links.value, nextLink].slice(0, 20)
       return
     }
 
-    links.value = links.value.map(item => item.slug === link.slug ? nextLink : item)
+    links.value = matchesCurrentQuery
+      ? links.value.map(item => item.slug === link.slug ? nextLink : item)
+      : links.value.filter(item => item.slug !== link.slug)
   }
 
-  function findDuplicateLink(url: string, currentSlug?: string): LinkSearchItem | undefined {
+  async function findDuplicateLink(url: string, currentSlug?: string): Promise<LinkSearchItem | undefined> {
     const targetUrl = withoutUrlQuery(url)
     if (!targetUrl)
       return undefined
 
-    return links.value.find((link) => {
-      if (link.slug === currentSlug)
-        return false
-
-      return link.url === targetUrl
+    const matches = await useAPI<LinkSearchItem[]>('/api/link/search', {
+      query: {
+        url: targetUrl,
+        limit: 20,
+      },
     })
+    return matches.find(link => link.slug !== currentSlug)
   }
 
   return {
     links,
-    loaded,
+    query,
     loading,
-    loadLinks,
+    error: readonly(error),
+    invalidateSearch,
+    searchLinks,
     syncLink,
     findDuplicateLink,
   }

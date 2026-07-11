@@ -93,6 +93,7 @@ export default eventHandler(async (event) => {
 
   let response: AiChatResponse
   try {
+    // @ts-expect-error Workers AI supports model-specific chat template options at runtime.
     response = await AI.run(aiModel as keyof AiModels, {
       messages,
       chat_template_kwargs: {

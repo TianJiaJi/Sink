@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Link, LinkFormData } from '@/types'
 import { useForm } from '@tanstack/vue-form'
+import { useDebounceFn } from '@vueuse/core'
 import { ExternalLink, Shuffle, Sparkles } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { z } from 'zod'
@@ -153,14 +154,38 @@ async function aiSlug() {
 
 const currentSlug = form.useStore(state => state.values.slug || '')
 const currentUrl = form.useStore(state => state.values.url || '')
-const duplicateLink = computed(() => linksSearchStore.findDuplicateLink(currentUrl.value, props.link.slug))
+const duplicateLink = shallowRef<Awaited<ReturnType<typeof linksSearchStore.findDuplicateLink>>>()
+let duplicateRequestGeneration = 0
+
+const findDuplicateLink = useDebounceFn(async (url: string, generation: number) => {
+  if (generation !== duplicateRequestGeneration || currentUrl.value !== url)
+    return
+
+  try {
+    const match = await linksSearchStore.findDuplicateLink(url, props.link.slug)
+    if (generation === duplicateRequestGeneration && currentUrl.value === url)
+      duplicateLink.value = match
+  }
+  catch (error) {
+    if (generation === duplicateRequestGeneration && currentUrl.value === url) {
+      duplicateLink.value = undefined
+      console.error(error)
+    }
+  }
+}, 300)
+
+watch(currentUrl, (url) => {
+  const generation = ++duplicateRequestGeneration
+  duplicateLink.value = undefined
+  if (!url.trim())
+    return
+
+  void findDuplicateLink(url, generation)
+}, { immediate: true })
+
 const shortDuplicateLink = computed(() => duplicateLink.value ? `${requestUrl.origin}/${duplicateLink.value.slug}` : '')
 
 const { previewMode } = useRuntimeConfig().public
-
-onMounted(() => {
-  linksSearchStore.loadLinks()
-})
 
 async function applyUtmUrl(url: string) {
   form.setFieldValue('url', url)
@@ -255,7 +280,6 @@ defineExpose({ randomSlug })
                 type="button"
                 variant="ghost"
                 size="icon"
-                class="size-auto p-0"
                 aria-label="Generate random slug"
                 @click="randomSlug"
               >
@@ -265,7 +289,6 @@ defineExpose({ randomSlug })
                 type="button"
                 variant="ghost"
                 size="icon"
-                class="size-auto p-0"
                 aria-label="Generate AI slug"
                 :disabled="aiSlugPending"
                 @click="aiSlug"

@@ -19,19 +19,27 @@ defineRouteMeta({
         schema: { type: 'string' },
         description: 'Pagination cursor from previous response',
       },
+      {
+        name: 'sort',
+        in: 'query',
+        required: false,
+        schema: { type: 'string', enum: ['az', 'za', 'newest', 'oldest'], default: 'az' },
+        description: 'Link sort order',
+      },
     ],
   },
 })
 
 const ListQuerySchema = z.object({
-  limit: z.coerce.number().max(1024).default(20),
+  limit: z.coerce.number().int().min(1).max(1024).default(20),
   cursor: z.string().trim().max(1024).optional(),
+  sort: z.enum(['az', 'za', 'newest', 'oldest']).default('az'),
 })
 
 export default eventHandler(async (event) => {
-  const { limit, cursor } = await getValidatedQuery(event, ListQuerySchema.parse)
+  const { limit, cursor, sort } = await getValidatedQuery(event, ListQuerySchema.parse)
 
-  const list = await listLinks(event, { limit, cursor })
+  const list = await listLinks(event, { limit, cursor, sort })
   return {
     ...list,
     links: sanitizeLinksPassword(list.links),
