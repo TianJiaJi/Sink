@@ -105,7 +105,7 @@ onMounted(() => {
       <div class="relative flex items-center">
         <div
           class="
-            h-8 w-8 cursor-pointer overflow-hidden rounded-full border
+            size-8 cursor-pointer overflow-hidden rounded-full border
             border-gray-300
             dark:border-gray-600
           "
@@ -115,7 +115,7 @@ onMounted(() => {
           <input
             v-model="color"
             type="color"
-            class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            class="absolute inset-0 size-full cursor-pointer opacity-0"
             :title="$t('links.change_qr_color')"
           >
         </div>
@@ -125,7 +125,7 @@ onMounted(() => {
         size="sm"
         @click="downloadQRCode"
       >
-        <Download class="mr-2 h-4 w-4" />
+        <Download class="mr-2 size-4" />
         {{ $t('links.download_qr_code') }}
       </Button>
     </div>

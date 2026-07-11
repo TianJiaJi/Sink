@@ -13,7 +13,7 @@ const linksStore = useDashboardLinksStore()
             <TooltipTrigger class="flex items-center">
               <ArrowUpDown
                 class="
-                  h-4 w-4
+                  size-4
                   sm:mr-2
                 "
               />

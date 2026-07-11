@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { ImportData } from '#shared/schemas/import'
-import { ImportDataSchema } from '#shared/schemas/import'
-import { createExportFilename } from '#shared/utils/export-file'
 import { AlertCircle, CheckCircle, Download, SkipForward, Upload, XCircle } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
+import { ImportDataSchema } from '#shared/schemas/import'
+import { createExportFilename } from '#shared/utils/export-file'
 
 interface ImportResultItem {
   index: number
@@ -62,12 +62,12 @@ async function handleFile(file: File) {
     const result = ImportDataSchema.safeParse(data)
 
     if (!result.success) {
-      const errors = result.error.errors.slice(0, 10).map((err) => {
+      const errors = result.error.issues.slice(0, 10).map((err) => {
         const path = err.path.join('.')
         return `${path}: ${err.message}`
       })
-      if (result.error.errors.length > 10) {
-        errors.push(`... and ${result.error.errors.length - 10} more errors`)
+      if (result.error.issues.length > 10) {
+        errors.push(`... and ${result.error.issues.length - 10} more errors`)
       }
       validationErrors.value = errors
       parseError.value = t('migrate.import.errors.invalid_format')
@@ -239,7 +239,7 @@ function reset() {
         "
       >
         <div class="flex items-center gap-2 text-destructive">
-          <AlertCircle class="h-5 w-5" />
+          <AlertCircle class="size-5" />
           <span class="font-medium">{{ parseError }}</span>
         </div>
         <div v-if="validationErrors.length > 0" class="mt-2 space-y-1">
@@ -268,7 +268,7 @@ function reset() {
               </p>
             </div>
             <Button variant="ghost" size="sm" @click="reset">
-              <XCircle class="h-4 w-4" />
+              <XCircle class="size-4" />
             </Button>
           </div>
         </div>
@@ -286,7 +286,7 @@ function reset() {
           class="w-full"
           @click="handleImport"
         >
-          <Upload class="mr-2 h-4 w-4" />
+          <Upload class="mr-2 size-4" />
           {{ $t('migrate.import.button') }}
         </Button>
       </div>
@@ -298,15 +298,15 @@ function reset() {
           </h4>
           <div class="space-y-2">
             <div class="flex items-center gap-2 text-sm">
-              <CheckCircle class="h-4 w-4 text-green-500" />
+              <CheckCircle class="size-4 text-green-500" />
               <span>{{ $t('migrate.import.result.success') }}: {{ importResult.success }}</span>
             </div>
             <div class="flex items-center gap-2 text-sm">
-              <SkipForward class="h-4 w-4 text-yellow-500" />
+              <SkipForward class="size-4 text-yellow-500" />
               <span>{{ $t('migrate.import.result.skipped') }}: {{ importResult.skipped }}</span>
             </div>
             <div class="flex items-center gap-2 text-sm">
-              <XCircle class="h-4 w-4 text-red-500" />
+              <XCircle class="size-4 text-red-500" />
               <span>{{ $t('migrate.import.result.failed') }}: {{ importResult.failed }}</span>
             </div>
           </div>
@@ -321,7 +321,7 @@ function reset() {
             variant="default"
             @click="downloadSuccessItems"
           >
-            <Download class="mr-2 h-4 w-4" />
+            <Download class="mr-2 size-4" />
             {{ $t('migrate.import.download_success') }}
           </Button>
           <Button
@@ -329,7 +329,7 @@ function reset() {
             variant="secondary"
             @click="downloadSkippedItems"
           >
-            <Download class="mr-2 h-4 w-4" />
+            <Download class="mr-2 size-4" />
             {{ $t('migrate.import.download_skipped') }}
           </Button>
           <Button
@@ -337,7 +337,7 @@ function reset() {
             variant="destructive"
             @click="downloadFailedItems"
           >
-            <Download class="mr-2 h-4 w-4" />
+            <Download class="mr-2 size-4" />
             {{ $t('migrate.import.download_failed') }}
           </Button>
         </div>

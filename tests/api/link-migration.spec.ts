@@ -1,19 +1,19 @@
 import type { ImportResult } from '../../shared/schemas/import'
 import type { ExportData } from '../../shared/schemas/link'
-import { generateMock } from '@anatine/zod-mock'
 import { describe, expect, it } from 'vitest'
-import { z } from 'zod'
 import { LINK_PASSWORD_HASH_PREFIX, LINK_PASSWORD_MASK_PREFIX } from '../../shared/utils/link-password'
 import { expectStoredHashedPassword, fetch, fetchWithAuth, getStoredLink, postJson } from '../utils'
 
-const linkSchema = z.object({
-  url: z.string().url(),
-  slug: z.string().min(1).max(50),
-})
+function createLinkPayload() {
+  return {
+    url: 'https://example.com',
+    slug: `migration-${crypto.randomUUID()}`,
+  }
+}
 
-const testLinkPayload = generateMock(linkSchema)
+const testLinkPayload = createLinkPayload()
 
-describe.sequential('/api/link/export', () => {
+describe('/api/link/export', { concurrent: false }, () => {
   it('exports links with valid auth', async () => {
     await postJson('/api/link/create', testLinkPayload)
 
@@ -72,11 +72,11 @@ describe.sequential('/api/link/export', () => {
   })
 })
 
-describe.sequential('/api/link/import', () => {
+describe('/api/link/import', { concurrent: false }, () => {
   it('imports links with valid data', async () => {
     const importPayload = {
       version: '1.0',
-      links: [generateMock(linkSchema)],
+      links: [createLinkPayload()],
     }
 
     const response = await postJson('/api/link/import', importPayload)

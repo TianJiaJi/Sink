@@ -112,8 +112,8 @@ function openFilePicker() {
       @dragleave="onDragLeave"
     >
       <div class="flex flex-col items-center gap-1 text-muted-foreground">
-        <Loader2 v-if="uploading" class="h-8 w-8 animate-spin" />
-        <ImagePlus v-else class="h-8 w-8" />
+        <Loader2 v-if="uploading" class="size-8 animate-spin" />
+        <ImagePlus v-else class="size-8" />
         <span class="text-sm">{{ canUpload ? $t('links.form.image_upload_hint') : $t('links.form.slug_required') }}</span>
         <span v-if="canUpload" class="text-xs opacity-60">{{ $t('links.form.image_ratio_hint') }}</span>
       </div>
@@ -130,16 +130,16 @@ function openFilePicker() {
       <img
         :src="imageUrl"
         :alt="$t('links.form.image_preview')"
-        class="h-full w-full rounded-md object-cover"
+        class="size-full rounded-md object-cover"
       >
       <Button
         type="button"
         variant="destructive"
         size="icon"
-        class="absolute top-2 right-2 h-6 w-6"
+        class="absolute top-2 right-2 size-6"
         @click="clearImage"
       >
-        <X class="h-4 w-4" />
+        <X class="size-4" />
       </Button>
     </AspectRatio>
   </div>

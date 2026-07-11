@@ -1,5 +1,5 @@
 import type { BackupData } from '../../server/utils/backup'
-import { env } from 'cloudflare:test'
+import { env } from 'cloudflare:workers'
 import { describe, expect, it } from 'vitest'
 import { postJson } from '../utils'
 
@@ -11,7 +11,7 @@ function getManualBackupDate(key: string) {
   return new Date(match[1].replace(/T(\d{2})-(\d{2})-(\d{2})/, 'T$1:$2:$3'))
 }
 
-describe.sequential('/api/backup', () => {
+describe('/api/backup', { concurrent: false }, () => {
   it('returns success with auth', async () => {
     const response = await postJson('/api/backup', {})
     expect(response.status).toBe(200)

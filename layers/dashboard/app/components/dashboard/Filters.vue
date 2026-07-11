@@ -79,7 +79,7 @@ else {
       >
         {{ selectedLinks.length ? selectedLinks.join(', ') : $t('dashboard.filter_placeholder') }}
       </div>
-      <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+      <ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
     </Button>
   </TriggerTemplate>
   <FilterTemplate>
@@ -99,7 +99,7 @@ else {
             >
               <Check
                 :class="cn(
-                  'h-4 w-4',
+                  'size-4',
                   selectedLinks.includes(link.slug) ? 'opacity-100' : `
                     opacity-0
                   `,

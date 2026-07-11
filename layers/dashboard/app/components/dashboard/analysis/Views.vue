@@ -126,7 +126,7 @@ type Data = ViewDataPoint
       md:p-10
     "
   >
-    <ChartContainer :config="chartConfig" class="aspect-[4/1] w-full">
+    <ChartContainer :config="chartConfig" class="aspect-4/1 w-full">
       <VisXYContainer :data="views" :margin="{ left: 0, right: 0 }">
         <template v-if="isAreaMode">
           <template v-for="cat in categories" :key="cat">

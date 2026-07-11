@@ -65,7 +65,7 @@ const settingsItems = computed<NavItem[]>(() => [
                   class="size-8 rounded-full"
                 >
               </div>
-              <div class="grid flex-1 text-left text-sm leading-tight">
+              <div class="grid flex-1 text-left text-sm/tight">
                 <span class="truncate font-medium">{{ title }}</span>
                 <span class="truncate text-xs">{{ $t('sidebar.subtitle') }}</span>
               </div>

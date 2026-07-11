@@ -170,7 +170,7 @@ describe('/', () => {
   })
 })
 
-describe.sequential('password protected redirect', () => {
+describe('password protected redirect', { concurrent: false }, () => {
   it('shows password page without password, rejects wrong password, and redirects with correct password', async () => {
     const password = 'redirect-secret123'
     const payload = {

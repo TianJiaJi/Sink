@@ -141,21 +141,21 @@ const { hasUpdate, currentVersion, latestVersion } = useVersionCheck()
                     class="cursor-pointer"
                     @click="colorMode.preference = 'light'"
                   >
-                    <Sun class="mr-1 h-4 w-4" />
+                    <Sun class="mr-1 size-4" />
                     {{ $t('theme.light') }}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     class="cursor-pointer"
                     @click="colorMode.preference = 'dark'"
                   >
-                    <Moon class="mr-1 h-4 w-4" />
+                    <Moon class="mr-1 size-4" />
                     {{ $t('theme.dark') }}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     class="cursor-pointer"
                     @click="colorMode.preference = 'system'"
                   >
-                    <Laptop class="mr-1 h-4 w-4" />
+                    <Laptop class="mr-1 size-4" />
                     {{ $t('theme.system') }}
                   </DropdownMenuItem>
                 </DropdownMenuContent>

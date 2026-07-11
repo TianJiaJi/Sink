@@ -42,7 +42,7 @@ function fallbackSlug(event: H3Event, url: string): string {
 
 export default eventHandler(async (event) => {
   const url = (await getValidatedQuery(event, z.object({
-    url: z.string().url(),
+    url: z.url(),
   }).parse)).url
   const { cloudflare } = event.context
   const { AI } = cloudflare.env
@@ -77,13 +77,20 @@ export default eventHandler(async (event) => {
     { role: 'user', content: userContent },
   ]
 
-  const response = await AI.run(aiModel as keyof AiModels, {
-    messages,
-    chat_template_kwargs: {
-      enable_thinking: false,
-      thinking: false,
-    },
-  }) as AiChatResponse
+  let response: AiChatResponse
+  try {
+    response = await AI.run(aiModel as keyof AiModels, {
+      messages,
+      chat_template_kwargs: {
+        enable_thinking: false,
+        thinking: false,
+      },
+    }) as AiChatResponse
+  }
+  catch (error) {
+    console.warn('Workers AI slug generation failed; using fallback.', error)
+    return { slug: fallbackSlug(event, url) }
+  }
 
   const content = response.response ?? response.choices?.[0]?.message?.content ?? ''
 

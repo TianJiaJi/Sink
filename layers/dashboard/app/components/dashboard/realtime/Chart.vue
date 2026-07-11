@@ -41,7 +41,7 @@ onMounted(() => {
     <div class="h-24">
       <CardHeader
         v-if="stats.visits" class="
-          flex flex-row items-center justify-between space-y-0 px-0 pt-2 pb-2
+          flex flex-row items-center justify-between space-y-0 px-0 py-2
         "
       >
         <CardTitle class="flex items-center gap-2 text-sm font-medium">
@@ -53,7 +53,7 @@ onMounted(() => {
           />
           {{ $t('dashboard.visits') }}
         </CardTitle>
-        <MousePointerClick class="h-4 w-4 text-muted-foreground" />
+        <MousePointerClick class="size-4 text-muted-foreground" />
       </CardHeader>
       <CardContent class="px-0 pb-4">
         <NumberFlow class="text-2xl font-bold" :class="{ 'opacity-60 blur-md': !stats.visits }" :value="stats.visits" />

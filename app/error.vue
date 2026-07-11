@@ -11,7 +11,7 @@ defineProps<{
   <NuxtLayout name="default">
     <a
       class="
-        mx-auto flex h-full w-full max-w-[600px] items-center justify-center
+        mx-auto flex size-full max-w-[600px] items-center justify-center
         [&_svg]:w-full
       "
       href="/"

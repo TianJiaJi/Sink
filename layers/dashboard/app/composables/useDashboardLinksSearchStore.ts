@@ -1,6 +1,6 @@
 import type { Link, LinkSearchItem, LinkUpdateType } from '@/types'
-import { defineStore } from '#imports'
 import { ref } from 'vue'
+import { defineStore } from '#imports'
 import { useAPI } from '@/utils/api'
 
 export const useDashboardLinksSearchStore = defineStore('dashboard-links-search', () => {

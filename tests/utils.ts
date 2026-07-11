@@ -1,20 +1,21 @@
 import type { Link } from '../shared/schemas/link'
-import { env, SELF } from 'cloudflare:test'
+import { env, exports } from 'cloudflare:workers'
 import { expect } from 'vitest'
 import { LINK_PASSWORD_HASH_PREFIX, LINK_PASSWORD_MASK_PREFIX } from '../shared/utils/link-password'
 
 export function fetchWithAuth(path: string, options?: RequestInit): Promise<Response> {
-  return SELF.fetch(`http://localhost${path}`, {
+  const request = new Request(`http://localhost${path}`, {
     ...options,
     headers: {
       ...options?.headers,
       Authorization: `Bearer ${import.meta.env.NUXT_SITE_TOKEN}`,
     },
   })
+  return exports.default.fetch(request)
 }
 
 export function fetch(path: string, options?: RequestInit): Promise<Response> {
-  return SELF.fetch(`http://localhost${path}`, options)
+  return exports.default.fetch(new Request(`http://localhost${path}`, options))
 }
 
 export function postJson(path: string, body: unknown, withAuth = true): Promise<Response> {

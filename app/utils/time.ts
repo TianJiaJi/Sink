@@ -5,14 +5,14 @@ export function getTimeZone() {
   if (typeof Intl === 'undefined')
     return 'Etc/UTC'
 
-  return Intl.DateTimeFormat().resolvedOptions().timeZone
+  return new Intl.DateTimeFormat().resolvedOptions().timeZone
 }
 
 export function getLocale() {
   if (typeof Intl === 'undefined')
     return typeof navigator === 'undefined' ? 'en-US' : navigator.language
 
-  return Intl.DateTimeFormat().resolvedOptions().locale
+  return new Intl.DateTimeFormat().resolvedOptions().locale
 }
 
 export function shortDate(unix = 0, locale?: string) {

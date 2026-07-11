@@ -18,7 +18,7 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <h3 v-if="link" class="text-xl leading-10 font-bold">
+  <h3 v-if="link" class="text-xl/10 font-bold">
     {{ $t('dashboard.stats', { slug: link.slug }) }}
   </h3>
   <DashboardAnalysisCounters />

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Link } from '@/types'
-import { createExportFilename } from '#shared/utils/export-file'
 import { Download, Loader } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
+import { createExportFilename } from '#shared/utils/export-file'
 
 interface ExportResponse {
   version: string
@@ -73,8 +73,8 @@ async function handleExport() {
     </CardHeader>
     <CardContent>
       <Button :disabled="isExporting" @click="handleExport">
-        <Loader v-if="isExporting" class="mr-2 h-4 w-4 animate-spin" />
-        <Download v-else class="mr-2 h-4 w-4" />
+        <Loader v-if="isExporting" class="mr-2 size-4 animate-spin" />
+        <Download v-else class="mr-2 size-4" />
         <template v-if="isExporting && exportedCount > 0">
           {{ exportedCount }} {{ $t('migrate.export.total_links') }}…
         </template>

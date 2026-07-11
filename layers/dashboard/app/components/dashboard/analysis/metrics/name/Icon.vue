@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import {
+  Bot,
   Globe,
   Laptop,
   MonitorCheck,
+  Mouse,
   Smartphone,
   Tablet,
   Terminal,
@@ -46,7 +48,6 @@ import {
   LgIcon,
   LinuxIcon,
   LinuxMintIcon,
-  LogitechIcon,
   MacOsIcon,
   MeizuIcon,
   MetaIcon,
@@ -57,7 +58,6 @@ import {
   NvidiaIcon,
   OculusIcon,
   OnePlusIcon,
-  OpenAiIcon,
   OperaGxIcon,
   OperaIcon,
   OppoIcon,
@@ -71,7 +71,6 @@ import {
   SafariIcon,
   SamsungIcon,
   SharpIcon,
-  SlackIcon,
   SonyIcon,
   SteamIcon,
   TelegramIcon,
@@ -119,7 +118,7 @@ const iconMaps: Record<string, Component> = {
   'chrome webview': GoogleChromeIcon,
   'chromecast': GoogleCastIcon,
   'chromium': GoogleChromeIcon,
-  'claudebot': OpenAiIcon,
+  'claudebot': Bot,
   'console': SteamIcon,
   'curl': Terminal,
   'debian': DebianIcon,
@@ -145,7 +144,7 @@ const iconMaps: Record<string, Component> = {
   'google tv': GoogleTvIcon,
   'googlebot': GoogleIcon,
   'googlebot-image': GoogleIcon,
-  'gptbot': OpenAiIcon,
+  'gptbot': Bot,
   'harmonyos': HuaweiIcon,
   'honor': HonorIcon,
   'hp': HpIcon,
@@ -161,7 +160,7 @@ const iconMaps: Record<string, Component> = {
   'lg': LgIcon,
   'linux': LinuxIcon,
   'linux mint': LinuxMintIcon,
-  'logitech': LogitechIcon,
+  'logitech': Mouse,
   'macintosh': AppleIcon,
   'macos': MacOsIcon,
   'meizu': MeizuIcon,
@@ -203,7 +202,7 @@ const iconMaps: Record<string, Component> = {
   'samsung': SamsungIcon,
   'samsung internet': SamsungIcon,
   'sharp': SharpIcon,
-  'slackbot': SlackIcon,
+  'slackbot': Bot,
   'smarttv': GoogleTvIcon,
   'sony': SonyIcon,
   'tablet': Tablet,
@@ -232,7 +231,7 @@ const iconMaps: Record<string, Component> = {
   <div class="w-full truncate">
     <component
       :is="iconMaps[name.toLowerCase()] || iconMaps[type]"
-      class="float-left h-5 w-5 py-0.5"
+      class="float-left size-5 py-0.5"
     />
     <span>{{ name }}</span>
   </div>

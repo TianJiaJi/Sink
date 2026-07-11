@@ -60,7 +60,7 @@ function resolveMetadataLocale(event: H3Event, locale?: string): string {
 
 export default eventHandler(async (event) => {
   const query = await getValidatedQuery(event, z.object({
-    url: z.string().url(),
+    url: z.url(),
     locale: z.string().optional(),
   }).parse)
   const { url } = query
@@ -91,13 +91,20 @@ export default eventHandler(async (event) => {
     { role: 'user', content: userContent },
   ]
 
-  const response = await AI.run(aiModel as keyof AiModels, {
-    messages,
-    chat_template_kwargs: {
-      enable_thinking: false,
-      thinking: false,
-    },
-  }) as AiChatResponse
+  let response: AiChatResponse
+  try {
+    response = await AI.run(aiModel as keyof AiModels, {
+      messages,
+      chat_template_kwargs: {
+        enable_thinking: false,
+        thinking: false,
+      },
+    }) as AiChatResponse
+  }
+  catch (error) {
+    console.warn('Workers AI metadata generation failed; using fallback.', error)
+    return fallbackMetadata(url)
+  }
 
   const content = response.response ?? response.choices?.[0]?.message?.content ?? ''
   const fallback = fallbackMetadata(url)

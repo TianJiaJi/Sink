@@ -81,7 +81,8 @@ const { rawStats } = useGithubStats()
                 md:flex-nowrap
                 lg:m-0 lg:flex lg:w-fit lg:items-center lg:gap-6 lg:space-y-0
                 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none
-                dark:shadow-none dark:lg:bg-transparent
+                dark:shadow-none
+                dark:lg:bg-transparent
               " :class="[
                 showMenu ? 'block' : 'hidden',
               ]"

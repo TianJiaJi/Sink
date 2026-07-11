@@ -66,28 +66,28 @@ function copyLink() {
               <Badge
                 v-if="link.unsafe" variant="destructive" class="ml-1 shrink-0"
               >
-                <ShieldAlert class="h-3 w-3" />
+                <ShieldAlert class="size-3" />
               </Badge>
 
               <Button
                 v-if="copied"
                 variant="ghost"
                 size="icon"
-                class="ml-1 h-auto w-auto p-0"
+                class="ml-1 size-auto p-0"
                 aria-label="Link copied"
                 @click.prevent
               >
-                <CopyCheck class="h-4 w-4 shrink-0" />
+                <CopyCheck class="size-4 shrink-0" />
               </Button>
               <Button
                 v-else
                 variant="ghost"
                 size="icon"
-                class="ml-1 h-auto w-auto p-0"
+                class="ml-1 size-auto p-0"
                 aria-label="Copy link"
                 @click.prevent="copyLink"
               >
-                <Copy class="h-4 w-4 shrink-0" />
+                <Copy class="size-4 shrink-0" />
               </Button>
             </div>
 
@@ -112,13 +112,13 @@ function copyLink() {
             aria-label="Open original link"
             @click.stop
           >
-            <LinkIcon class="h-5 w-5" />
+            <LinkIcon class="size-5" />
           </a>
 
           <Popover>
             <PopoverTrigger aria-label="Show QR code">
               <QrCode
-                class="h-5 w-5"
+                class="size-5"
                 @click.prevent
               />
             </PopoverTrigger>
@@ -133,7 +133,7 @@ function copyLink() {
           <Popover v-model:open="editPopoverOpen">
             <PopoverTrigger aria-label="More actions">
               <SquareChevronDown
-                class="h-5 w-5"
+                class="size-5"
                 @click.prevent
               />
             </PopoverTrigger>
@@ -153,7 +153,7 @@ function copyLink() {
                 >
                   <SquarePen
                     aria-hidden="true"
-                    class="mr-2 h-5 w-5"
+                    class="mr-2 size-5"
                   />
                   {{ $t('common.edit') }}
                 </div>
@@ -173,7 +173,7 @@ function copyLink() {
                 >
                   <Eraser
                     aria-hidden="true"
-                    class="mr-2 h-5 w-5"
+                    class="mr-2 size-5"
                   /> {{ $t('common.delete') }}
                 </div>
               </DashboardLinksDelete>
@@ -187,7 +187,7 @@ function copyLink() {
                 <TooltipTrigger as-child>
                   <span
                     class="inline-flex items-center leading-5 whitespace-nowrap"
-                  ><CalendarPlus2 aria-hidden="true" class="mr-1 h-4 w-4" /> {{ shortDate(link.createdAt, locale) }}</span>
+                  ><CalendarPlus2 aria-hidden="true" class="mr-1 size-4" /> {{ shortDate(link.createdAt, locale) }}</span>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{{ $t('links.created_at') }}: {{ longDate(link.createdAt, locale) }}</p>
@@ -204,7 +204,7 @@ function copyLink() {
                       class="
                         inline-flex items-center leading-5 whitespace-nowrap
                       "
-                    ><Hourglass aria-hidden="true" class="mr-1 h-4 w-4" /> {{ shortDate(link.expiration, locale) }}</span>
+                    ><Hourglass aria-hidden="true" class="mr-1 size-4" /> {{ shortDate(link.expiration, locale) }}</span>
                   </TooltipTrigger>
                   <TooltipContent>
                     <p>{{ $t('links.expires_at') }}: {{ longDate(link.expiration, locale) }}</p>
@@ -220,15 +220,15 @@ function copyLink() {
           >
             <template v-if="counters">
               <Badge variant="secondary">
-                <MousePointerClick aria-hidden="true" class="h-3.5 w-3.5" />
+                <MousePointerClick aria-hidden="true" class="size-3.5" />
                 {{ counters.visits }}
               </Badge>
               <Badge variant="secondary">
-                <Users aria-hidden="true" class="h-3.5 w-3.5" />
+                <Users aria-hidden="true" class="size-3.5" />
                 {{ counters.visitors }}
               </Badge>
               <Badge variant="secondary">
-                <Flame aria-hidden="true" class="h-3.5 w-3.5" />
+                <Flame aria-hidden="true" class="size-3.5" />
                 {{ counters.referers }}
               </Badge>
             </template>

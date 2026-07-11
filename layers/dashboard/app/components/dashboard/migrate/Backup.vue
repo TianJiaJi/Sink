@@ -34,8 +34,8 @@ async function handleBackup() {
     </CardHeader>
     <CardContent>
       <Button :disabled="isBackingUp" @click="handleBackup">
-        <Loader v-if="isBackingUp" class="mr-2 h-4 w-4 animate-spin" />
-        <CloudUpload v-else class="mr-2 h-4 w-4" />
+        <Loader v-if="isBackingUp" class="mr-2 size-4 animate-spin" />
+        <CloudUpload v-else class="mr-2 size-4" />
         <template v-if="isBackingUp">
           {{ $t('migrate.backup.backing_up') }}
         </template>

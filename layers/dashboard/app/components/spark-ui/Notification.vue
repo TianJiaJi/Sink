@@ -29,7 +29,7 @@ const { locale } = useI18n()
       props.class,
     )"
   >
-    <div class="flex flex-row items-center gap-2 px-2 py-2">
+    <div class="flex flex-row items-center gap-2 p-2">
       <div
         class="flex size-10 items-center justify-center rounded-2xl"
         :style="{ backgroundColor: props.color || 'transparent' }"

@@ -37,11 +37,11 @@ onMounted(() => {
     >
       <LazyDashboardRealtimeGlobe
         v-if="showGlobe"
-        class="h-full w-full"
+        class="size-full"
       />
       <div
         v-else
-        class="flex h-full w-full items-center justify-center"
+        class="flex size-full items-center justify-center"
       >
         <div class="size-3/4 animate-pulse rounded-full bg-muted/20" />
       </div>

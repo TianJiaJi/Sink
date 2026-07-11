@@ -1,28 +1,35 @@
-import { generateMock } from '@anatine/zod-mock'
-import { afterAll, describe, expect, it } from 'vitest'
-import { z } from 'zod'
+import { env } from 'cloudflare:workers'
+import { afterAll, describe, expect, it, vi } from 'vitest'
 import { deleteStoredLink, expectMaskedPassword, expectStoredHashedPassword, fetch, fetchWithAuth, getStoredLink, postJson, putJson } from '../utils'
 
-const linkSchema = z.object({
-  url: z.string().url(),
-  slug: z.string().min(1).max(50),
-})
+function createLinkPayload() {
+  return {
+    url: 'https://example.com',
+    slug: `test-${crypto.randomUUID()}`,
+  }
+}
 
-const testLinkPayload = generateMock(linkSchema)
+const testLinkPayload = createLinkPayload()
 
 describe('/api/link/ai', () => {
-  it('generates AI slug for valid URL', async () => {
-    const response = await fetchWithAuth(`/api/link/ai?url=${encodeURIComponent('https://sink.cool')}`)
+  it('returns a fallback slug when Workers AI fails', async () => {
+    const runSpy = vi.spyOn(env.AI, 'run').mockRejectedValue(new Error('Workers AI unavailable'))
+    const toMarkdownSpy = vi.spyOn(env.AI, 'toMarkdown').mockRejectedValue(new Error('Markdown conversion unavailable'))
 
-    // AI binding may not be enabled (501) or request may timeout
-    expect([200, 501]).toContain(response.status)
+    try {
+      const response = await fetchWithAuth(`/api/link/ai?url=${encodeURIComponent('https://example.com/fallback-slug')}`)
+      expect(response.status).toBe(200)
 
-    if (response.status === 200) {
       const data = await response.json() as { slug: string }
-      expect(data).toHaveProperty('slug')
-      expect(typeof data.slug).toBe('string')
+      expect(data.slug).toBe('fallback-slug')
+      expect(data.slug).not.toBe('')
+      expect(runSpy).toHaveBeenCalledOnce()
     }
-  }, 30000)
+    finally {
+      runSpy.mockRestore()
+      toMarkdownSpy.mockRestore()
+    }
+  })
 
   it('returns 400 when url parameter is missing', async () => {
     const response = await fetchWithAuth('/api/link/ai')
@@ -41,19 +48,24 @@ describe('/api/link/ai', () => {
 })
 
 describe('/api/link/og-ai', () => {
-  it('generates AI metadata for valid URL', async () => {
-    const response = await fetchWithAuth(`/api/link/og-ai?url=${encodeURIComponent('https://sink.cool')}`)
+  it('returns fallback metadata when Workers AI fails', async () => {
+    const runSpy = vi.spyOn(env.AI, 'run').mockRejectedValue(new Error('Workers AI unavailable'))
+    const toMarkdownSpy = vi.spyOn(env.AI, 'toMarkdown').mockRejectedValue(new Error('Markdown conversion unavailable'))
 
-    expect([200, 501]).toContain(response.status)
+    try {
+      const response = await fetchWithAuth(`/api/link/og-ai?url=${encodeURIComponent('https://example.com/fallback-metadata')}`)
+      expect(response.status).toBe(200)
 
-    if (response.status === 200) {
       const data = await response.json() as { title: string, description: string }
-      expect(data).toHaveProperty('title')
-      expect(data).toHaveProperty('description')
-      expect(typeof data.title).toBe('string')
-      expect(typeof data.description).toBe('string')
+      expect(data.title).toBe('example.com')
+      expect(data.description).not.toBe('')
+      expect(runSpy).toHaveBeenCalledOnce()
     }
-  }, 30000)
+    finally {
+      runSpy.mockRestore()
+      toMarkdownSpy.mockRestore()
+    }
+  })
 
   it('returns 400 when url parameter is missing', async () => {
     const response = await fetchWithAuth('/api/link/og-ai')
@@ -71,7 +83,7 @@ describe('/api/link/og-ai', () => {
   })
 })
 
-describe.sequential('/api/link/create', () => {
+describe('/api/link/create', { concurrent: false }, () => {
   it('creates new link with valid data', async () => {
     const response = await postJson('/api/link/create', testLinkPayload)
     expect(response.status).toBe(201)
@@ -84,7 +96,7 @@ describe.sequential('/api/link/create', () => {
   })
 
   it('returns 409 when slug already exists', async () => {
-    const payload = generateMock(linkSchema)
+    const payload = createLinkPayload()
     await postJson('/api/link/create', payload)
 
     const duplicateResponse = await postJson('/api/link/create', payload)
@@ -154,9 +166,9 @@ describe.sequential('/api/link/create', () => {
   })
 })
 
-describe.sequential('/api/link/upsert', () => {
+describe('/api/link/upsert', { concurrent: false }, () => {
   it('creates new link with valid data', async () => {
-    const payload = generateMock(linkSchema)
+    const payload = createLinkPayload()
     const response = await postJson('/api/link/upsert', payload)
     expect(response.status).toBe(201)
   })
@@ -188,7 +200,7 @@ describe.sequential('/api/link/upsert', () => {
   })
 })
 
-describe.sequential('/api/link/query', () => {
+describe('/api/link/query', { concurrent: false }, () => {
   it('returns link data for valid slug', async () => {
     const response = await fetchWithAuth(`/api/link/query?slug=${testLinkPayload.slug}`)
     expect(response.status).toBe(200)
@@ -232,7 +244,7 @@ describe.sequential('/api/link/query', () => {
   })
 })
 
-describe.sequential('/api/link/list', () => {
+describe('/api/link/list', { concurrent: false }, () => {
   it('returns paginated link list with valid auth', async () => {
     const response = await fetchWithAuth('/api/link/list')
     expect(response.status).toBe(200)
@@ -281,7 +293,7 @@ describe.sequential('/api/link/list', () => {
   })
 })
 
-describe.sequential('/api/link/search', () => {
+describe('/api/link/search', { concurrent: false }, () => {
   it('returns link array with valid auth', async () => {
     const response = await fetchWithAuth('/api/link/search')
     expect(response.status).toBe(200)
@@ -296,7 +308,7 @@ describe.sequential('/api/link/search', () => {
   })
 })
 
-describe.sequential('/api/link/edit', () => {
+describe('/api/link/edit', { concurrent: false }, () => {
   it('updates existing link with valid data', async () => {
     const response = await putJson('/api/link/edit', testLinkPayload)
     expect(response.status).toBe(201)
@@ -408,7 +420,7 @@ describe.sequential('/api/link/edit', () => {
   })
 })
 
-describe.sequential('/api/link/edit unsafe', () => {
+describe('/api/link/edit unsafe', { concurrent: false }, () => {
   const unsafePayload = { ...testLinkPayload, url: 'https://example.com', slug: `unsafe-test-${crypto.randomUUID()}` }
 
   afterAll(async () => {
@@ -453,7 +465,7 @@ describe.sequential('/api/link/edit unsafe', () => {
   })
 })
 
-describe.sequential('/api/link/delete', () => {
+describe('/api/link/delete', { concurrent: false }, () => {
   it('deletes link with valid slug and auth', async () => {
     const response = await postJson('/api/link/delete', { slug: testLinkPayload.slug })
     expect(response.status).toBe(204)

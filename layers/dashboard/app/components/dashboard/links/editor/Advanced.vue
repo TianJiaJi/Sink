@@ -2,10 +2,10 @@
 import type { DateValue } from '@internationalized/date'
 import type { Component } from 'vue'
 import type { AnyFieldApi, LinkFormData } from '@/types'
-import { isMaskedLinkPassword, LINK_PASSWORD_MASK_PREFIX } from '#shared/utils/link-password'
 import { today } from '@internationalized/date'
 import { CalendarIcon, Plus, Sparkles, Trash2 } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
+import { isMaskedLinkPassword, LINK_PASSWORD_MASK_PREFIX } from '#shared/utils/link-password'
 import { cn } from '@/lib/utils'
 
 const props = defineProps<{
@@ -151,7 +151,7 @@ async function aiOg() {
                       !field.state.value && 'text-muted-foreground',
                     )"
                   >
-                    <CalendarIcon class="mr-2 h-4 w-4" />
+                    <CalendarIcon class="mr-2 size-4" />
                     {{
                       field.state.value
                         ? field.state.value.toDate(getTimeZone()).toLocaleDateString(locale)
@@ -220,13 +220,13 @@ async function aiOg() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  class="h-auto w-auto p-0"
+                  class="size-auto p-0"
                   :aria-label="$t('links.form.ai_og_generate')"
                   :disabled="aiOgPending"
                   @click="aiOg"
                 >
                   <Sparkles
-                    class="h-4 w-4"
+                    class="size-4"
                     :class="{ 'animate-bounce': aiOgPending }"
                   />
                 </Button>
@@ -344,11 +344,11 @@ async function aiOg() {
                   />
                 </Field>
                 <Button type="button" variant="ghost" size="icon" @click="field.handleChange(removeGeoRoute(field.state.value, i))">
-                  <Trash2 class="h-4 w-4 text-muted-foreground" />
+                  <Trash2 class="size-4 text-muted-foreground" />
                 </Button>
               </div>
               <Button type="button" variant="outline" size="sm" @click="field.handleChange([...field.state.value, { country: '', url: '' }])">
-                <Plus class="mr-2 h-4 w-4" /> {{ $t('links.form.add_geo_route') }}
+                <Plus class="mr-2 size-4" /> {{ $t('links.form.add_geo_route') }}
               </Button>
             </div>
           </props.form.Field>

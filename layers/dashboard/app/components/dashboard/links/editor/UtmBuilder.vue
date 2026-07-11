@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { LinkSchema } from '#shared/schemas/link'
 import { parseQuery, parseURL, withQuery } from 'ufo'
 import { toast } from 'vue-sonner'
+import { LinkSchema } from '#shared/schemas/link'
 
 interface UtmFormValues {
   source: string
@@ -211,8 +211,7 @@ function applyBuilder() {
             <FieldLabel>{{ $t('links.form.utm_preview') }}</FieldLabel>
             <div
               class="
-                rounded-md border bg-muted/50 px-3 py-3 font-mono text-xs
-                leading-5 break-all
+                rounded-md border bg-muted/50 p-3 font-mono text-xs/5 break-all
                 sm:text-sm
               "
               :class="!previewUrl && 'text-muted-foreground'"

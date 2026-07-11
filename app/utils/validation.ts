@@ -1,8 +1,8 @@
 import type { z } from 'zod'
 
-export function makeZodValidator<T>(schema: z.ZodSchema<T>) {
-  return ({ value }: { value: T }) => {
+export function makeZodValidator<TSchema extends z.ZodType>(schema: TSchema) {
+  return ({ value }: { value: unknown }) => {
     const result = schema.safeParse(value)
-    return result.success ? undefined : result.error.errors[0]?.message
+    return result.success ? undefined : result.error.issues[0]?.message
   }
 }

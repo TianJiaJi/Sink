@@ -24,7 +24,7 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
 
 <template>
   <div class="overflow-x-auto rounded-md border">
-    <Table class="min-w-[72rem] table-fixed">
+    <Table class="min-w-6xl table-fixed">
       <TableHeader>
         <TableRow>
           <TableHead class="w-40">
@@ -72,9 +72,9 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
           </TableCell>
           <TableCell>
             <Badge :variant="resultVariant(result)">
-              <WifiOff v-if="result.status === 0" class="h-3.5 w-3.5" />
-              <CircleCheck v-else-if="result.ok" class="h-3.5 w-3.5" />
-              <CircleX v-else class="h-3.5 w-3.5" />
+              <WifiOff v-if="result.status === 0" class="size-3.5" />
+              <CircleCheck v-else-if="result.ok" class="size-3.5" />
+              <CircleX v-else class="size-3.5" />
               {{ $t(resultLabel(result)) }}
             </Badge>
           </TableCell>
@@ -99,7 +99,7 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
                 rel="noopener noreferrer"
                 aria-label="Open original link"
               >
-                <ExternalLink class="h-4 w-4" />
+                <ExternalLink class="size-4" />
                 {{ $t('check.actions.original') }}
               </Button>
               <Button
@@ -111,7 +111,7 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
                 rel="noopener noreferrer"
                 aria-label="Open link detail"
               >
-                <ExternalLink class="h-4 w-4" />
+                <ExternalLink class="size-4" />
                 {{ $t('check.actions.detail') }}
               </Button>
             </div>

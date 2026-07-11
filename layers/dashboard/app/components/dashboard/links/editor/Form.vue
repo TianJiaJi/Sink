@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { Link, LinkFormData } from '@/types'
-import { LinkSchema, nanoid } from '#shared/schemas/link'
-import { isMaskedLinkPassword } from '#shared/utils/link-password'
 import { useForm } from '@tanstack/vue-form'
 import { ExternalLink, Shuffle, Sparkles } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { z } from 'zod'
+import { LinkSchema, nanoid } from '#shared/schemas/link'
+import { isMaskedLinkPassword } from '#shared/utils/link-password'
 
 const props = defineProps<{
   link: Partial<Link>
@@ -230,7 +230,7 @@ defineExpose({ randomSlug })
                 hover:text-primary
               "
             >
-              <ExternalLink class="h-4 w-4" />
+              <ExternalLink class="size-4" />
             </NuxtLink>
           </FieldDescription>
           <FieldError
@@ -255,23 +255,23 @@ defineExpose({ randomSlug })
                 type="button"
                 variant="ghost"
                 size="icon"
-                class="h-auto w-auto p-0"
+                class="size-auto p-0"
                 aria-label="Generate random slug"
                 @click="randomSlug"
               >
-                <Shuffle class="h-4 w-4" />
+                <Shuffle class="size-4" />
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                class="h-auto w-auto p-0"
+                class="size-auto p-0"
                 aria-label="Generate AI slug"
                 :disabled="aiSlugPending"
                 @click="aiSlug"
               >
                 <Sparkles
-                  class="h-4 w-4"
+                  class="size-4"
                   :class="{ 'animate-bounce': aiSlugPending }"
                 />
               </Button>

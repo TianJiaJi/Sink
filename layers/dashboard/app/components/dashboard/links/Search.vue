@@ -90,7 +90,7 @@ onMounted(() => {
       <kbd
         class="
           pointer-events-none absolute top-2 right-[0.3rem] hidden h-5
-          items-center gap-1 rounded border bg-muted px-1.5 font-mono
+          items-center gap-1 rounded-sm border bg-muted px-1.5 font-mono
           text-[10px] font-medium opacity-100 select-none
           sm:flex
         "

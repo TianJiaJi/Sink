@@ -69,7 +69,7 @@ onMounted(() => {
         <ResponsiveModal :title="name" content-class="md:max-w-(--breakpoint-md)">
           <template #trigger>
             <Button variant="link" class="w-full">
-              <Maximize class="mr-2 h-4 w-4" />
+              <Maximize class="mr-2 size-4" />
               {{ $t('dashboard.details') }}
             </Button>
           </template>
@@ -94,7 +94,7 @@ onMounted(() => {
       <div
         v-for="i in 5"
         :key="i"
-        class="px-4 py-4"
+        class="p-4"
       >
         <Skeleton
           class="h-4 w-full rounded-full"

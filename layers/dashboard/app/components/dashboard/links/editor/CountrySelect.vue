@@ -63,10 +63,10 @@ function selectCountry(code: string) {
             {{ selectedCountry ? `${selectedCountry.name} (${selectedCountry.code})` : placeholder }}
           </span>
         </span>
-        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        <ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="min-w-[var(--radix-popper-anchor-width)] p-0" align="start">
+    <PopoverContent class="min-w-(--radix-popper-anchor-width) p-0" align="start">
       <Command>
         <CommandInput :placeholder="searchPlaceholder" />
         <CommandEmpty>{{ emptyText }}</CommandEmpty>
@@ -81,7 +81,7 @@ function selectCountry(code: string) {
             >
               <Check
                 :class="cn(
-                  'h-4 w-4 shrink-0',
+                  'size-4 shrink-0',
                   selectedCode === country.code ? 'opacity-100' : 'opacity-0',
                 )"
               />

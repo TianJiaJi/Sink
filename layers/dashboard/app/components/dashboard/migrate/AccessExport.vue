@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { DateRange, DateValue } from 'reka-ui'
-import { createExportFilename } from '#shared/utils/export-file'
 import { getLocalTimeZone } from '@internationalized/date'
 import { useForm } from '@tanstack/vue-form'
 import { Download, Loader } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { z } from 'zod'
+import { createExportFilename } from '#shared/utils/export-file'
 
 interface AccessExportForm {
   datePreset: string | null
@@ -175,8 +175,8 @@ function updateCustomDateRange(value: DateRange) {
         </FieldGroup>
 
         <Button type="submit" :disabled="isExporting">
-          <Loader v-if="isExporting" class="mr-2 h-4 w-4 animate-spin" />
-          <Download v-else class="mr-2 h-4 w-4" />
+          <Loader v-if="isExporting" class="mr-2 size-4 animate-spin" />
+          <Download v-else class="mr-2 size-4" />
           <template v-if="isExporting">
             {{ $t('migrate.access_export.exporting') }}
           </template>

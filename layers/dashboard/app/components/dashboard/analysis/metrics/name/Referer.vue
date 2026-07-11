@@ -12,7 +12,7 @@ defineProps<{
     class="block w-full truncate"
   >
     <Avatar
-      class="float-left h-5 w-5 p-0.5"
+      class="float-left size-5 p-0.5"
     >
       <AvatarImage
         :src="`https://unavatar.webp.se/${name}?fallback=false`"

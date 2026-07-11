@@ -114,7 +114,7 @@ onMounted(() => {
     <!-- Heatmap container with same aspect ratio as Views -->
     <div
       class="
-        aspect-[4/1] w-full overflow-x-auto transition-opacity duration-500
+        aspect-4/1 w-full overflow-x-auto transition-opacity duration-500
         ease-out
       "
       :class="isLoaded ? 'opacity-100' : 'opacity-0'"

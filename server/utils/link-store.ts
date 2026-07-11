@@ -1,6 +1,6 @@
-import type { LinkSchema } from '#shared/schemas/link'
 import type { H3Event } from 'h3'
 import type { z } from 'zod'
+import type { LinkSchema } from '#shared/schemas/link'
 import { parseURL, stringifyParsedURL } from 'ufo'
 
 type Link = z.infer<typeof LinkSchema>

@@ -80,7 +80,7 @@ async function handleSubmit() {
         </FieldGroup>
 
         <Alert v-if="previewMode">
-          <AlertCircle class="h-4 w-4" />
+          <AlertCircle class="size-4" />
           <AlertTitle>{{ $t('login.tips') }}</AlertTitle>
           <AlertDescription>
             {{ $t('login.preview_token') }}
