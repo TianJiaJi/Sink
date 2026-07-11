@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     redirectStatusCode: '301',
     linkCacheTtl: 60,
     redirectWithQuery: false,
+    redirectNoStore: false,
     homeURL: '',
     cfAccountId: '',
     cfApiToken: '',

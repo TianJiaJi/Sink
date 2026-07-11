@@ -50,7 +50,7 @@ function hasOgConfig(link: Link): boolean {
 export default eventHandler(async (event) => {
   const { pathname: slug } = parsePath(event.path.replace(/^\/|\/$/g, ''))
   const { slugRegex, reserveSlug } = useAppConfig()
-  const { homeURL, linkCacheTtl, caseSensitive, redirectWithQuery, redirectStatusCode } = useRuntimeConfig(event)
+  const { homeURL, linkCacheTtl, caseSensitive, redirectWithQuery, redirectStatusCode, redirectNoStore } = useRuntimeConfig(event)
   const { cloudflare } = event.context
 
   if (event.path === '/' && homeURL)
@@ -152,8 +152,8 @@ export default eventHandler(async (event) => {
       }
 
       if (deviceRedirectUrl) {
-        // Never let browsers/CDNs cache the redirect: links can be edited or deleted.
-        setHeader(event, 'Cache-Control', 'no-store')
+        if (redirectNoStore)
+          setHeader(event, 'Cache-Control', 'no-store')
         return sendRedirect(event, finalTargetUrl, +redirectStatusCode)
       }
 
@@ -172,8 +172,8 @@ export default eventHandler(async (event) => {
         return html
       }
 
-      // Never let browsers/CDNs cache the redirect: links can be edited or deleted.
-      setHeader(event, 'Cache-Control', 'no-store')
+      if (redirectNoStore)
+        setHeader(event, 'Cache-Control', 'no-store')
       return sendRedirect(event, finalTargetUrl, +redirectStatusCode)
     }
     else {
