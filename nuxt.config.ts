@@ -111,6 +111,20 @@ export default defineNuxtConfig({
     worker: {
       format: 'es',
     },
+    optimizeDeps: {
+      include: [
+        '@number-flow/vue',
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+        'class-variance-authority',
+        'clsx',
+        'lucide-vue-next',
+        'reka-ui',
+        'tailwind-merge',
+        'vue-sonner',
+        'vue3-simple-icons',
+      ],
+    },
   },
   eslint: {
     config: {
