@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { DashboardLinkStatus } from '@/types/dashboard-links'
-
 interface TagCount {
   name: string
   count: number
@@ -37,10 +35,6 @@ async function fetchTags() {
   }
 }
 
-function selectStatus(status: DashboardLinkStatus) {
-  linksStore.status = status
-}
-
 function selectTag(value: unknown) {
   linksStore.tag = typeof value === 'string' && value !== allTagsValue ? value : undefined
 }
@@ -58,26 +52,14 @@ linksStore.onLinkUpdate(() => void fetchTags())
     :aria-label="$t('links.filters.aria_label')"
   >
     <div class="flex min-w-0 items-center gap-2">
-      <div class="inline-flex rounded-md border p-0.5" role="group" :aria-label="$t('links.filters.status_label')">
-        <Button
-          type="button"
-          size="sm"
-          :variant="linksStore.status === 'active' ? 'secondary' : 'ghost'"
-          :aria-pressed="linksStore.status === 'active'"
-          @click="selectStatus('active')"
-        >
+      <TabsList :aria-label="$t('links.filters.status_label')">
+        <TabsTrigger value="active">
           {{ $t('links.filters.active') }}
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          :variant="linksStore.status === 'expired' ? 'secondary' : 'ghost'"
-          :aria-pressed="linksStore.status === 'expired'"
-          @click="selectStatus('expired')"
-        >
+        </TabsTrigger>
+        <TabsTrigger value="expired">
           {{ $t('links.filters.expired') }}
-        </Button>
-      </div>
+        </TabsTrigger>
+      </TabsList>
     </div>
 
     <div

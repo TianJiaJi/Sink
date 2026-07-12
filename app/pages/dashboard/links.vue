@@ -6,6 +6,7 @@ definePageMeta({
 })
 
 const migration = useLinkMigration()
+const linksStore = useDashboardLinksStore()
 useDashboardLinksRouteState()
 
 onMounted(() => {
@@ -14,24 +15,31 @@ onMounted(() => {
 </script>
 
 <template>
-  <main v-if="migration.completed.value" class="space-y-6">
-    <Teleport to="#dashboard-header-actions" defer>
-      <DashboardLinksEditor />
-      <div
-        class="
-          flex-1
-          sm:hidden
-        "
-      />
-      <DashboardLinksSort />
-      <DashboardLinksSearch
-        class="max-sm:w-full"
-      />
-    </Teleport>
+  <Tabs v-if="migration.completed.value" v-model="linksStore.status" default-value="active" as-child>
+    <main class="space-y-6">
+      <Teleport to="#dashboard-header-actions" defer>
+        <DashboardLinksEditor />
+        <div
+          class="
+            flex-1
+            sm:hidden
+          "
+        />
+        <DashboardLinksSort />
+        <DashboardLinksSearch
+          class="max-sm:w-full"
+        />
+      </Teleport>
 
-    <DashboardLinksFilters />
-    <DashboardLinks />
-  </main>
+      <DashboardLinksFilters />
+      <TabsContent value="active" class="mt-0">
+        <DashboardLinks />
+      </TabsContent>
+      <TabsContent value="expired" class="mt-0">
+        <DashboardLinks />
+      </TabsContent>
+    </main>
+  </Tabs>
   <section
     v-else
     class="flex min-h-[50vh] items-center justify-center px-4"
@@ -58,7 +66,7 @@ onMounted(() => {
           {{ $t('links.migration_gate.retry') }}
         </Button>
         <Button variant="outline" as-child>
-          <NuxtLink to="/dashboard/migrate">
+          <NuxtLink to="/dashboard/migrate?tab=d1">
             {{ $t('links.migration_gate.open_migration') }}
           </NuxtLink>
         </Button>
