@@ -11,7 +11,7 @@ function onPresetChange(value: string | number | bigint | Record<string, any> | 
 
 <template>
   <Select :model-value="realtimeStore.timeName" @update:model-value="onPresetChange">
-    <SelectTrigger>
+    <SelectTrigger :aria-label="$t('dashboard.realtime.time_range_label')">
       <SelectValue />
     </SelectTrigger>
     <SelectContent>

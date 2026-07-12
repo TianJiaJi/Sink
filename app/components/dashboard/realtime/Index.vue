@@ -1,18 +1,44 @@
 <script setup lang="ts">
-const realtimeStore = useDashboardRealtimeStore()
+import { useDocumentVisibility, useIntervalFn } from '@vueuse/core'
 
-const showGlobe = ref(false)
+const realtimeStore = useDashboardRealtimeStore()
+const showGlobe = shallowRef(false)
+const visibility = useDocumentVisibility()
 
 const rIC = window.requestIdleCallback || ((cb: IdleRequestCallback) => setTimeout(cb, 50))
+const cancelRIC = window.cancelIdleCallback || clearTimeout
+let idleCallbackId: number | undefined
+const { pause, resume } = useIntervalFn(
+  () => realtimeStore.selectPreset(realtimeStore.timeName),
+  10_000,
+  { immediate: false, immediateCallback: true },
+)
 
 onBeforeMount(() => {
   realtimeStore.init()
 })
 
 onMounted(() => {
-  rIC(() => {
+  if (visibility.value === 'visible')
+    resume()
+
+  idleCallbackId = rIC(() => {
     showGlobe.value = true
   })
+})
+
+watch(visibility, (state) => {
+  if (state === 'hidden') {
+    pause()
+    return
+  }
+  resume()
+})
+
+onBeforeUnmount(() => {
+  pause()
+  if (idleCallbackId !== undefined)
+    cancelRIC(idleCallbackId)
 })
 </script>
 
@@ -20,19 +46,19 @@ onMounted(() => {
   <div
     class="
       relative flex w-full flex-col gap-4
-      md:block md:h-full
+      lg:block lg:h-full
     "
   >
     <DashboardRealtimeChart
       class="
         z-10
-        md:absolute md:top-0 md:left-0
+        lg:absolute lg:top-0 lg:left-0
       "
     />
     <div
       class="
         aspect-square
-        md:absolute md:inset-0 md:aspect-auto
+        lg:absolute lg:inset-0 lg:aspect-auto
       "
     >
       <LazyDashboardRealtimeGlobe
@@ -42,14 +68,36 @@ onMounted(() => {
       <div
         v-else
         class="flex size-full items-center justify-center"
+        role="status"
       >
-        <div class="size-3/4 animate-pulse rounded-full bg-muted/20" />
+        <div
+          class="
+            size-3/4 rounded-full bg-muted/20
+            motion-safe:animate-pulse
+          "
+        />
+        <span class="sr-only">{{ $t('dashboard.loading') }}</span>
       </div>
+    </div>
+    <div
+      class="
+        absolute top-2 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2
+        text-xs text-muted-foreground
+      "
+    >
+      <span
+        aria-hidden="true"
+        class="
+          size-1.5 rounded-full bg-green-400
+          motion-safe:animate-pulse
+        "
+      />
+      {{ $t('nav.realtime') }}
     </div>
     <DashboardRealtimeLogs
       class="
         z-10 h-[400px]
-        md:absolute md:top-0 md:right-0 md:h-full
+        lg:absolute lg:top-0 lg:right-0 lg:h-full
       "
     />
   </div>

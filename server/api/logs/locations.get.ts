@@ -11,8 +11,9 @@ function query2sql(query: Query, event: H3Event): string {
     .from(dataset)
     .where(and([notEq('double1', 0), notEq('double2', 0), filter]))
     .groupBy([blobsMap.blob8, doublesMap.double1, doublesMap.double2])
+    .orderBy('count DESC')
   appendTimeFilter(sql, query)
-  return sql.toString()
+  return `${sql.toString()} LIMIT ${query.limit}`
 }
 
 export default eventHandler(async (event) => {

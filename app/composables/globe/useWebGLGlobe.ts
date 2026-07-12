@@ -1,7 +1,7 @@
 import type { InertiaState } from './interaction'
 import type { ArcData, RippleData, WebGLGlobeContext } from './types'
 import * as twgl from 'twgl.js'
-import { ref, shallowRef } from 'vue'
+import { ref, shallowRef, watch } from 'vue'
 import { parseColor } from './color'
 import { createArcGeometry, latLngToXYZ } from './geometry'
 import { setupGlobeInteraction } from './interaction'
@@ -82,6 +82,9 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   let countryTexture: WebGLTexture | null = null
   let animationFrameId: number | null = null
   let cleanupInteraction: (() => void) | null = null
+  let cleanupReducedMotionWatch: (() => void) | null = null
+  let disposed = true
+  let lifecycleVersion = 0
 
   // Inertia (shared between interaction and render loop)
   const inertia: InertiaState = { velocityX: 0, velocityY: 0, isActive: false }
@@ -107,6 +110,13 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
 
   // Texture cache version
   let lastTextureVersion = -1
+  let textureUpdateTimer: ReturnType<typeof setTimeout> | null = null
+  let textureUpdatePromise: Promise<void> | null = null
+  let resolveTextureUpdate: (() => void) | null = null
+  let rejectTextureUpdate: ((reason?: unknown) => void) | null = null
+  let textureUpdateRunning = false
+  let textureUpdateDirty = false
+  let cleanupSizeWatch: (() => void) | null = null
 
   // Render timing
   let lastFrameTime = 0
@@ -140,14 +150,18 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   // Initialization
   // ============================================================================
 
-  async function init() {
+  async function init(signal?: AbortSignal) {
+    disposed = false
+    const currentLifecycle = ++lifecycleVersion
     const canvas = ctx.canvasRef.value
-    if (!canvas)
+    if (!canvas || signal?.aborted)
       return false
 
     // Load prebuilt sphere geometry
     if (!sphereGeometry) {
-      const buf = await $fetch<ArrayBuffer>('/sphere.bin', { responseType: 'arrayBuffer' })
+      const buf = await $fetch<ArrayBuffer>('/sphere.bin', { responseType: 'arrayBuffer', signal })
+      if (disposed || signal?.aborted || currentLifecycle !== lifecycleVersion)
+        return false
       const header = new Uint32Array(buf, 0, 3)
       let offset = 12
       const position = new Float32Array(buf, offset, header[0]! / 4)
@@ -157,6 +171,9 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
       const indices = new Uint16Array(buf, offset, header[2]! / 2)
       sphereGeometry = { position, texcoord, indices }
     }
+
+    if (disposed || signal?.aborted || currentLifecycle !== lifecycleVersion)
+      return false
 
     gl = canvas.getContext('webgl', { alpha: true, antialias: true })
     if (!gl) {
@@ -189,7 +206,14 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
       zoom,
       isDragging,
       stopAutoRotate,
+      resetView,
+      reducedMotion: ctx.reducedMotion,
     }, inertia)
+
+    cleanupReducedMotionWatch = watch(ctx.reducedMotion, (reduced) => {
+      if (reduced)
+        stopMotion()
+    }, { immediate: true })
 
     isReady.value = true
     return true
@@ -212,17 +236,19 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     gl.viewport(0, 0, canvas.width, canvas.height)
   }
 
-  async function updateCountryTexture() {
-    if (!gl || !isReady.value)
+  async function buildCountryTexture() {
+    const glContext = gl
+    if (!glContext || !isReady.value || disposed)
       return
 
     const containerSize = Math.max(ctx.width.value, ctx.height.value)
     if (containerSize < 1) {
       // Retry once when container size becomes available
-      const unwatch = watch([ctx.width, ctx.height], () => {
+      cleanupSizeWatch ??= watch([ctx.width, ctx.height], () => {
         if (Math.max(ctx.width.value, ctx.height.value) >= 1) {
-          unwatch()
-          updateCountryTexture()
+          cleanupSizeWatch?.()
+          cleanupSizeWatch = null
+          void updateCountryTexture()
         }
       })
       return
@@ -244,7 +270,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     const oldTexture = countryTexture
 
     const newTexture = await createCountryTexture(
-      gl,
+      glContext,
       countries,
       stats,
       max,
@@ -257,26 +283,82 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     )
 
     // Guard: gl may have been destroyed during async texture creation
-    if (!gl || !isReady.value) {
-      if (newTexture) {
-        // Context destroyed, but we still have a reference - can't delete without gl
-        // Just discard the reference; browser will GC the texture
-      }
+    if (disposed || gl !== glContext || !isReady.value) {
+      if (newTexture)
+        glContext.deleteTexture(newTexture)
       return
     }
 
     // Discard stale result if a newer update was triggered
     if (lastTextureVersion !== currentVersion) {
       if (newTexture)
-        gl.deleteTexture(newTexture)
+        glContext.deleteTexture(newTexture)
       return
     }
 
     // Replace texture: assign new first, then delete old (avoids blank frame)
     countryTexture = newTexture
     if (oldTexture && oldTexture !== newTexture) {
-      gl.deleteTexture(oldTexture)
+      glContext.deleteTexture(oldTexture)
     }
+  }
+
+  async function flushCountryTextureUpdates() {
+    const pendingPromise = textureUpdatePromise
+    const resolvePending = resolveTextureUpdate
+    const rejectPending = rejectTextureUpdate
+    const flushLifecycle = lifecycleVersion
+    let failure: unknown
+    textureUpdateTimer = null
+    textureUpdateRunning = true
+    try {
+      for (;;) {
+        if (!textureUpdateDirty || disposed || flushLifecycle !== lifecycleVersion)
+          break
+        textureUpdateDirty = false
+        await buildCountryTexture()
+      }
+    }
+    catch (error) {
+      textureUpdateDirty = false
+      if (!disposed && flushLifecycle === lifecycleVersion)
+        failure = error
+    }
+    finally {
+      textureUpdateRunning = false
+      if (textureUpdatePromise === pendingPromise) {
+        textureUpdatePromise = null
+        resolveTextureUpdate = null
+        rejectTextureUpdate = null
+      }
+      if (failure)
+        rejectPending?.(failure)
+      else
+        resolvePending?.()
+
+      if (textureUpdateDirty && !disposed && !textureUpdateTimer)
+        textureUpdateTimer = setTimeout(() => void flushCountryTextureUpdates(), 50)
+    }
+  }
+
+  function updateCountryTexture(): Promise<void> {
+    if (!gl || !isReady.value || disposed)
+      return Promise.resolve()
+
+    textureUpdateDirty = true
+    if (!textureUpdatePromise) {
+      textureUpdatePromise = new Promise((resolve, reject) => {
+        resolveTextureUpdate = resolve
+        rejectTextureUpdate = reject
+      })
+    }
+
+    if (!textureUpdateRunning) {
+      if (textureUpdateTimer)
+        clearTimeout(textureUpdateTimer)
+      textureUpdateTimer = setTimeout(() => void flushCountryTextureUpdates(), 50)
+    }
+    return textureUpdatePromise
   }
 
   // ============================================================================
@@ -284,6 +366,8 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   // ============================================================================
 
   function startAutoRotate() {
+    if (ctx.reducedMotion.value)
+      return
     isAutoRotating.value = true
   }
 
@@ -296,7 +380,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   // ============================================================================
 
   function drawArc(arcData: ArcData, duration: number = 2000) {
-    if (!gl)
+    if (!gl || ctx.reducedMotion.value)
       return
 
     const color = arcData.color ? parseColor(arcData.color) : [1.0, 0.6, 0.2] as [number, number, number]
@@ -327,6 +411,8 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   }
 
   function drawRipple(rippleData: RippleData) {
+    if (ctx.reducedMotion.value)
+      return
     const color = rippleData.color ? parseColor(rippleData.color) : [1.0, 0.6, 0.2] as [number, number, number]
 
     activeRipples.value = [...activeRipples.value, {
@@ -354,7 +440,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     lastFrameTime = now
 
     // Intro spin animation
-    if (introSpinActive) {
+    if (introSpinActive && !ctx.reducedMotion.value) {
       const elapsed = now - introSpinStartTime
       const t = Math.min(elapsed / INTRO_SPIN_DURATION, 1)
       const eased = 1 - (1 - t) ** 3
@@ -370,12 +456,12 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     }
 
     // Auto-rotate
-    if (isAutoRotating.value && !introSpinActive) {
+    if (isAutoRotating.value && !introSpinActive && !ctx.reducedMotion.value) {
       longitude.value = ((longitude.value - 9 * dt) % 360 + 540) % 360 - 180
     }
 
     // Inertia decay
-    if (inertia.isActive) {
+    if (inertia.isActive && !ctx.reducedMotion.value) {
       const decay = Math.exp(-3.0 * dt)
       inertia.velocityX *= decay
       inertia.velocityY *= decay
@@ -503,10 +589,14 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   }
 
   function startRenderLoop() {
-    if (animationFrameId !== null)
+    if (animationFrameId !== null || disposed || !isReady.value)
       return
 
     function loop() {
+      if (disposed || !isReady.value) {
+        animationFrameId = null
+        return
+      }
       render()
       animationFrameId = requestAnimationFrame(loop)
     }
@@ -529,7 +619,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     const targetLat = Math.max(-85, Math.min(85, lat))
     const targetLng = lng
 
-    if (animate) {
+    if (animate && !ctx.reducedMotion.value) {
       introSpinActive = true
       introSpinStartTime = performance.now()
       introStartLng = targetLng + 360
@@ -546,10 +636,45 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     }
   }
 
-  function destroy() {
-    stopRenderLoop()
+  function resetView() {
+    setPointOfView(0, 0)
+    zoom.value = 0
+  }
+
+  function stopMotion() {
+    introSpinActive = false
     stopAutoRotate()
+    inertia.isActive = false
+    inertia.velocityX = 0
+    inertia.velocityY = 0
+    if (gl) {
+      for (const arc of activeArcs.value)
+        deleteBufferInfo(gl, arc.bufferInfo)
+    }
+    activeArcs.value = []
+    activeRipples.value = []
+  }
+
+  function destroy() {
+    disposed = true
+    lifecycleVersion++
+    stopRenderLoop()
+    stopMotion()
     isReady.value = false
+
+    if (textureUpdateTimer) {
+      clearTimeout(textureUpdateTimer)
+      textureUpdateTimer = null
+    }
+    textureUpdateDirty = false
+    resolveTextureUpdate?.()
+    resolveTextureUpdate = null
+    rejectTextureUpdate = null
+    textureUpdatePromise = null
+    cleanupSizeWatch?.()
+    cleanupSizeWatch = null
+    cleanupReducedMotionWatch?.()
+    cleanupReducedMotionWatch = null
 
     if (cleanupInteraction) {
       cleanupInteraction()
@@ -557,13 +682,6 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     }
 
     if (gl) {
-      // Release arc buffers
-      for (const arc of activeArcs.value) {
-        deleteBufferInfo(gl, arc.bufferInfo)
-      }
-      activeArcs.value = []
-      activeRipples.value = []
-
       // Release ripple buffer
       if (rippleBufferInfo) {
         deleteBufferInfo(gl, rippleBufferInfo)

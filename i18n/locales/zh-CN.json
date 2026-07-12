@@ -176,6 +176,18 @@
     "no_data": "暂无数据",
     "none": "（无）",
     "filter_placeholder": "过滤链接...",
+    "realtime": {
+      "stats_error": "实时统计数据加载失败。",
+      "events_error": "实时事件加载失败。",
+      "globe_error": "地球仪数据加载失败。",
+      "filter_label": "筛选链接",
+      "filter_search_label": "搜索链接",
+      "links_error": "链接加载失败。",
+      "time_range_label": "选择时间范围",
+      "globe_label": "实时流量地球仪",
+      "globe_instructions": "拖动旋转；聚焦后可滚轮缩放、方向键旋转、加号/减号缩放；按 Home 重置，按 Escape 退出焦点。",
+      "globe_fallback": "交互式地球仪当前不可用。"
+    },
     "date_picker": {
       "today": "今天",
       "last_24h": "最近24小时",

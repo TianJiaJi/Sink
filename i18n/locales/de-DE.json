@@ -176,6 +176,18 @@
     "no_data": "Keine Daten",
     "none": "(Keine)",
     "filter_placeholder": "Links filtern...",
+    "realtime": {
+      "stats_error": "Echtzeitstatistiken konnten nicht geladen werden.",
+      "events_error": "Echtzeitereignisse konnten nicht geladen werden.",
+      "globe_error": "Globusdaten konnten nicht geladen werden.",
+      "filter_label": "Links filtern",
+      "filter_search_label": "Links durchsuchen",
+      "links_error": "Links konnten nicht geladen werden.",
+      "time_range_label": "Zeitraum auswählen",
+      "globe_label": "Globus mit Echtzeitdatenverkehr",
+      "globe_instructions": "Ziehen zum Drehen. Bei Fokus: Mausrad zum Zoomen, Pfeiltasten zum Drehen, +/− zum Zoomen, Home zum Zurücksetzen und Escape zum Verlassen des Fokus.",
+      "globe_fallback": "Der interaktive Globus ist nicht verfügbar."
+    },
     "date_picker": {
       "today": "Heute",
       "last_24h": "Letzte 24 Stunden",

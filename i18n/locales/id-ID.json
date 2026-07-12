@@ -176,6 +176,18 @@
     "no_data": "Tidak ada data",
     "none": "(Tidak ada)",
     "filter_placeholder": "Filter tautan...",
+    "realtime": {
+      "stats_error": "Statistik waktu nyata gagal dimuat.",
+      "events_error": "Peristiwa waktu nyata gagal dimuat.",
+      "globe_error": "Data globe gagal dimuat.",
+      "filter_label": "Filter tautan",
+      "filter_search_label": "Cari tautan",
+      "links_error": "Tautan gagal dimuat.",
+      "time_range_label": "Pilih rentang waktu",
+      "globe_label": "Globe lalu lintas waktu nyata",
+      "globe_instructions": "Seret untuk memutar. Saat fokus, gulir untuk memperbesar, gunakan tombol panah untuk memutar, +/− untuk memperbesar, Home untuk mengatur ulang, dan Escape untuk keluar dari fokus.",
+      "globe_fallback": "Globe interaktif tidak tersedia."
+    },
     "date_picker": {
       "today": "Hari ini",
       "last_24h": "24 jam terakhir",

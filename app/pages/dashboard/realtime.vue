@@ -11,12 +11,16 @@ function handleFilterChange(type: string, value: string) {
 </script>
 
 <template>
-  <main
+  <div
     class="
       w-full
-      md:h-full md:overflow-hidden
+      lg:h-full lg:overflow-hidden
     "
   >
+    <h1 class="sr-only">
+      {{ $t('nav.realtime') }}
+    </h1>
+
     <Teleport to="#dashboard-header-actions" defer>
       <div
         class="
@@ -29,5 +33,5 @@ function handleFilterChange(type: string, value: string) {
     </Teleport>
 
     <DashboardRealtime />
-  </main>
+  </div>
 </template>

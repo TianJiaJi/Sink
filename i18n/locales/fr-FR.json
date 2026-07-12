@@ -176,6 +176,18 @@
     "no_data": "Aucune donnée",
     "none": "(Aucun)",
     "filter_placeholder": "Filtrer les liens...",
+    "realtime": {
+      "stats_error": "Impossible de charger les statistiques en temps réel.",
+      "events_error": "Impossible de charger les événements en temps réel.",
+      "globe_error": "Impossible de charger les données du globe.",
+      "filter_label": "Filtrer les liens",
+      "filter_search_label": "Rechercher des liens",
+      "links_error": "Impossible de charger les liens.",
+      "time_range_label": "Sélectionner une période",
+      "globe_label": "Globe du trafic en temps réel",
+      "globe_instructions": "Faites glisser pour pivoter. Avec le focus, utilisez la molette pour zoomer, les flèches pour pivoter, +/− pour zoomer, Home pour réinitialiser et Échap pour quitter le focus.",
+      "globe_fallback": "Le globe interactif est indisponible."
+    },
     "date_picker": {
       "today": "Aujourd'hui",
       "last_24h": "Dernières 24 heures",

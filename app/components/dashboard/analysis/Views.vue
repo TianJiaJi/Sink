@@ -2,7 +2,6 @@
 import type { ChartConfig } from '@/components/ui/chart'
 import type { ViewDataPoint } from '@/types'
 import { VisArea, VisAxis, VisGroupedBar, VisLine, VisXYContainer } from '@unovis/vue'
-import { watchThrottled } from '@vueuse/core'
 import {
   ChartTooltipContent,
   componentToString,
@@ -22,6 +21,10 @@ const props = withDefaults(defineProps<{
 const { t } = useI18n()
 
 const views = shallowRef<ViewDataPoint[]>([])
+const loading = shallowRef(false)
+const error = shallowRef(false)
+const hasLoaded = shallowRef(false)
+const retryKey = shallowRef(0)
 
 const isAreaMode = computed(() => props.chartType === 'area' && views.value.length > 1)
 
@@ -81,40 +84,46 @@ function parseTimeString(time: string): number {
   return new Date(time).getTime()
 }
 
-async function getLinkViews() {
-  views.value = []
+watch([effectiveTimeRange, effectiveFilters, retryKey], async (_values, _oldValues, onCleanup) => {
   const { startAt, endAt } = effectiveTimeRange.value
-  const result = await useAPI<{ data: ViewDataPoint[] }>('/api/stats/views', {
-    query: {
-      id: id.value,
-      unit: getUnit(startAt, endAt),
-      clientTimezone: getTimeZone(),
-      startAt,
-      endAt,
-      ...effectiveFilters.value,
-    },
-  })
-  views.value = (result.data || []).map(item => ({
-    ...item,
-    visitors: +item.visitors,
-    visits: +item.visits,
-  }))
-}
+  if (!startAt || !endAt)
+    return
 
-watchThrottled(
-  [effectiveTimeRange, effectiveFilters],
-  getLinkViews,
-  {
-    deep: true,
-    throttle: 500,
-    leading: true,
-    trailing: true,
-  },
-)
+  const controller = new AbortController()
+  onCleanup(() => controller.abort())
+  loading.value = true
+  error.value = false
 
-onMounted(async () => {
-  getLinkViews()
-})
+  try {
+    const result = await useAPI<{ data: ViewDataPoint[] }>('/api/stats/views', {
+      signal: controller.signal,
+      query: {
+        id: id.value,
+        unit: getUnit(startAt, endAt),
+        clientTimezone: getTimeZone(),
+        startAt,
+        endAt,
+        ...effectiveFilters.value,
+      },
+    })
+    if (controller.signal.aborted)
+      return
+    views.value = (result.data || []).map(item => ({
+      ...item,
+      visitors: +item.visitors,
+      visits: +item.visits,
+    }))
+    hasLoaded.value = true
+  }
+  catch {
+    if (!controller.signal.aborted)
+      error.value = true
+  }
+  finally {
+    if (!controller.signal.aborted)
+      loading.value = false
+  }
+}, { deep: true, immediate: true })
 
 type Data = ViewDataPoint
 </script>
@@ -126,7 +135,36 @@ type Data = ViewDataPoint
       md:p-10
     "
   >
-    <ChartContainer :config="chartConfig" class="aspect-4/1 w-full">
+    <div
+      v-if="loading && !hasLoaded" class="
+        flex aspect-4/1 items-center justify-center text-sm
+        text-muted-foreground
+      "
+      role="status"
+    >
+      {{ $t('dashboard.loading') }}
+    </div>
+    <div
+      v-else-if="error" class="
+        flex aspect-4/1 items-center justify-center text-sm text-destructive
+      "
+      role="alert"
+    >
+      {{ $t('dashboard.realtime.stats_error') }}
+      <Button variant="link" @click="retryKey++">
+        {{ $t('common.try_again') }}
+      </Button>
+    </div>
+    <div
+      v-else-if="hasLoaded && !views.length" class="
+        flex aspect-4/1 items-center justify-center text-sm
+        text-muted-foreground
+      "
+      role="status"
+    >
+      {{ $t('dashboard.no_data') }}
+    </div>
+    <ChartContainer v-else :config="chartConfig" class="aspect-4/1 w-full">
       <VisXYContainer :data="views" :margin="{ left: 0, right: 0 }">
         <template v-if="isAreaMode">
           <template v-for="cat in categories" :key="cat">

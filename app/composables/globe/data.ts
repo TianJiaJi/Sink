@@ -19,6 +19,8 @@ export interface GlobeDataState {
   countryStats: ShallowRef<Map<string, number>>
   highest: ComputedRef<number>
   maxCountryVisits: ComputedRef<number>
+  error: ShallowRef<boolean>
+  dispose: () => void
 }
 
 export function useGlobeData() {
@@ -29,9 +31,12 @@ export function useGlobeData() {
   const colos = shallowRef<Record<string, ColoData>>({})
   const currentLocation = ref<CurrentLocation>({})
   const countryStats = shallowRef<Map<string, number>>(new Map())
+  const error = shallowRef(false)
 
-  // Request version for race condition control
   let requestVersion = 0
+  let initController: AbortController | null = null
+  let refreshController: AbortController | null = null
+  let disposed = false
 
   const getBaseQuery = () => ({
     startAt: realtimeStore.timeRange.startAt,
@@ -39,38 +44,42 @@ export function useGlobeData() {
     ...realtimeStore.filters,
   })
 
-  const nextRequestVersion = () => ++requestVersion
-  const isStale = (version: number) => version !== requestVersion
-
   const highest = computed(() => Math.max(...locations.value.map(l => l.count), 1))
   const maxCountryVisits = computed(() => Math.max(...countryStats.value.values(), 1))
 
-  async function getGlobeJSON() {
-    const data = await $fetch('/countries.geojson')
-    countries.value = data as GeoJSONData
+  function createController(signal?: AbortSignal) {
+    const controller = new AbortController()
+    if (signal) {
+      if (signal.aborted)
+        controller.abort(signal.reason)
+      else
+        signal.addEventListener('abort', () => controller.abort(signal.reason), { once: true })
+    }
+    return controller
   }
 
-  async function getColosJSON() {
-    const data = await $fetch('/colos.json')
-    colos.value = data as Record<string, ColoData>
+  const isStale = (version: number, signal: AbortSignal) => disposed || signal.aborted || version !== requestVersion
+
+  async function getGlobeJSON(signal: AbortSignal) {
+    return await $fetch<GeoJSONData>('/countries.geojson', { signal })
   }
 
-  async function getCurrentLocation() {
-    const data = await useAPI<CurrentLocation>('/api/location')
-    currentLocation.value = data
+  async function getColosJSON(signal: AbortSignal) {
+    return await $fetch<Record<string, ColoData>>('/colos.json', { signal })
   }
 
-  async function getCountryStats(version: number) {
+  async function getCurrentLocation(signal: AbortSignal) {
+    return await useAPI<CurrentLocation>('/api/location', { signal })
+  }
+
+  async function getCountryStats(signal: AbortSignal) {
     const result = await useAPI<{ data: AreaData[] }>('/api/stats/metrics', {
+      signal,
       query: {
         type: 'country',
         ...getBaseQuery(),
       },
     })
-
-    // Discard stale response
-    if (isStale(version))
-      return
 
     const statsMap = new Map<string, number>()
     if (Array.isArray(result.data)) {
@@ -78,48 +87,104 @@ export function useGlobeData() {
         statsMap.set(item.name, item.count)
       })
     }
-    countryStats.value = statsMap
+    return statsMap
   }
 
-  async function getLiveLocations(version: number) {
+  async function getLiveLocations(signal: AbortSignal) {
     const result = await useAPI<{ data: RawLocationData[] }>('/api/logs/locations', {
+      signal,
       query: {
         ...getBaseQuery(),
       },
     })
 
-    // Discard stale response
-    if (isStale(version))
-      return
-
-    locations.value = result.data?.map(e => ({
+    return result.data?.map(e => ({
       lat: e.latitude,
       lng: e.longitude,
       count: +e.count,
     })) || []
   }
 
-  async function init() {
-    const version = nextRequestVersion()
-    await Promise.all([
-      getLiveLocations(version),
-      getCurrentLocation(),
-      getGlobeJSON(),
-      getColosJSON(),
-      getCountryStats(version),
+  async function getRealtimeSnapshot(signal: AbortSignal): Promise<[LocationData[], Map<string, number>]> {
+    const [locationsResult, statsResult] = await Promise.allSettled([
+      getLiveLocations(signal),
+      getCountryStats(signal),
     ])
+
+    if (signal.aborted)
+      throw signal.reason
+    if (locationsResult.status === 'rejected' && statsResult.status === 'rejected')
+      throw locationsResult.reason
+
+    return [
+      locationsResult.status === 'fulfilled' ? locationsResult.value : locations.value,
+      statsResult.status === 'fulfilled' ? statsResult.value : countryStats.value,
+    ]
+  }
+
+  async function init(signal?: AbortSignal) {
+    disposed = false
+    initController?.abort()
+    refreshController?.abort()
+    const controller = createController(signal)
+    initController = controller
+    const version = ++requestVersion
+    const requestSignal = controller.signal
+    error.value = false
+
+    const optionalLocation = getCurrentLocation(requestSignal).catch(() => currentLocation.value)
+    const [nextCountries, nextColos, nextLocation, [nextLocations, nextStats]] = await Promise.all([
+      getGlobeJSON(requestSignal),
+      getColosJSON(requestSignal),
+      optionalLocation,
+      getRealtimeSnapshot(requestSignal),
+    ])
+
+    if (isStale(version, requestSignal))
+      return
+
+    countries.value = nextCountries
+    colos.value = nextColos
+    currentLocation.value = nextLocation
+    locations.value = nextLocations
+    countryStats.value = nextStats
   }
 
   async function refresh() {
-    const version = nextRequestVersion()
-    await Promise.all([
-      getLiveLocations(version),
-      getCountryStats(version),
-    ])
+    refreshController?.abort()
+    const controller = createController()
+    refreshController = controller
+    const version = ++requestVersion
+    const signal = controller.signal
+    try {
+      const [nextLocations, nextStats] = await getRealtimeSnapshot(signal)
+
+      if (isStale(version, signal))
+        return
+
+      locations.value = nextLocations
+      countryStats.value = nextStats
+      error.value = false
+    }
+    catch {
+      if (!isStale(version, signal))
+        error.value = true
+    }
   }
 
-  // Watch store changes
-  watchDeep([() => realtimeStore.timeRange, () => realtimeStore.filters], refresh)
+  const stopDataWatch = watchDeep([() => realtimeStore.timeRange, () => realtimeStore.filters], () => {
+    void refresh()
+  })
+
+  function dispose() {
+    disposed = true
+    requestVersion++
+    initController?.abort()
+    refreshController?.abort()
+    initController = null
+    refreshController = null
+    stopDataWatch()
+  }
 
   return {
     countries,
@@ -127,9 +192,11 @@ export function useGlobeData() {
     colos,
     currentLocation,
     countryStats,
+    error,
     highest,
     maxCountryVisits,
     init,
     refresh,
+    dispose,
   }
 }

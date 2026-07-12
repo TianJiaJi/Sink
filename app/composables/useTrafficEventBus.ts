@@ -1,7 +1,7 @@
-import type { TrafficEventParams } from '@/types'
+import type { LogEvent } from '@/types'
 import { useEventBus } from '@vueuse/core'
 
-const trafficEventBus = useEventBus<TrafficEventParams>(Symbol('traffic'))
+const trafficEventBus = useEventBus<LogEvent>(Symbol('traffic'))
 
 /**
  * Traffic event bus for globe arc/ripple animations.

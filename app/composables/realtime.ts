@@ -1,11 +1,10 @@
 import { getLocalTimeZone, now } from '@internationalized/date'
-import { useUrlSearchParams } from '@vueuse/core'
 import { safeDestr } from 'destr'
 import { ref, watch } from 'vue'
 import { defineStore } from '#imports'
 import { date2unix } from '@/utils/time'
 
-const TIME_PRESETS: Record<string, { minutes?: number, hours?: number } | 'today'> = {
+const TIME_PRESETS = {
   'today': 'today',
   'last-5m': { minutes: 5 },
   'last-10m': { minutes: 10 },
@@ -14,12 +13,14 @@ const TIME_PRESETS: Record<string, { minutes?: number, hours?: number } | 'today
   'last-6h': { hours: 6 },
   'last-12h': { hours: 12 },
   'last-24h': { hours: 24 },
-}
+} as const
 
-function computeTimeRange(name: string): [number, number] {
+type TimePreset = keyof typeof TIME_PRESETS
+
+function computeTimeRange(name: TimePreset): [number, number] {
   const tz = getLocalTimeZone()
   const currentTime = now(tz)
-  const preset = TIME_PRESETS[name] ?? { hours: 1 }
+  const preset = TIME_PRESETS[name]
 
   if (preset === 'today') {
     return [date2unix(currentTime, 'start'), date2unix(currentTime)]
@@ -28,67 +29,79 @@ function computeTimeRange(name: string): [number, number] {
   return [date2unix(currentTime.subtract(preset)), date2unix(currentTime)]
 }
 
+function normalizePreset(value: unknown): TimePreset {
+  return typeof value === 'string' && Object.hasOwn(TIME_PRESETS, value) ? value as TimePreset : 'last-1h'
+}
+
+function parseFilters(value: unknown): Record<string, string> {
+  if (typeof value !== 'string' || !value)
+    return {}
+
+  const restored = safeDestr<unknown>(value)
+  if (!restored || typeof restored !== 'object' || Array.isArray(restored))
+    return {}
+
+  return Object.fromEntries(
+    Object.entries(restored).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+  )
+}
+
 export const useDashboardRealtimeStore = defineStore('dashboard-realtime', () => {
-  const searchParams = useUrlSearchParams('history')
-  let initialized = false
+  const route = useRoute()
+  const router = useRouter()
+  let syncingFromRoute = false
 
   const timeRange = ref({ startAt: 0, endAt: 0 })
-  const timeName = ref('last-1h')
+  const timeName = ref<TimePreset>('last-1h')
   const filters = ref<Record<string, string>>({})
 
   function selectPreset(name: string) {
-    timeName.value = name
-    const [start, end] = computeTimeRange(name)
+    const preset = normalizePreset(name)
+    timeName.value = preset
+    const [start, end] = computeTimeRange(preset)
     timeRange.value.startAt = start
     timeRange.value.endAt = end
   }
 
   function updateFilter(type: string, value: string) {
-    filters.value[type] = value
+    if (value)
+      filters.value[type] = value
+    else
+      delete filters.value[type]
   }
 
   function clearFilters() {
     filters.value = {}
   }
 
-  // URL > Store > Default, then enable URL sync
   function init() {
-    if (initialized)
+    if (route.path !== '/dashboard/realtime')
       return
 
-    // Restore from URL
-    if (searchParams.time && typeof searchParams.time === 'string') {
-      timeName.value = searchParams.time
-    }
-    if (searchParams.filters && typeof searchParams.filters === 'string') {
-      const restored = safeDestr<Record<string, string>>(searchParams.filters)
-      if (restored) {
-        Object.assign(filters.value, restored)
-      }
-    }
-
-    // Apply default time range from preset if not restored
-    if (timeRange.value.startAt === 0) {
-      const [start, end] = computeTimeRange(timeName.value)
-      timeRange.value.startAt = start
-      timeRange.value.endAt = end
-    }
-
-    initialized = true
+    syncingFromRoute = true
+    selectPreset(normalizePreset(route.query.time))
+    filters.value = parseFilters(route.query.filters)
+    syncingFromRoute = false
   }
 
-  // Store → URL sync (only after init)
   watch(timeName, (val) => {
-    if (!initialized)
+    if (syncingFromRoute || route.path !== '/dashboard/realtime' || route.query.time === val)
       return
-    searchParams.time = val
+    void router.replace({ query: { ...route.query, time: val } })
   })
 
   watch(filters, (val) => {
-    if (!initialized)
+    if (syncingFromRoute || route.path !== '/dashboard/realtime')
       return
-    searchParams.filters = Object.keys(val).length ? JSON.stringify(val) : ''
+    const serialized = Object.keys(val).length ? JSON.stringify(val) : undefined
+    if (route.query.filters !== serialized)
+      void router.replace({ query: { ...route.query, filters: serialized } })
   }, { deep: true })
+
+  watch(
+    () => [route.path, route.query.time, route.query.filters],
+    init,
+  )
 
   return {
     timeRange,

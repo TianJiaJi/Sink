@@ -1,6 +1,6 @@
 import type { ComputedRef, ShallowRef } from 'vue'
 import type { ArcData, RippleData } from './globe/types'
-import type { ColoData, TrafficEventParams } from '@/types'
+import type { ColoData, LogEvent } from '@/types'
 
 export interface TrafficEventContext {
   colos: ShallowRef<Record<string, ColoData>>
@@ -15,12 +15,12 @@ export interface TrafficEventContext {
 export function useTrafficEvent(ctx: TrafficEventContext) {
   const pendingTimeouts = new Set<ReturnType<typeof setTimeout>>()
 
-  function handleTrafficEvent({ props }: TrafficEventParams, { delay = 1200 }: { delay?: number } = {}) {
+  function handleTrafficEvent(item: LogEvent) {
     if (!ctx.globe.isReady())
       return
 
-    const { item } = props
     const { latitude, longitude, COLO, city } = item
+    const delay = 1200
     if (latitude == null || longitude == null || !COLO) {
       console.warn('Missing location data for traffic event', item)
       return

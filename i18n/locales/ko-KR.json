@@ -176,6 +176,18 @@
     "no_data": "데이터 없음",
     "none": "(없음)",
     "filter_placeholder": "링크 필터링...",
+    "realtime": {
+      "stats_error": "실시간 통계를 불러오지 못했습니다.",
+      "events_error": "실시간 이벤트를 불러오지 못했습니다.",
+      "globe_error": "지구본 데이터를 불러오지 못했습니다.",
+      "filter_label": "링크 필터링",
+      "filter_search_label": "링크 검색",
+      "links_error": "링크를 불러오지 못했습니다.",
+      "time_range_label": "시간 범위 선택",
+      "globe_label": "실시간 트래픽 지구본",
+      "globe_instructions": "드래그하여 회전하세요. 포커스한 뒤 스크롤로 확대·축소하고, 방향키로 회전하며, +/−로 확대·축소하세요. Home은 초기화, Escape는 포커스 해제입니다.",
+      "globe_fallback": "대화형 지구본을 사용할 수 없습니다."
+    },
     "date_picker": {
       "today": "오늘",
       "last_24h": "지난 24시간",

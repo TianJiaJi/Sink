@@ -176,6 +176,18 @@
     "no_data": "Không có dữ liệu",
     "none": "(Không có)",
     "filter_placeholder": "Lọc liên kết...",
+    "realtime": {
+      "stats_error": "Không thể tải số liệu thống kê theo thời gian thực.",
+      "events_error": "Không thể tải sự kiện theo thời gian thực.",
+      "globe_error": "Không thể tải dữ liệu quả địa cầu.",
+      "filter_label": "Lọc liên kết",
+      "filter_search_label": "Tìm kiếm liên kết",
+      "links_error": "Không thể tải liên kết.",
+      "time_range_label": "Chọn khoảng thời gian",
+      "globe_label": "Quả địa cầu lưu lượng theo thời gian thực",
+      "globe_instructions": "Kéo để xoay. Khi được lấy nét, cuộn để thu phóng, dùng phím mũi tên để xoay, +/− để thu phóng, Home để đặt lại và Escape để thoát lấy nét.",
+      "globe_fallback": "Quả địa cầu tương tác hiện không khả dụng."
+    },
     "date_picker": {
       "today": "Hôm nay",
       "last_24h": "24 giờ qua",

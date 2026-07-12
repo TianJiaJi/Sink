@@ -12,6 +12,8 @@ export interface InteractionContext {
   zoom: Ref<number>
   isDragging: Ref<boolean>
   stopAutoRotate: () => void
+  resetView: () => void
+  reducedMotion: Ref<boolean>
 }
 
 export function setupGlobeInteraction(
@@ -32,6 +34,8 @@ export function setupGlobeInteraction(
   }
 
   function startInertia() {
+    if (ctx.reducedMotion.value)
+      return
     if (Math.abs(inertia.velocityX) > 0.01 || Math.abs(inertia.velocityY) > 0.01) {
       inertia.isActive = true
     }
@@ -78,6 +82,8 @@ export function setupGlobeInteraction(
   }
 
   const onWheel = (e: WheelEvent) => {
+    if (document.activeElement !== canvas)
+      return
     e.preventDefault()
     let amount = -e.deltaY * 0.001
     if ((e as any).mozInputSource === 1 && e.deltaMode === 1) {
@@ -103,6 +109,11 @@ export function setupGlobeInteraction(
       return
     const deltaX = e.touches[0]!.clientX - lastTouchX
     const deltaY = e.touches[0]!.clientY - lastTouchY
+    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+      ctx.isDragging.value = false
+      stopInertia()
+      return
+    }
     lastTouchX = e.touches[0]!.clientX
     lastTouchY = e.touches[0]!.clientY
     applyDrag(deltaX, deltaY, 0.5)
@@ -115,6 +126,42 @@ export function setupGlobeInteraction(
     startInertia()
   }
 
+  const onKeyDown = (e: KeyboardEvent) => {
+    const rotationStep = 5
+    const zoomStep = 0.1
+    if (e.key === 'Escape') {
+      canvas.blur()
+      return
+    }
+    if (e.key === 'Home') {
+      ctx.resetView()
+    }
+    else if (e.key === 'ArrowLeft') {
+      ctx.longitude.value -= rotationStep
+    }
+    else if (e.key === 'ArrowRight') {
+      ctx.longitude.value += rotationStep
+    }
+    else if (e.key === 'ArrowUp') {
+      ctx.latitude.value = Math.min(85, ctx.latitude.value + rotationStep)
+    }
+    else if (e.key === 'ArrowDown') {
+      ctx.latitude.value = Math.max(-85, ctx.latitude.value - rotationStep)
+    }
+    else if (e.key === '+' || e.key === '=') {
+      ctx.zoom.value = Math.min(1, ctx.zoom.value + zoomStep)
+    }
+    else if (e.key === '-' || e.key === '_') {
+      ctx.zoom.value = Math.max(0, ctx.zoom.value - zoomStep)
+    }
+    else {
+      return
+    }
+    e.preventDefault()
+    ctx.stopAutoRotate()
+    stopInertia()
+  }
+
   canvas.addEventListener('mousedown', onMouseDown)
   document.addEventListener('mousemove', onMouseMove)
   document.addEventListener('mouseup', onMouseUp)
@@ -122,6 +169,8 @@ export function setupGlobeInteraction(
   canvas.addEventListener('touchstart', onTouchStart)
   canvas.addEventListener('touchmove', onTouchMove)
   canvas.addEventListener('touchend', onTouchEnd)
+  canvas.addEventListener('touchcancel', onTouchEnd)
+  canvas.addEventListener('keydown', onKeyDown)
 
   return () => {
     stopInertia()
@@ -132,5 +181,7 @@ export function setupGlobeInteraction(
     canvas.removeEventListener('touchstart', onTouchStart)
     canvas.removeEventListener('touchmove', onTouchMove)
     canvas.removeEventListener('touchend', onTouchEnd)
+    canvas.removeEventListener('touchcancel', onTouchEnd)
+    canvas.removeEventListener('keydown', onKeyDown)
   }
 }
