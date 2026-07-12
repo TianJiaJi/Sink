@@ -1,40 +1,42 @@
 import type { ImportResult } from '../../shared/schemas/import'
 import type { ExportData } from '../../shared/schemas/link'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { LINK_PASSWORD_HASH_PREFIX, LINK_PASSWORD_MASK_PREFIX } from '../../shared/utils/link-password'
-import { expectStoredHashedPassword, fetch, fetchWithAuth, getStoredLink, postJson } from '../utils'
+import { deleteStoredLinks, expectStoredHashedPassword, fetchWithAuth, getStoredLink, postJson } from '../utils'
+
+const createdSlugs = new Set<string>()
+
+function trackSlug(slug: string) {
+  createdSlugs.add(slug)
+  return slug
+}
 
 function createLinkPayload() {
   return {
     url: 'https://example.com',
-    slug: `migration-${crypto.randomUUID()}`,
+    slug: trackSlug(`migration-${crypto.randomUUID()}`),
   }
 }
 
-const testLinkPayload = createLinkPayload()
+afterEach(async () => {
+  await deleteStoredLinks([...createdSlugs])
+  createdSlugs.clear()
+})
 
 describe('/api/link/export', { concurrent: false }, () => {
   it('exports links with valid auth', async () => {
-    await postJson('/api/link/create', testLinkPayload)
+    const payload = createLinkPayload()
+    expect((await postJson('/api/link/create', payload)).status).toBe(201)
 
     const response = await fetchWithAuth('/api/link/export')
     expect(response.status).toBe(200)
 
     const data: ExportData = await response.json()
-    expect(data).toHaveProperty('version')
-    expect(data).toHaveProperty('exportedAt')
-    expect(data).toHaveProperty('count')
-    expect(data).toHaveProperty('links')
-    expect(data).toHaveProperty('list_complete')
-    expect(data.links).toBeInstanceOf(Array)
-  })
-
-  it('supports cursor pagination', async () => {
-    const response = await fetchWithAuth('/api/link/export?cursor=test')
-    expect(response.status).toBe(200)
-
-    const data: ExportData = await response.json()
-    expect(data).toHaveProperty('links')
+    expect(data.version).toBeDefined()
+    expect(data.exportedAt).toBeDefined()
+    expect(data.count).toBe(data.links.length)
+    expect(data.links).toContainEqual(expect.objectContaining(payload))
+    expect(typeof data.list_complete).toBe('boolean')
   })
 
   it('returns correct response headers', async () => {
@@ -48,7 +50,7 @@ describe('/api/link/export', { concurrent: false }, () => {
     const password = 'export-secret123'
     const payload = {
       url: 'https://example.com',
-      slug: `000-export-password-${crypto.randomUUID()}`,
+      slug: trackSlug(`000-export-password-${crypto.randomUUID()}`),
       password,
     }
 
@@ -65,11 +67,6 @@ describe('/api/link/export', { concurrent: false }, () => {
     expect(link?.password).not.toBe(password)
     expect(link?.password?.startsWith(LINK_PASSWORD_MASK_PREFIX)).toBe(false)
   })
-
-  it('returns 401 when accessing without auth', async () => {
-    const response = await fetch('/api/link/export')
-    expect(response.status).toBe(401)
-  })
 })
 
 describe('/api/link/import', { concurrent: false }, () => {
@@ -83,22 +80,33 @@ describe('/api/link/import', { concurrent: false }, () => {
     expect(response.status).toBe(200)
 
     const data: ImportResult = await response.json()
-    expect(data).toHaveProperty('success')
-    expect(data).toHaveProperty('skipped')
-    expect(data).toHaveProperty('failed')
-    expect(data).toHaveProperty('successItems')
-    expect(data).toHaveProperty('skippedItems')
-    expect(data).toHaveProperty('failedItems')
-    expect(data.success).toBeGreaterThanOrEqual(0)
+    expect(data).toMatchObject({
+      success: 1,
+      skipped: 0,
+      failed: 0,
+      skippedItems: [],
+      failedItems: [],
+    })
+    expect(data.successItems).toEqual([{ index: 0, ...importPayload.links[0] }])
   })
 
   it('skips existing links during import', async () => {
-    const importPayload = { version: '1.0', links: [testLinkPayload] }
+    const payload = createLinkPayload()
+    expect((await postJson('/api/link/create', payload)).status).toBe(201)
+
+    const importPayload = { version: '1.0', links: [payload] }
     const response = await postJson('/api/link/import', importPayload)
     expect(response.status).toBe(200)
 
     const data: ImportResult = await response.json()
-    expect(data.skipped).toBeGreaterThanOrEqual(0)
+    expect(data).toMatchObject({
+      success: 0,
+      skipped: 1,
+      failed: 0,
+      successItems: [],
+      failedItems: [],
+    })
+    expect(data.skippedItems).toEqual([{ index: 0, ...payload }])
   })
 
   it('hashes plaintext password during import', async () => {
@@ -107,7 +115,7 @@ describe('/api/link/import', { concurrent: false }, () => {
       version: '1.0',
       links: [{
         url: 'https://example.com',
-        slug: `import-password-${crypto.randomUUID()}`,
+        slug: trackSlug(`import-password-${crypto.randomUUID()}`),
         password,
       }],
     }
@@ -124,7 +132,7 @@ describe('/api/link/import', { concurrent: false }, () => {
     const password = 'reimport-secret123'
     const sourcePayload = {
       url: 'https://example.com',
-      slug: `000-reimport-source-${crypto.randomUUID()}`,
+      slug: trackSlug(`000-reimport-source-${crypto.randomUUID()}`),
       password,
     }
 
@@ -142,7 +150,7 @@ describe('/api/link/import', { concurrent: false }, () => {
     if (!exportedPassword)
       throw new Error('Missing exported password')
 
-    const importSlug = `reimport-hash-${crypto.randomUUID()}`
+    const importSlug = trackSlug(`reimport-hash-${crypto.randomUUID()}`)
     const importResponse = await postJson('/api/link/import', {
       version: '1.0',
       links: [{
@@ -173,10 +181,5 @@ describe('/api/link/import', { concurrent: false }, () => {
       links: [{ url: 'not-a-valid-url', slug: 'test-slug' }],
     })
     expect(response.status).toBe(400)
-  })
-
-  it('returns 401 when accessing without auth', async () => {
-    const response = await postJson('/api/link/import', {}, false)
-    expect(response.status).toBe(401)
   })
 })

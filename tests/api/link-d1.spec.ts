@@ -1,16 +1,22 @@
 import type { Link } from '../../shared/schemas/link'
 import type { LinkMigrationMarker, LinkMigrationRunResult } from '../../shared/schemas/link-migration'
 import { env } from 'cloudflare:workers'
-import { beforeEach, describe, expect, it } from 'vitest'
-import { clearLinkMigrationState, fetch, fetchWithAuth, getD1Link, getStoredLink, postJson, putJson } from '../utils'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { clearLinkMigrationState, deleteStoredLinks, fetch, fetchWithAuth, getD1Link, getStoredLink, postJson, putJson } from '../utils'
 
 const MARKER_KEY = 'migration:kv-to-d1:v1'
+const createdSlugs = new Set<string>()
+
+function trackSlug(slug: string): string {
+  createdSlugs.add(slug)
+  return slug
+}
 
 function makeLink(slug = `d1-${crypto.randomUUID()}`, overrides: Partial<Link> = {}): Link {
   const now = Math.floor(Date.now() / 1000)
   return {
     id: crypto.randomUUID().slice(0, 10),
-    slug,
+    slug: trackSlug(slug),
     url: `https://example.com/${slug}`,
     createdAt: now,
     updatedAt: now,
@@ -75,8 +81,14 @@ async function runMigration(force: boolean) {
   return pages
 }
 
-describe.sequential('d1 link integration', () => {
+describe('d1 link integration', () => {
   beforeEach(async () => {
+    await clearLinkMigrationState()
+  })
+
+  afterEach(async () => {
+    await deleteStoredLinks([...createdSlugs])
+    createdSlugs.clear()
     await clearLinkMigrationState()
   })
 
@@ -93,6 +105,11 @@ describe.sequential('d1 link integration', () => {
     const query = await fetchWithAuth(`/api/link/query?slug=${link.slug}`)
     expect(query.status).toBe(200)
     expect(await query.json()).toMatchObject({ slug: link.slug, url: link.url })
+
+    const redirect = await fetch(`/${link.slug}`, { redirect: 'manual' })
+    expect(redirect.status).toBe(301)
+    expect(redirect.headers.get('Location')).toBe(link.url)
+    expect(await getStoredLink(link.slug)).toMatchObject({ slug: link.slug, url: link.url })
   })
 
   it('defaults list ordering to newest', async () => {
@@ -109,7 +126,7 @@ describe.sequential('d1 link integration', () => {
   })
 
   it('normalizes tags and supports create, edit, query, list, search, tag counts, and export/import', async () => {
-    const slug = `tags-${crypto.randomUUID()}`
+    const slug = trackSlug(`tags-${crypto.randomUUID()}`)
     const tag = `topic-${crypto.randomUUID().slice(0, 8)}`
     const response = await postJson('/api/link/create', {
       slug,
@@ -147,7 +164,7 @@ describe.sequential('d1 link integration', () => {
     expect(await imported.json()).toMatchObject({ success: 1 })
     expect(await (await fetchWithAuth(`/api/link/query?slug=${slug}`)).json()).toMatchObject({ tags: ['replacement'] })
 
-    const legacySlug = `legacy-import-${crypto.randomUUID()}`
+    const legacySlug = trackSlug(`legacy-import-${crypto.randomUUID()}`)
     const legacy = await postJson('/api/link/import', { version: '1.0', links: [{ slug: legacySlug, url: 'https://example.com/legacy' }] })
     expect(await legacy.json()).toMatchObject({ success: 1 })
     expect(await (await fetchWithAuth(`/api/link/query?slug=${legacySlug}`)).json()).toMatchObject({ tags: [] })
@@ -290,6 +307,8 @@ describe.sequential('d1 link integration', () => {
     await putKvLink(link)
     await runMigration(true)
 
+    expect((await fetch(`/${link.slug}`, { redirect: 'manual' })).status).toBe(404)
+    expect(await getStoredLink(link.slug)).toBeNull()
     expect(await getD1Link(link.slug)).toBeNull()
     expect(await env.DB.prepare('SELECT slug FROM link_tombstones WHERE slug = ?').bind(link.slug).first()).not.toBeNull()
   })
@@ -506,6 +525,7 @@ describe.sequential('d1 link integration', () => {
 
     const expired = makeLink()
     await insertD1Link(expired, Math.floor(Date.now() / 1000) - 1)
+    await putKvLink(expired)
     expect((await fetch(`/${expired.slug}`, { redirect: 'manual' })).status).toBe(404)
     expect(await getStoredLink(expired.slug)).toBeNull()
   })

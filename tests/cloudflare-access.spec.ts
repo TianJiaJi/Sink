@@ -5,6 +5,7 @@ import {
   isCloudflareAccessRequestSafe,
   verifyCloudflareAccessToken,
 } from '../server/utils/cloudflare-access'
+import { fetchWithAuth } from './utils'
 
 const issuer = 'https://sink.cloudflareaccess.com'
 const audience = 'sink-audience'
@@ -129,5 +130,22 @@ describe('cloudflare Access CSRF protection', () => {
       hasAccessCookie: true,
       requestOrigin: 'https://sink.example.com',
     })).toBe(false)
+  })
+})
+
+describe('cloudflare Access request authentication', () => {
+  it('does not apply Access CSRF restrictions to site-token writes', async () => {
+    const response = await fetchWithAuth('/api/link/create', {
+      method: 'POST',
+      body: '{}',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': 'CF_Authorization=access-cookie',
+        'Origin': 'https://attacker.example.com',
+        'Sec-Fetch-Site': 'cross-site',
+      },
+    })
+
+    expect([401, 403]).not.toContain(response.status)
   })
 })

@@ -193,8 +193,45 @@ export async function getCachedLinkWithMetadata(event: H3Event, slug: string, ca
 
 export async function getLink(event: H3Event, slug: string, cacheTtl?: number): Promise<Link | null> {
   const cached = await getCachedLinkWithMetadata(event, slug, cacheTtl)
-  if (cached.link)
-    return cached.link
+  if (cached.link) {
+    if (!await isLinkMigrationComplete(event)) {
+      const rows = await getDatabase(event).select().from(links).where(eq(links.slug, slug)).limit(1)
+      const row = rows[0]
+      if (row) {
+        if (!isActiveExpiration(row.effectiveExpiresAt)) {
+          await deleteCache(event, slug)
+          return null
+        }
+
+        if (row.id === cached.link.id && row.updatedAt === cached.link.updatedAt)
+          return cached.link
+
+        await deleteCache(event, slug)
+        const [link] = await rowsToLinks(event, [row])
+        if (!link)
+          return null
+        await writeThroughCache(event, link, row.effectiveExpiresAt)
+        return link
+      }
+
+      const tombstone = await getDatabase(event).select({ slug: linkTombstones.slug }).from(linkTombstones).where(eq(linkTombstones.slug, slug)).limit(1)
+      if (!tombstone.length)
+        return cached.link
+
+      await deleteCache(event, slug)
+      return null
+    }
+
+    const rows = await getDatabase(event).select({ id: links.id, updatedAt: links.updatedAt }).from(links).where(and(
+      eq(links.slug, slug),
+      activeCondition(),
+    )).limit(1)
+    const current = rows[0]
+    if (current?.id === cached.link.id && current.updatedAt === cached.link.updatedAt)
+      return cached.link
+
+    await deleteCache(event, slug)
+  }
 
   const row = await getAuthoritativeLinkRow(event, slug, false)
   if (!row)
@@ -540,6 +577,76 @@ export async function listLinks(event: H3Event, options: ListLinksOptions): Prom
     list_complete: !hasMore,
     cursor: hasMore && last ? encodeCursor({ sort, slug: last.slug, createdAt: last.createdAt, tag: options.tag, status }) : undefined,
   }
+}
+
+export async function listAllAuthoritativeLinks(env: Cloudflare.Env, caseSensitive: boolean): Promise<Link[]> {
+  const rawMarker = await env.KV.get(LINK_MIGRATION_MARKER_KEY)
+  let migrationComplete = false
+  if (rawMarker) {
+    try {
+      migrationComplete = LinkMigrationMarkerSchema.safeParse(JSON.parse(rawMarker)).success
+    }
+    catch {
+      // Malformed markers must keep the legacy source enabled.
+    }
+  }
+
+  const db = drizzle(env.DB)
+  const rows = await db.select().from(links).orderBy(asc(links.slug))
+  const result = rows.map((row) => {
+    const link = rowToLink(row)
+    if (link.expiration === undefined && row.effectiveExpiresAt !== null)
+      link.expiration = row.effectiveExpiresAt
+    return link
+  })
+  const bySlug = new Map(result.map(link => [link.slug, link]))
+
+  const tagRows = await db
+    .select({ slug: linkTags.linkSlug, tag: linkTags.tagName })
+    .from(linkTags)
+    .orderBy(asc(linkTags.tagName))
+  for (const row of tagRows)
+    bySlug.get(row.slug)?.tags.push(row.tag)
+
+  if (migrationComplete)
+    return result
+
+  const tombstoneRows = await db.select({ slug: linkTombstones.slug }).from(linkTombstones)
+  const normalize = (slug: string) => caseSensitive ? slug : slug.toLowerCase()
+  const unavailableSlugs = new Set([...bySlug.keys(), ...tombstoneRows.map(row => row.slug)].map(normalize))
+  let cursor: string | undefined
+  do {
+    const page = await env.KV.list({ prefix: 'link:', limit: 1000, cursor })
+    for (let offset = 0; offset < page.keys.length; offset += 20) {
+      const keys = page.keys.slice(offset, offset + 20)
+      const values = await Promise.all(keys.map(async (key) => {
+        const stored = await env.KV.getWithMetadata(key.name, { type: 'json' })
+        const parsed = StoredLinkSchema.safeParse(stored.value)
+        if (!parsed.success)
+          return null
+
+        const metadata = stored.metadata as { expiration?: unknown } | null
+        const effectiveExpiration = (typeof metadata?.expiration === 'number' ? metadata.expiration : undefined)
+          ?? key.expiration
+        if (parsed.data.expiration === undefined && effectiveExpiration !== undefined)
+          parsed.data.expiration = effectiveExpiration
+        return parsed.data
+      }))
+      for (const link of values) {
+        if (!link)
+          continue
+        const slug = normalize(link.slug)
+        if (unavailableSlugs.has(slug))
+          continue
+        result.push({ ...link, slug })
+        unavailableSlugs.add(slug)
+      }
+    }
+    cursor = page.list_complete ? undefined : page.cursor
+  } while (cursor)
+
+  result.sort((a, b) => a.slug.localeCompare(b.slug))
+  return result
 }
 
 interface SearchLinksOptions {
