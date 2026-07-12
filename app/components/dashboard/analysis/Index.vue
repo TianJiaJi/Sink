@@ -8,13 +8,6 @@ withDefaults(defineProps<{
 })
 
 const analysisStore = useDashboardAnalysisStore()
-
-const viewMode = ref<'trend' | 'heatmap'>('trend')
-const heatmapMetric = ref<'visits' | 'visitors'>('visits')
-
-onBeforeMount(() => {
-  analysisStore.init()
-})
 </script>
 
 <template>
@@ -22,7 +15,7 @@ onBeforeMount(() => {
     {{ $t('dashboard.stats', { slug: link.slug }) }}
   </h3>
   <DashboardAnalysisCounters />
-  <Tabs v-model="viewMode" default-value="trend">
+  <Tabs v-model="analysisStore.viewMode" default-value="trend">
     <div class="mb-4 flex items-center justify-between">
       <TabsList>
         <TabsTrigger value="trend">
@@ -33,7 +26,7 @@ onBeforeMount(() => {
         </TabsTrigger>
       </TabsList>
 
-      <Select v-if="viewMode === 'heatmap'" v-model="heatmapMetric">
+      <Select v-if="analysisStore.viewMode === 'heatmap'" v-model="analysisStore.heatmapMetric">
         <SelectTrigger class="h-8 w-[120px]">
           <SelectValue />
         </SelectTrigger>
@@ -48,10 +41,10 @@ onBeforeMount(() => {
       </Select>
     </div>
     <TabsContent value="trend" class="mt-0">
-      <DashboardAnalysisViews v-if="viewMode === 'trend'" />
+      <DashboardAnalysisViews v-if="analysisStore.viewMode === 'trend'" />
     </TabsContent>
     <TabsContent value="heatmap" class="mt-0">
-      <DashboardAnalysisHeatmap v-if="viewMode === 'heatmap'" :metric="heatmapMetric" />
+      <DashboardAnalysisHeatmap v-if="analysisStore.viewMode === 'heatmap'" :metric="analysisStore.heatmapMetric" />
     </TabsContent>
   </Tabs>
   <DashboardAnalysisMetrics />

@@ -31,9 +31,9 @@ watch([
     const result = await useAPI<{ data: CounterData[] }>('/api/stats/counters', {
       signal: controller.signal,
       query: {
+        ...realtimeStore.filters,
         startAt: realtimeStore.timeRange.startAt,
         endAt: realtimeStore.timeRange.endAt,
-        ...realtimeStore.filters,
       },
     })
     if (controller.signal.aborted)

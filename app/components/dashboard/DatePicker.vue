@@ -12,16 +12,14 @@ const customDateRange = ref<DateRange | undefined>()
 const tz = getLocalTimeZone()
 
 function updateCustomDate(customDateValue: DateValue) {
-  analysisStore.datePreset = null
-  analysisStore.updateDateRange([date2unix(customDateValue, 'start'), date2unix(customDateValue, 'end')])
+  analysisStore.selectCustomRange([date2unix(customDateValue, 'start'), date2unix(customDateValue, 'end')])
   openCustomDateRange.value = false
   customDate.value = undefined
 }
 
 function updateCustomDateRange(customDateRangeValue: DateRange) {
   if (customDateRangeValue.start && customDateRangeValue.end) {
-    analysisStore.datePreset = null
-    analysisStore.updateDateRange([date2unix(customDateRangeValue.start, 'start'), date2unix(customDateRangeValue.end, 'end')])
+    analysisStore.selectCustomRange([date2unix(customDateRangeValue.start, 'start'), date2unix(customDateRangeValue.end, 'end')])
     openCustomDateRange.value = false
     customDateRange.value = undefined
   }
@@ -32,14 +30,13 @@ function isDateDisabled(dateValue: DateValue) {
 }
 
 function onPresetChange(value: string | number | bigint | Record<string, any> | null) {
-  if (typeof value !== 'string')
-    return
-
   if (value === 'custom') {
     openCustomDateRange.value = true
-    analysisStore.datePreset = null
     return
   }
+
+  if (!isAnalysisDatePreset(value))
+    return
 
   analysisStore.selectPreset(value)
 }

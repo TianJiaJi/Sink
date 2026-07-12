@@ -6,6 +6,7 @@ definePageMeta({
 })
 
 const migration = useLinkMigration()
+useDashboardLinksRouteState()
 
 onMounted(() => {
   migration.autoMigration()

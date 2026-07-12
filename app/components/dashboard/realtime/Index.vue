@@ -14,10 +14,6 @@ const { pause, resume } = useIntervalFn(
   { immediate: false, immediateCallback: true },
 )
 
-onBeforeMount(() => {
-  realtimeStore.init()
-})
-
 onMounted(() => {
   if (visibility.value === 'visible')
     resume()

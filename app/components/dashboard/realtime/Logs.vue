@@ -38,10 +38,10 @@ watch([
     const data = await useAPI<LogEvent[]>('/api/logs/events', {
       signal: controller.signal,
       query: {
+        ...realtimeStore.filters,
         limit: 100,
         startAt: realtimeStore.timeRange.startAt,
         endAt: realtimeStore.timeRange.endAt,
-        ...realtimeStore.filters,
       },
     })
     if (controller.signal.aborted)

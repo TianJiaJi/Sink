@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { CounterData } from '@/types'
 import NumberFlow from '@number-flow/vue'
-import { watchThrottled } from '@vueuse/core'
 import { Flame, MousePointerClick, Users } from 'lucide-vue-next'
 
 const defaultData: CounterData = Object.freeze({
@@ -15,29 +14,28 @@ const counters = ref<CounterData>(defaultData)
 const id = inject(LINK_ID_KEY, computed(() => undefined))
 const analysisStore = useDashboardAnalysisStore()
 
-async function getLinkCounters() {
+watch([() => analysisStore.dateRange, () => analysisStore.filters], async (_values, _oldValues, onCleanup) => {
+  const controller = new AbortController()
+  onCleanup(() => controller.abort())
   counters.value = defaultData
-  const result = await useAPI<{ data: CounterData[] }>('/api/stats/counters', {
-    query: {
-      id: id.value,
-      startAt: analysisStore.dateRange.startAt,
-      endAt: analysisStore.dateRange.endAt,
-      ...analysisStore.filters,
-    },
-  })
-  counters.value = result.data?.[0] ?? defaultData
-}
-
-watchThrottled([() => analysisStore.dateRange, () => analysisStore.filters], getLinkCounters, {
-  deep: true,
-  throttle: 500,
-  leading: true,
-  trailing: true,
-})
-
-onMounted(async () => {
-  getLinkCounters()
-})
+  try {
+    const result = await useAPI<{ data: CounterData[] }>('/api/stats/counters', {
+      signal: controller.signal,
+      query: {
+        ...analysisStore.filters,
+        id: id.value,
+        startAt: analysisStore.dateRange.startAt,
+        endAt: analysisStore.dateRange.endAt,
+      },
+    })
+    if (!controller.signal.aborted)
+      counters.value = result.data?.[0] ?? defaultData
+  }
+  catch (error) {
+    if (!controller.signal.aborted)
+      console.error(error)
+  }
+}, { deep: true, immediate: true })
 </script>
 
 <template>

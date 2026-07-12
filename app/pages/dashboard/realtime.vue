@@ -4,6 +4,7 @@ definePageMeta({
 })
 
 const realtimeStore = useDashboardRealtimeStore()
+useDashboardRealtimeRouteState()
 
 function handleFilterChange(type: string, value: string) {
   realtimeStore.updateFilter(type, value)

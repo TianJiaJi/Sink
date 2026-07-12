@@ -50,10 +50,7 @@ function selectLink(link: DashboardLinkSearchItem | undefined) {
   if (!link)
     return
   isOpen.value = false
-  router.push({
-    path: '/dashboard/link',
-    query: { slug: link.slug },
-  })
+  router.push(getDashboardLinkDetailLocation(link.slug))
 }
 
 function visibleTags(link: DashboardLinkSearchItem) {

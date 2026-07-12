@@ -6,6 +6,7 @@ definePageMeta({
 provide(LINK_ID_KEY, computed(() => undefined))
 
 const analysisStore = useDashboardAnalysisStore()
+useDashboardAnalysisRouteState()
 
 function handleFilterChange(type: string, value: string) {
   analysisStore.updateFilter(type, value)

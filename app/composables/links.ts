@@ -1,5 +1,6 @@
 import type { Link, LinkUpdateType } from '@/types'
 import type { DashboardLinkStatus } from '@/types/dashboard-links'
+import type { DashboardLinkSort, LinksQueryState } from '@/utils/dashboard-query'
 import { createEventHook, tryOnScopeDispose } from '@vueuse/core'
 import { ref } from 'vue'
 import { defineStore } from '#imports'
@@ -10,7 +11,7 @@ export interface LinkUpdateEvent {
 }
 
 export const useDashboardLinksStore = defineStore('dashboard-links', () => {
-  const sortBy = ref<'newest' | 'oldest' | 'az' | 'za'>('newest')
+  const sortBy = ref<DashboardLinkSort>('newest')
   const status = ref<DashboardLinkStatus>('active')
   const tag = ref<string>()
 
@@ -39,6 +40,12 @@ export const useDashboardLinksStore = defineStore('dashboard-links', () => {
     return off
   }
 
+  function applyRouteState(state: LinksQueryState) {
+    sortBy.value = state.sort
+    status.value = state.status
+    tag.value = state.tag
+  }
+
   return {
     sortBy,
     status,
@@ -49,5 +56,6 @@ export const useDashboardLinksStore = defineStore('dashboard-links', () => {
     closeLinkEditor,
     notifyLinkUpdate,
     onLinkUpdate,
+    applyRouteState,
   }
 })

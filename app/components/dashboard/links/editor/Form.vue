@@ -273,7 +273,7 @@ defineExpose({ randomSlug })
           >
             <span>{{ $t('links.form.duplicate_url_hint', { shortLink: shortDuplicateLink }) }}</span>
             <NuxtLink
-              :to="{ path: '/dashboard/link', query: { slug: duplicateLink.slug } }"
+              :to="getDashboardLinkDetailLocation(duplicateLink.slug)"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Open duplicate link details in new tab"

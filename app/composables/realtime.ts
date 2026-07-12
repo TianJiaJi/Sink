@@ -1,6 +1,6 @@
+import type { DashboardSlugFilters, RealtimeQueryState } from '@/utils/dashboard-query'
 import { getLocalTimeZone, now } from '@internationalized/date'
-import { safeDestr } from 'destr'
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from '#imports'
 import { date2unix } from '@/utils/time'
 
@@ -15,9 +15,7 @@ const TIME_PRESETS = {
   'last-24h': { hours: 24 },
 } as const
 
-type TimePreset = keyof typeof TIME_PRESETS
-
-function computeTimeRange(name: TimePreset): [number, number] {
+function computeTimeRange(name: RealtimeQueryState['window']): [number, number] {
   const tz = getLocalTimeZone()
   const currentTime = now(tz)
   const preset = TIME_PRESETS[name]
@@ -29,79 +27,33 @@ function computeTimeRange(name: TimePreset): [number, number] {
   return [date2unix(currentTime.subtract(preset)), date2unix(currentTime)]
 }
 
-function normalizePreset(value: unknown): TimePreset {
-  return typeof value === 'string' && Object.hasOwn(TIME_PRESETS, value) ? value as TimePreset : 'last-1h'
-}
-
-function parseFilters(value: unknown): Record<string, string> {
-  if (typeof value !== 'string' || !value)
-    return {}
-
-  const restored = safeDestr<unknown>(value)
-  if (!restored || typeof restored !== 'object' || Array.isArray(restored))
-    return {}
-
-  return Object.fromEntries(
-    Object.entries(restored).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
-  )
-}
-
 export const useDashboardRealtimeStore = defineStore('dashboard-realtime', () => {
-  const route = useRoute()
-  const router = useRouter()
-  let syncingFromRoute = false
-
   const timeRange = ref({ startAt: 0, endAt: 0 })
-  const timeName = ref<TimePreset>('last-1h')
-  const filters = ref<Record<string, string>>({})
+  const timeName = ref<RealtimeQueryState['window']>('last-1h')
+  const filters = ref<DashboardSlugFilters>({})
 
-  function selectPreset(name: string) {
-    const preset = normalizePreset(name)
-    timeName.value = preset
-    const [start, end] = computeTimeRange(preset)
-    timeRange.value.startAt = start
-    timeRange.value.endAt = end
+  function selectPreset(name: RealtimeQueryState['window']) {
+    timeName.value = name
+    const [start, end] = computeTimeRange(name)
+    timeRange.value = { startAt: start, endAt: end }
   }
 
   function updateFilter(type: string, value: string) {
-    if (value)
-      filters.value[type] = value
-    else
-      delete filters.value[type]
+    if (type !== 'slug')
+      return
+
+    const slugs = [...new Set(value.split(',').map(slug => slug.trim()).filter(Boolean))]
+    filters.value = slugs.length ? { slug: slugs.join(',') } : {}
   }
 
   function clearFilters() {
     filters.value = {}
   }
 
-  function init() {
-    if (route.path !== '/dashboard/realtime')
-      return
-
-    syncingFromRoute = true
-    selectPreset(normalizePreset(route.query.time))
-    filters.value = parseFilters(route.query.filters)
-    syncingFromRoute = false
+  function applyRouteState(state: RealtimeQueryState) {
+    selectPreset(state.window)
+    filters.value = state.slugs.length ? { slug: state.slugs.join(',') } : {}
   }
-
-  watch(timeName, (val) => {
-    if (syncingFromRoute || route.path !== '/dashboard/realtime' || route.query.time === val)
-      return
-    void router.replace({ query: { ...route.query, time: val } })
-  })
-
-  watch(filters, (val) => {
-    if (syncingFromRoute || route.path !== '/dashboard/realtime')
-      return
-    const serialized = Object.keys(val).length ? JSON.stringify(val) : undefined
-    if (route.query.filters !== serialized)
-      void router.replace({ query: { ...route.query, filters: serialized } })
-  }, { deep: true })
-
-  watch(
-    () => [route.path, route.query.time, route.query.filters],
-    init,
-  )
 
   return {
     timeRange,
@@ -110,6 +62,6 @@ export const useDashboardRealtimeStore = defineStore('dashboard-realtime', () =>
     selectPreset,
     updateFilter,
     clearFilters,
-    init,
+    applyRouteState,
   }
 })

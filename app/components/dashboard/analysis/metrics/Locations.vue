@@ -2,7 +2,7 @@
 import type { ChartConfig } from '@/components/ui/chart'
 import type { AreaData } from '@/types'
 import { VisSingleContainer, VisTooltip, VisTopoJSONMap, VisTopoJSONMapSelectors } from '@unovis/vue'
-import { useMounted, watchThrottled } from '@vueuse/core'
+import { useMounted } from '@vueuse/core'
 import { render } from 'vue'
 import { ChartTooltipContent } from '@/components/ui/chart'
 
@@ -26,35 +26,36 @@ async function getWorldMapJSON() {
   worldMapTopoJSON.value = data as Record<string, unknown>
 }
 
-async function getMapData() {
+watch([() => analysisStore.dateRange, () => analysisStore.filters], async (_values, _oldValues, onCleanup) => {
+  const controller = new AbortController()
+  onCleanup(() => controller.abort())
   areaData.value = []
-  const result = await useAPI<{ data: Array<{ name: string, count: number }> }>('/api/stats/metrics', {
-    query: {
-      type: 'country',
-      id: id.value,
-      startAt: analysisStore.dateRange.startAt,
-      endAt: analysisStore.dateRange.endAt,
-      ...analysisStore.filters,
-    },
-  })
-  if (Array.isArray(result.data)) {
-    areaData.value = result.data.map(country => ({
-      ...country,
-      id: country.name,
-    }))
+  try {
+    const result = await useAPI<{ data: Array<{ name: string, count: number }> }>('/api/stats/metrics', {
+      signal: controller.signal,
+      query: {
+        ...analysisStore.filters,
+        type: 'country',
+        id: id.value,
+        startAt: analysisStore.dateRange.startAt,
+        endAt: analysisStore.dateRange.endAt,
+      },
+    })
+    if (!controller.signal.aborted && Array.isArray(result.data)) {
+      areaData.value = result.data.map(country => ({
+        ...country,
+        id: country.name,
+      }))
+    }
   }
-}
-
-watchThrottled([() => analysisStore.dateRange, () => analysisStore.filters], getMapData, {
-  deep: true,
-  throttle: 500,
-  leading: true,
-  trailing: true,
-})
+  catch (error) {
+    if (!controller.signal.aborted)
+      console.error(error)
+  }
+}, { deep: true, immediate: true })
 
 onMounted(() => {
   getWorldMapJSON()
-  getMapData()
 })
 
 let tooltipCache = new WeakMap<object, string>()

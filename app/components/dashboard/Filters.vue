@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { Link } from '@/types'
+import type { DashboardSlugFilters } from '@/utils/dashboard-query'
 import { createReusableTemplate, useMediaQuery, watchDebounced } from '@vueuse/core'
 import { Check, ChevronsUpDown, Search } from 'lucide-vue-next'
 import { VList } from 'virtua/vue'
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
-  filters?: Record<string, string>
+  filters?: DashboardSlugFilters
   debounce?: number
 }>(), {
   debounce: 500,

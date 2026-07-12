@@ -2,7 +2,7 @@
 const realtimeStore = useDashboardRealtimeStore()
 
 function onPresetChange(value: string | number | bigint | Record<string, any> | null) {
-  if (typeof value !== 'string')
+  if (!isRealtimeWindow(value))
     return
 
   realtimeStore.selectPreset(value)

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ChartConfig } from '@/components/ui/chart'
 import type { ViewDataPoint } from '@/types'
+import type { DashboardSlugFilters } from '@/utils/dashboard-query'
 import { VisArea, VisAxis, VisGroupedBar, VisLine, VisXYContainer } from '@unovis/vue'
 import {
   ChartTooltipContent,
@@ -12,7 +13,7 @@ const props = withDefaults(defineProps<{
   chartType?: 'area' | 'bar'
   startAt?: number
   endAt?: number
-  filters?: Record<string, string>
+  filters?: DashboardSlugFilters
 }>(), {
   mode: 'full',
   chartType: 'area',
@@ -98,12 +99,12 @@ watch([effectiveTimeRange, effectiveFilters, retryKey], async (_values, _oldValu
     const result = await useAPI<{ data: ViewDataPoint[] }>('/api/stats/views', {
       signal: controller.signal,
       query: {
+        ...effectiveFilters.value,
         id: id.value,
         unit: getUnit(startAt, endAt),
         clientTimezone: getTimeZone(),
         startAt,
         endAt,
-        ...effectiveFilters.value,
       },
     })
     if (controller.signal.aborted)

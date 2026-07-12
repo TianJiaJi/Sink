@@ -1,12 +1,17 @@
 <script setup lang="ts">
-defineProps<{
+const props = defineProps<{
   name?: string
 }>()
+
+const route = useRoute()
+const detailLocation = computed(() => props.name
+  ? getDashboardLinkDetailLocation(props.name, route.query)
+  : { path: route.path, query: route.query })
 </script>
 
 <template>
   <NuxtLink
-    :to="`/dashboard/link?slug=${name}`"
+    :to="detailLocation"
     class="inline-flex w-full items-center justify-start"
   >
     <span class="w-full truncate">{{ name }}</span>

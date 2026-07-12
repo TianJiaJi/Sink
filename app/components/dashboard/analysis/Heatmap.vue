@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { HeatmapDataPoint } from '@/types'
-import { watchThrottled } from '@vueuse/core'
 
 const props = withDefaults(defineProps<{
   metric?: 'visits' | 'visitors'
@@ -65,43 +64,40 @@ function getCellColor(weekday: number, hour: number): string {
   return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`
 }
 
-async function getHeatmapData() {
+watch([effectiveTimeRange, effectiveFilters], async (_values, _oldValues, onCleanup) => {
+  const controller = new AbortController()
+  onCleanup(() => controller.abort())
   isLoaded.value = false
   const { startAt, endAt } = effectiveTimeRange.value
-  const result = await useAPI<{ data: HeatmapDataPoint[] }>('/api/stats/heatmap', {
-    query: {
-      id: id.value,
-      clientTimezone: getTimeZone(),
-      startAt,
-      endAt,
-      ...effectiveFilters.value,
-    },
-  })
-  heatmapData.value = (result.data || []).map(item => ({
-    ...item,
-    visitors: +item.visitors,
-    visits: +item.visits,
-    weekday: +item.weekday,
-    hour: +item.hour,
-  }))
-  await nextTick()
-  isLoaded.value = true
-}
-
-watchThrottled(
-  [effectiveTimeRange, effectiveFilters],
-  getHeatmapData,
-  {
-    deep: true,
-    throttle: 500,
-    leading: true,
-    trailing: true,
-  },
-)
-
-onMounted(() => {
-  getHeatmapData()
-})
+  try {
+    const result = await useAPI<{ data: HeatmapDataPoint[] }>('/api/stats/heatmap', {
+      signal: controller.signal,
+      query: {
+        ...effectiveFilters.value,
+        id: id.value,
+        clientTimezone: getTimeZone(),
+        startAt,
+        endAt,
+      },
+    })
+    if (controller.signal.aborted)
+      return
+    heatmapData.value = (result.data || []).map(item => ({
+      ...item,
+      visitors: +item.visitors,
+      visits: +item.visits,
+      weekday: +item.weekday,
+      hour: +item.hour,
+    }))
+    await nextTick()
+    if (!controller.signal.aborted)
+      isLoaded.value = true
+  }
+  catch (error) {
+    if (!controller.signal.aborted)
+      console.error(error)
+  }
+}, { deep: true, immediate: true })
 </script>
 
 <template>

@@ -1,98 +1,63 @@
-import { useUrlSearchParams } from '@vueuse/core'
-import { safeDestr } from 'destr'
-import { ref, watch } from 'vue'
+import type { AnalysisQueryState, AnalysisView, DashboardSlugFilters, HeatmapMetric } from '@/utils/dashboard-query'
+import { ref } from 'vue'
 import { defineStore, useI18n } from '#imports'
 import { computeDateRange } from '@/utils/time'
 
 export const useDashboardAnalysisStore = defineStore('dashboard-analysis', () => {
   const { locale } = useI18n()
-  const searchParams = useUrlSearchParams('history')
-  let initialized = false
-
   const dateRange = ref({ startAt: 0, endAt: 0 })
-  const datePreset = ref<string | null>('last-7d')
-  const filters = ref<Record<string, string>>({})
+  const datePreset = ref<AnalysisQueryState['datePreset']>('last-7d')
+  const filters = ref<DashboardSlugFilters>({})
+  const viewMode = ref<AnalysisView>('trend')
+  const heatmapMetric = ref<HeatmapMetric>('visits')
 
   function updateDateRange(range: [number, number]) {
-    dateRange.value.startAt = range[0]
-    dateRange.value.endAt = range[1]
+    dateRange.value = { startAt: range[0], endAt: range[1] }
   }
 
-  function selectPreset(name: string) {
+  function selectPreset(name: NonNullable<AnalysisQueryState['datePreset']>) {
     datePreset.value = name
     updateDateRange(computeDateRange(name, locale.value))
   }
 
+  function selectCustomRange(range: [number, number]) {
+    datePreset.value = null
+    updateDateRange(range)
+  }
+
   function updateFilter(type: string, value: string) {
-    filters.value[type] = value
+    if (type !== 'slug')
+      return
+
+    const slugs = [...new Set(value.split(',').map(slug => slug.trim()).filter(Boolean))]
+    filters.value = slugs.length ? { slug: slugs.join(',') } : {}
   }
 
   function clearFilters() {
     filters.value = {}
   }
 
-  // URL > Store > Default, then enable URL sync
-  function init() {
-    if (initialized)
-      return
-
-    // Restore from URL
-    // Custom time range takes priority over preset
-    if (searchParams.time) {
-      const time = safeDestr<{ startAt: number, endAt: number }>(searchParams.time)
-      if (Number.isFinite(time?.startAt) && Number.isFinite(time?.endAt)) {
-        dateRange.value.startAt = time.startAt
-        dateRange.value.endAt = time.endAt
-        datePreset.value = null
-      }
-    }
-    else if (searchParams.preset) {
-      datePreset.value = searchParams.preset as string
-    }
-    if (searchParams.filters) {
-      const restored = safeDestr<Record<string, string>>(searchParams.filters)
-      if (restored) {
-        Object.assign(filters.value, restored)
-      }
-    }
-
-    // Apply default date range from preset if not restored
-    if (dateRange.value.startAt === 0 && datePreset.value) {
-      const [start, end] = computeDateRange(datePreset.value, locale.value)
-      dateRange.value.startAt = start
-      dateRange.value.endAt = end
-    }
-
-    initialized = true
+  function applyRouteState(state: AnalysisQueryState) {
+    datePreset.value = state.datePreset
+    updateDateRange(state.datePreset
+      ? computeDateRange(state.datePreset, locale.value)
+      : state.dateRange ?? computeDateRange('last-7d', locale.value))
+    filters.value = state.slugs.length ? { slug: state.slugs.join(',') } : {}
+    viewMode.value = state.view
+    heatmapMetric.value = state.metric
   }
-
-  // Store → URL sync (only after init)
-  watch(dateRange, () => {
-    if (!initialized)
-      return
-    searchParams.time = JSON.stringify(dateRange.value)
-  }, { deep: true })
-
-  watch(datePreset, (val) => {
-    if (!initialized)
-      return
-    searchParams.preset = val || ''
-  })
-
-  watch(filters, (val) => {
-    if (!initialized)
-      return
-    searchParams.filters = Object.keys(val).length ? JSON.stringify(val) : ''
-  }, { deep: true })
 
   return {
     dateRange,
     datePreset,
     filters,
+    viewMode,
+    heatmapMetric,
     updateDateRange,
     selectPreset,
+    selectCustomRange,
     updateFilter,
     clearFilters,
-    init,
+    applyRouteState,
   }
 })

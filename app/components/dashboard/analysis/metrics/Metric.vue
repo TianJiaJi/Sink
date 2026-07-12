@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { MetricItem } from '@/types'
-import { watchThrottled } from '@vueuse/core'
 import { Maximize } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -20,39 +19,37 @@ interface RawMetricData {
   count: number
 }
 
-async function getLinkMetrics() {
+watch([() => analysisStore.dateRange, () => analysisStore.filters], async (_values, _oldValues, onCleanup) => {
+  const controller = new AbortController()
+  onCleanup(() => controller.abort())
   total.value = 0
   metrics.value = []
   top10.value = []
-  const result = await useAPI<{ data: RawMetricData[] }>('/api/stats/metrics', {
-    query: {
-      type: props.type,
-      id: id.value,
-      startAt: analysisStore.dateRange.startAt,
-      endAt: analysisStore.dateRange.endAt,
-      ...analysisStore.filters,
-    },
-  })
-  if (Array.isArray(result.data)) {
-    total.value = result.data.reduce((acc, cur) => acc + Number(cur.count), 0)
-    metrics.value = result.data.map(item => ({
-      ...item,
-      percent: Math.floor(item.count / total.value * 100) || (item.count ? 1 : 0),
-    }))
-    top10.value = metrics.value.slice(0, 10)
+  try {
+    const result = await useAPI<{ data: RawMetricData[] }>('/api/stats/metrics', {
+      signal: controller.signal,
+      query: {
+        ...analysisStore.filters,
+        type: props.type,
+        id: id.value,
+        startAt: analysisStore.dateRange.startAt,
+        endAt: analysisStore.dateRange.endAt,
+      },
+    })
+    if (!controller.signal.aborted && Array.isArray(result.data)) {
+      total.value = result.data.reduce((acc, cur) => acc + Number(cur.count), 0)
+      metrics.value = result.data.map(item => ({
+        ...item,
+        percent: Math.floor(item.count / total.value * 100) || (item.count ? 1 : 0),
+      }))
+      top10.value = metrics.value.slice(0, 10)
+    }
   }
-}
-
-watchThrottled([() => analysisStore.dateRange, () => analysisStore.filters], getLinkMetrics, {
-  deep: true,
-  throttle: 500,
-  leading: true,
-  trailing: true,
-})
-
-onMounted(() => {
-  getLinkMetrics()
-})
+  catch (error) {
+    if (!controller.signal.aborted)
+      console.error(error)
+  }
+}, { deep: true, immediate: true })
 </script>
 
 <template>

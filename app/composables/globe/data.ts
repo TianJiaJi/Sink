@@ -39,9 +39,9 @@ export function useGlobeData() {
   let disposed = false
 
   const getBaseQuery = () => ({
+    ...realtimeStore.filters,
     startAt: realtimeStore.timeRange.startAt,
     endAt: realtimeStore.timeRange.endAt,
-    ...realtimeStore.filters,
   })
 
   const highest = computed(() => Math.max(...locations.value.map(l => l.count), 1))
@@ -76,8 +76,8 @@ export function useGlobeData() {
     const result = await useAPI<{ data: AreaData[] }>('/api/stats/metrics', {
       signal,
       query: {
-        type: 'country',
         ...getBaseQuery(),
+        type: 'country',
       },
     })
 

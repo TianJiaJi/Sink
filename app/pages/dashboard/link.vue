@@ -5,24 +5,41 @@ definePageMeta({
   layout: 'dashboard',
 })
 
-const slug = useRoute().query.slug
+const route = useRoute()
+const router = useRouter()
+const slug = computed(() => parseDashboardSlug(route.query.slug))
 const linksStore = useDashboardLinksStore()
+useDashboardAnalysisRouteState({ detail: true })
 
 const link = ref<Link | null>(null)
 const id = computed(() => link.value?.id)
 
 provide(LINK_ID_KEY, id)
 
-async function getLink() {
-  const data = await useAPI<Link>('/api/link/query', {
-    query: { slug },
-  })
-  link.value = data
-}
+watch(slug, async (currentSlug, _, onCleanup) => {
+  const controller = new AbortController()
+  onCleanup(() => controller.abort())
+  link.value = null
+  if (!currentSlug) {
+    await navigateTo('/dashboard/links', { replace: true })
+    return
+  }
 
-onMounted(() => {
-  getLink()
-})
+  try {
+    const data = await useAPI<Link>('/api/link/query', {
+      signal: controller.signal,
+      query: { slug: currentSlug },
+    })
+    if (!controller.signal.aborted)
+      link.value = data
+  }
+  catch (error) {
+    if (controller.signal.aborted)
+      return
+    console.error(error)
+    await navigateTo('/dashboard/links', { replace: true })
+  }
+}, { immediate: true })
 
 linksStore.onLinkUpdate(({ link: updatedLink, type }) => {
   if (updatedLink.id !== link.value?.id)
@@ -33,6 +50,8 @@ linksStore.onLinkUpdate(({ link: updatedLink, type }) => {
   }
   else if (type === 'edit') {
     link.value = updatedLink
+    if (updatedLink.slug !== slug.value)
+      void router.replace(getDashboardLinkDetailLocation(updatedLink.slug, route.query))
   }
 })
 </script>

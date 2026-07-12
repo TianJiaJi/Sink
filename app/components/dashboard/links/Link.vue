@@ -45,7 +45,7 @@ function copyLink() {
     <CardContent class="flex-1">
       <NuxtLink
         class="flex h-full flex-col space-y-3"
-        :to="`/dashboard/link?slug=${link.slug}`"
+        :to="getDashboardLinkDetailLocation(link.slug)"
       >
         <div class="flex items-center justify-center space-x-3">
           <Avatar>
