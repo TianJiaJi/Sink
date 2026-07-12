@@ -5,6 +5,9 @@
 - Write all documentation and code comments in English.
 - Use Node.js 22 and pnpm 11.11.0 (`package.json` is authoritative). This is a single-package app; `pnpm-workspace.yaml` only controls dependency build policy.
 - Do not hand-edit `app/components/ui/**`; it is managed by shadcn-vue and excluded from ESLint.
+- Read `DESIGN.md` before UI work. The authoritative design sources are `app/assets/css/tailwind.css` and `app/components/ui/**`; `DESIGN.md` is a derived summary.
+- Do not invent undocumented design tokens.
+- After changing design tokens or `DESIGN.md`, run `npx @google/design.md lint DESIGN.md` and resolve all errors.
 - Nuxt and server utilities are auto-imported. Follow nearby code before adding explicit imports for framework globals.
 
 ## Setup and commands
