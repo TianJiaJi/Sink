@@ -28,6 +28,7 @@ onMounted(() => {
       />
     </Teleport>
 
+    <DashboardLinksFilters />
     <DashboardLinks />
   </main>
   <section

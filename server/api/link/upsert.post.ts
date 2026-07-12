@@ -23,6 +23,7 @@ defineRouteMeta({
               google: { type: 'string', description: 'Google Play Store redirect URL' },
               unsafe: { type: 'boolean', description: 'Mark link as unsafe, showing a warning page before redirect' },
               geo: { type: 'object', additionalProperties: { type: 'string' }, description: 'Geo-routing rules (country code to URL)' },
+              tags: { type: 'array', items: { type: 'string' }, description: 'Up to 10 normalized link tags, each 1-32 characters' },
             },
           },
         },

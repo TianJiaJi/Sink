@@ -15,6 +15,13 @@
       "when": 1783784817546,
       "tag": "0001_parched_strong_guy",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1783821450112,
+      "tag": "0002_chilly_aaron_stack",
+      "breakpoints": true
     }
   ]
 }

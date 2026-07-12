@@ -1,0 +1,126 @@
+<script setup lang="ts">
+import type { DashboardLinkStatus } from '@/types/dashboard-links'
+
+interface TagCount {
+  name: string
+  count: number
+}
+
+const linksStore = useDashboardLinksStore()
+const allTagsValue = '__sink_all_tags__'
+const tags = shallowRef<TagCount[]>([])
+const loading = shallowRef(false)
+const error = shallowRef(false)
+let requestGeneration = 0
+
+async function fetchTags() {
+  const generation = ++requestGeneration
+  loading.value = true
+  error.value = false
+  try {
+    const data = await useAPI<TagCount[]>('/api/link/tags')
+    if (generation === requestGeneration) {
+      tags.value = data
+      if (linksStore.tag && !data.some(item => item.name === linksStore.tag))
+        linksStore.tag = undefined
+    }
+  }
+  catch (cause) {
+    if (generation === requestGeneration) {
+      console.error(cause)
+      error.value = true
+    }
+  }
+  finally {
+    if (generation === requestGeneration)
+      loading.value = false
+  }
+}
+
+function selectStatus(status: DashboardLinkStatus) {
+  linksStore.status = status
+}
+
+function selectTag(value: unknown) {
+  linksStore.tag = typeof value === 'string' && value !== allTagsValue ? value : undefined
+}
+
+onMounted(fetchTags)
+linksStore.onLinkUpdate(() => void fetchTags())
+</script>
+
+<template>
+  <section
+    class="
+      flex flex-col gap-3
+      md:flex-row md:items-center md:justify-between
+    "
+    :aria-label="$t('links.filters.aria_label')"
+  >
+    <div class="flex min-w-0 items-center gap-2">
+      <div class="inline-flex rounded-md border p-0.5" role="group" :aria-label="$t('links.filters.status_label')">
+        <Button
+          type="button"
+          size="sm"
+          :variant="linksStore.status === 'active' ? 'secondary' : 'ghost'"
+          :aria-pressed="linksStore.status === 'active'"
+          @click="selectStatus('active')"
+        >
+          {{ $t('links.filters.active') }}
+        </Button>
+        <Button
+          type="button"
+          size="sm"
+          :variant="linksStore.status === 'expired' ? 'secondary' : 'ghost'"
+          :aria-pressed="linksStore.status === 'expired'"
+          @click="selectStatus('expired')"
+        >
+          {{ $t('links.filters.expired') }}
+        </Button>
+      </div>
+    </div>
+
+    <div
+      class="
+        flex min-w-0 items-center gap-2
+        md:ml-auto
+      "
+    >
+      <Select :model-value="linksStore.tag ?? allTagsValue" :disabled="loading" @update:model-value="selectTag">
+        <SelectTrigger
+          class="
+            min-w-0 flex-1
+            md:w-56
+          "
+          :aria-label="$t('links.filters.tag_label')"
+        >
+          <SelectValue :placeholder="loading ? $t('links.filters.tags_loading') : $t('links.filters.all_tags')" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem :value="allTagsValue">
+            {{ $t('links.filters.all_tags') }}
+          </SelectItem>
+          <SelectItem v-for="item in tags" :key="item.name" :value="item.name">
+            <span class="flex w-full items-center justify-between gap-4">
+              <span class="truncate">{{ item.name }}</span>
+              <span class="text-xs text-muted-foreground tabular-nums">{{ item.count }}</span>
+            </span>
+          </SelectItem>
+        </SelectContent>
+      </Select>
+      <Button v-if="error" type="button" variant="ghost" size="sm" @click="fetchTags">
+        {{ $t('common.try_again') }}
+      </Button>
+    </div>
+    <p
+      v-if="error"
+      class="
+        text-xs text-destructive
+        sm:sr-only
+      "
+      role="alert"
+    >
+      {{ $t('links.filters.tags_failed') }}
+    </p>
+  </section>
+</template>

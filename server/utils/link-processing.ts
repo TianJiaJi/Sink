@@ -13,6 +13,7 @@ const editableOptionalLinkFields = [
   'expiration',
   'unsafe',
   'geo',
+  'tags',
 ] as const satisfies readonly (keyof Link)[]
 
 interface LinkResponse {

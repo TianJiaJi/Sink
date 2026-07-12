@@ -17,6 +17,12 @@ const GeoSchema = z.preprocess((value) => {
   )
 }, z.record(z.string().trim().regex(/^[A-Z]{2}$/), z.string().trim().url().max(2048)))
 
+const TagsSchema = z.preprocess((value) => {
+  if (!Array.isArray(value))
+    return value
+  return [...new Set(value.map(tag => typeof tag === 'string' ? tag.trim().toLowerCase() : tag))]
+}, z.array(z.string().min(1).max(32)).max(10)).default([])
+
 export const LinkPasswordSchema = z.string().trim().min(1).max(128).refine(
   password => !password.startsWith(LINK_PASSWORD_MASK_PREFIX),
   'masked password cannot be submitted',
@@ -48,6 +54,7 @@ export const LinkSchema = z.object({
   password: LinkPasswordSchema.optional(),
   unsafe: z.boolean().optional(),
   geo: GeoSchema.optional(),
+  tags: TagsSchema,
 })
 
 export type Link = z.infer<typeof LinkSchema>

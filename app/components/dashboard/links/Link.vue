@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import type { CounterData, Link } from '@/types'
+import type { CounterData } from '@/types'
+import type { DashboardLink } from '@/types/dashboard-links'
 import { useClipboard } from '@vueuse/core'
 import { CalendarPlus2, Copy, CopyCheck, Eraser, Flame, Hourglass, Link as LinkIcon, MousePointerClick, QrCode, ShieldAlert, SquareChevronDown, SquarePen, Users } from 'lucide-vue-next'
 import { parseURL } from 'ufo'
 import { toast } from 'vue-sonner'
 
 const props = defineProps<{
-  link: Link
+  link: DashboardLink
 }>()
 
 const { t, locale } = useI18n()
@@ -26,6 +27,10 @@ function getLinkHost(url: string): string | undefined {
 
 const shortLink = computed(() => `${origin}/${props.link.slug}`)
 const linkIcon = computed(() => `https://unavatar.webp.se/${getLinkHost(props.link.url)}?fallback=https://sink.cool/icon.png`)
+const isExpired = computed(() => Boolean(props.link.expiration && props.link.expiration <= Math.floor(Date.now() / 1000)))
+const tags = computed(() => props.link.tags ?? [])
+const visibleTags = computed(() => tags.value.slice(0, 4))
+const hiddenTagCount = computed(() => Math.max(0, tags.value.length - visibleTags.value.length))
 
 const { copy, copied } = useClipboard({ source: shortLink.value, copiedDuring: 400 })
 
@@ -67,6 +72,13 @@ function copyLink() {
                 v-if="link.unsafe" variant="destructive" class="ml-1 shrink-0"
               >
                 <ShieldAlert class="size-3" />
+              </Badge>
+              <Badge
+                v-if="isExpired"
+                variant="destructive"
+                class="ml-1 shrink-0"
+              >
+                {{ $t('links.expired') }}
               </Badge>
 
               <Button
@@ -181,6 +193,23 @@ function copyLink() {
           </Popover>
         </div>
         <div class="mt-auto flex flex-col space-y-3">
+          <div v-if="tags.length" class="flex flex-wrap gap-1">
+            <Badge
+              v-for="tag in visibleTags"
+              :key="tag"
+              variant="outline"
+              class="max-w-full truncate"
+            >
+              {{ tag }}
+            </Badge>
+            <Badge
+              v-if="hiddenTagCount"
+              variant="outline"
+              class="shrink-0 text-muted-foreground"
+            >
+              +{{ hiddenTagCount }}
+            </Badge>
+          </div>
           <div class="flex h-5 w-full space-x-2 text-sm">
             <TooltipProvider>
               <Tooltip>

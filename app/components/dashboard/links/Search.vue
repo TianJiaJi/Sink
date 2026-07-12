@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LinkSearchItem } from '@/types'
+import type { DashboardLinkSearchItem } from '@/types/dashboard-links'
 import { createReusableTemplate, useDebounceFn, useMagicKeys, useMediaQuery } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 
@@ -12,6 +12,7 @@ const [SearchTemplate, SearchComponent] = createReusableTemplate()
 const isDesktop = useMediaQuery('(min-width: 640px)')
 
 const router = useRouter()
+const linksStore = useDashboardLinksStore()
 const linksSearchStore = useDashboardLinksSearchStore()
 const { error, links, loading } = storeToRefs(linksSearchStore)
 
@@ -45,7 +46,7 @@ watch([Meta_K, Ctrl_K], (v) => {
     isOpen.value = true
 })
 
-function selectLink(link: LinkSearchItem | undefined) {
+function selectLink(link: DashboardLinkSearchItem | undefined) {
   if (!link)
     return
   isOpen.value = false
@@ -55,7 +56,18 @@ function selectLink(link: LinkSearchItem | undefined) {
   })
 }
 
-watch(searchTerm, (query) => {
+function visibleTags(link: DashboardLinkSearchItem) {
+  const normalizedQuery = searchTerm.value.trim().toLowerCase()
+  return [...(link.tags ?? [])]
+    .sort((a, b) => Number(b.includes(normalizedQuery)) - Number(a.includes(normalizedQuery)))
+    .slice(0, 3)
+}
+
+function hiddenTagCount(link: DashboardLinkSearchItem) {
+  return Math.max(0, (link.tags?.length ?? 0) - 3)
+}
+
+watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => {
   linksSearchStore.invalidateSearch(query)
   if (!query.trim())
     return
@@ -139,20 +151,35 @@ watch(searchTerm, (query) => {
             v-for="link in links" :key="link.slug" class="cursor-pointer"
             :value="link" @select="selectLink(link)"
           >
-            <div class="flex w-full gap-1">
-              <div class="inline-flex flex-1 items-center gap-1 overflow-hidden">
+            <div class="w-full min-w-0 space-y-1">
+              <div class="flex min-w-0 items-center gap-1">
                 <div class="text-sm font-medium">
                   {{ link.slug }}
                 </div>
                 <div class="flex-1 truncate text-xs text-muted-foreground">
                   ({{ link.url }})
                 </div>
+                <Badge v-if="link.comment" variant="secondary">
+                  <span class="max-w-24 truncate">{{ link.comment }}</span>
+                </Badge>
               </div>
-              <Badge v-if="link.comment" variant="secondary">
-                <div class="max-w-24 truncate">
-                  {{ link.comment }}
-                </div>
-              </Badge>
+              <div v-if="link.tags?.length" class="flex min-w-0 flex-wrap gap-1">
+                <Badge
+                  v-for="tag in visibleTags(link)"
+                  :key="tag"
+                  variant="outline"
+                  class="max-w-32 truncate"
+                >
+                  {{ tag }}
+                </Badge>
+                <Badge
+                  v-if="hiddenTagCount(link)"
+                  variant="outline"
+                  class="shrink-0 text-muted-foreground"
+                >
+                  +{{ hiddenTagCount(link) }}
+                </Badge>
+              </div>
             </div>
           </CommandItem>
         </CommandGroup>

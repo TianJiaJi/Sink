@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { CounterData, Link, LinkListResponse, LinkUpdateType } from '@/types'
+import type { CounterData, LinkUpdateType } from '@/types'
+import type { DashboardLink, DashboardLinkListResponse } from '@/types/dashboard-links'
 import { useInfiniteScroll } from '@vueuse/core'
 import { Loader } from 'lucide-vue-next'
 
 const linksStore = useDashboardLinksStore()
 
-const links = ref<Link[]>([])
+const links = ref<DashboardLink[]>([])
 const listComplete = ref(false)
 const listError = ref(false)
 const listLoading = ref(false)
@@ -61,11 +62,13 @@ async function getLinks() {
   const requestCursor = cursor
   listLoading.value = true
   try {
-    const data = await useAPI<LinkListResponse>('/api/link/list', {
+    const data = await useAPI<DashboardLinkListResponse>('/api/link/list', {
       query: {
         limit,
         cursor: requestCursor,
         sort: linksStore.sortBy,
+        status: linksStore.status,
+        tag: linksStore.tag,
       },
     })
 
@@ -116,13 +119,24 @@ useInfiniteScroll(
   },
 )
 
-watch(() => linksStore.sortBy, resetAndLoad)
+watch(
+  [() => linksStore.sortBy, () => linksStore.status, () => linksStore.tag],
+  resetAndLoad,
+)
 
-function updateLinkList(link: Link, type: LinkUpdateType) {
+function matchesCurrentFilters(link: DashboardLink) {
+  const isExpired = Boolean(link.expiration && link.expiration <= Math.floor(Date.now() / 1000))
+  return (linksStore.status === 'expired') === isExpired
+    && (!linksStore.tag || link.tags?.includes(linksStore.tag))
+}
+
+function updateLinkList(link: DashboardLink, type: LinkUpdateType) {
   if (type === 'edit') {
     const index = links.value.findIndex(l => l.slug === link.slug)
-    if (index >= 0)
+    if (index >= 0 && matchesCurrentFilters(link))
       links.value[index] = link
+    else if (index >= 0)
+      links.value.splice(index, 1)
   }
   else if (type === 'delete') {
     const index = links.value.findIndex(l => l.slug === link.slug)
@@ -130,6 +144,9 @@ function updateLinkList(link: Link, type: LinkUpdateType) {
       links.value.splice(index, 1)
   }
   else {
+    if (!matchesCurrentFilters(link))
+      return
+
     if (linksStore.sortBy !== 'newest') {
       linksStore.sortBy = 'newest'
       return
@@ -165,10 +182,19 @@ linksStore.onLinkUpdate(({ link, type }) => {
     <Loader class="animate-spin" />
   </div>
   <div
-    v-if="!listLoading && listComplete"
+    v-if="!listLoading && listComplete && links.length > 0"
     class="flex items-center justify-center text-sm"
   >
     {{ $t('links.no_more') }}
+  </div>
+  <div
+    v-if="!listLoading && listComplete && links.length === 0"
+    class="
+      flex items-center justify-center py-8 text-center text-sm
+      text-muted-foreground
+    "
+  >
+    {{ $t('links.no_filtered_results') }}
   </div>
   <div
     v-if="listError"

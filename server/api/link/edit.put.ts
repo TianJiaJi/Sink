@@ -31,6 +31,7 @@ defineRouteMeta({
               password: { type: 'string', description: 'Password protection for the link' },
               unsafe: { type: 'boolean', description: 'Mark link as unsafe, showing a warning page before redirect' },
               geo: { type: 'object', additionalProperties: { type: 'string' }, description: 'Geo-routing rules (country code to URL)' },
+              tags: { type: 'array', items: { type: 'string' }, description: 'Up to 10 normalized link tags, each 1-32 characters' },
             },
           },
         },
@@ -50,7 +51,7 @@ export default eventHandler(async (event) => {
   const link = await readValidatedBody(event, EditLinkSchema.parse)
   link.slug = normalizeSlug(event, link.slug)
 
-  const existingLink: z.infer<typeof LinkSchema> | null = await getAuthoritativeLink(event, link.slug)
+  const existingLink: z.infer<typeof LinkSchema> | null = await getAnyAuthoritativeLink(event, link.slug)
   if (!existingLink) {
     throw createError({
       status: 404,

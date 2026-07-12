@@ -1,13 +1,13 @@
 import type { H3Event } from 'h3'
 import type { Link } from '#shared/schemas/link'
 import type { LinkMigrationMarker } from '#shared/schemas/link-migration'
-import type { LinkSearchItem, LinkSortBy } from '#shared/types/link'
-import { and, asc, desc, eq, gt, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
+import type { LinkSearchItem, LinkSortBy, LinkStatus } from '#shared/types/link'
+import { and, asc, count, desc, eq, gt, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/d1'
 import { parseURL, stringifyParsedURL } from 'ufo'
 import { StoredLinkSchema } from '#shared/schemas/link'
 import { LinkMigrationMarkerSchema } from '#shared/schemas/link-migration'
-import { links, linkTombstones } from '../database/schema'
+import { links, linkTags, linkTombstones, tags } from '../database/schema'
 
 export const LINK_MIGRATION_MARKER_KEY = 'migration:kv-to-d1:v1'
 const D1_CURSOR_PREFIX = 'd1:v1:'
@@ -41,6 +41,14 @@ function activeCondition(now = Math.floor(Date.now() / 1000)) {
   return or(isNull(links.effectiveExpiresAt), gt(links.effectiveExpiresAt, now))
 }
 
+function statusCondition(status: LinkStatus, now = Math.floor(Date.now() / 1000)) {
+  if (status === 'active')
+    return activeCondition(now)
+  if (status === 'expired')
+    return and(isNotNull(links.effectiveExpiresAt), lte(links.effectiveExpiresAt, now))
+  return undefined
+}
+
 function rowToLink(row: LinkRow): Link {
   const link: Link = {
     id: row.id,
@@ -48,6 +56,7 @@ function rowToLink(row: LinkRow): Link {
     slug: row.slug,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    tags: [],
   }
 
   const optionalFields = [
@@ -72,6 +81,25 @@ function rowToLink(row: LinkRow): Link {
   }
 
   return link
+}
+
+async function addTagsToLinks<T extends { slug: string, tags: string[] }>(event: H3Event, result: T[], slugs: string[]): Promise<T[]> {
+  const bySlug = new Map(result.map(link => [link.slug, link]))
+  for (let offset = 0; offset < slugs.length; offset += 90) {
+    const rows = await getDatabase(event)
+      .select({ slug: linkTags.linkSlug, tag: linkTags.tagName })
+      .from(linkTags)
+      .where(inArray(linkTags.linkSlug, slugs.slice(offset, offset + 90)))
+      .orderBy(asc(linkTags.tagName))
+    for (const row of rows)
+      bySlug.get(row.slug)?.tags.push(row.tag)
+  }
+  return result
+}
+
+async function rowsToLinks(event: H3Event, rows: LinkRow[]): Promise<Link[]> {
+  const result = rows.map(rowToLink)
+  return await addTagsToLinks(event, result, result.map(link => link.slug))
 }
 
 function linkValues(event: H3Event, link: Link, effectiveExpiresAt?: number | null) {
@@ -112,17 +140,26 @@ export async function putLinkCache(event: H3Event, link: Link, effectiveExpiresA
   const expiration = effectiveExpiresAt === undefined ? getExpiration(event, link.expiration) : effectiveExpiresAt ?? undefined
   await KV.put(`link:${link.slug}`, JSON.stringify(link), {
     expiration,
-    metadata: {
-      expiration,
-      url: withoutQuery(link.url),
-      comment: link.comment,
-    },
   })
 }
 
 async function writeThroughCache(event: H3Event, link: Link, effectiveExpiresAt?: number | null): Promise<void> {
+  const expiration = effectiveExpiresAt === undefined ? getExpiration(event, link.expiration) : effectiveExpiresAt
+  if (!isActiveExpiration(expiration)) {
+    await deleteCache(event, link.slug)
+    return
+  }
+
   try {
     await putLinkCache(event, link, effectiveExpiresAt)
+    const rows = await getDatabase(event).select({ id: links.id }).from(links).where(and(
+      eq(links.slug, link.slug),
+      eq(links.id, link.id),
+      eq(links.updatedAt, link.updatedAt),
+      activeCondition(),
+    )).limit(1)
+    if (!rows.length)
+      await deleteCache(event, link.slug)
   }
   catch (error) {
     logCacheError('put', link.slug, error)
@@ -162,7 +199,9 @@ export async function getLink(event: H3Event, slug: string, cacheTtl?: number): 
   const row = await getAuthoritativeLinkRow(event, slug, false)
   if (!row)
     return null
-  const link = rowToLink(row)
+  const [link] = await rowsToLinks(event, [row])
+  if (!link)
+    return null
   await writeThroughCache(event, link, row.effectiveExpiresAt)
   return link
 }
@@ -207,12 +246,20 @@ async function getAuthoritativeLinkRow(event: H3Event, slug: string, migrateLega
 
 export async function getAuthoritativeLink(event: H3Event, slug: string, migrateLegacy = true): Promise<Link | null> {
   const row = await getAuthoritativeLinkRow(event, slug, migrateLegacy)
-  return row ? rowToLink(row) : null
+  return row ? (await rowsToLinks(event, [row]))[0] ?? null : null
+}
+
+export async function getAnyAuthoritativeLink(event: H3Event, slug: string): Promise<Link | null> {
+  await migrateLegacyLink(event, slug)
+  const rows = await getDatabase(event).select().from(links).where(eq(links.slug, slug)).limit(1)
+  return rows[0] ? (await rowsToLinks(event, rows))[0] ?? null : null
 }
 
 export async function getLinkWithMetadata(event: H3Event, slug: string): Promise<{ link: Link | null, metadata: Record<string, unknown> | null }> {
-  const row = await getAuthoritativeLinkRow(event, slug)
-  const link = row ? rowToLink(row) : null
+  await migrateLegacyLink(event, slug)
+  const rows = await getDatabase(event).select().from(links).where(eq(links.slug, slug)).limit(1)
+  const row = rows[0]
+  const link = row ? (await rowsToLinks(event, [row]))[0] ?? null : null
   return {
     link,
     metadata: row && link
@@ -239,7 +286,17 @@ export async function createLink(event: H3Event, link: Link): Promise<boolean> {
     eq(linkTombstones.slug, link.slug),
     sql`exists (select 1 from ${links} where ${links.slug} = ${link.slug} and ${links.id} = ${link.id})`,
   ))
-  const [created] = await db.batch([insert, clearTombstone])
+  const tagInserts = link.tags.map(tag => db.insert(tags).values({ name: tag }).onConflictDoNothing())
+  const clearTags = db.delete(linkTags).where(and(
+    eq(linkTags.linkSlug, link.slug),
+    sql`exists (select 1 from ${links} where ${links.slug} = ${link.slug} and ${links.id} = ${link.id})`,
+  ))
+  const associationInserts = link.tags.map(tag => db.insert(linkTags).select(
+    db.select({ linkSlug: links.slug, tagName: sql<string>`${tag}`.as('tag_name') })
+      .from(links)
+      .where(and(eq(links.slug, link.slug), eq(links.id, link.id))),
+  ).onConflictDoNothing())
+  const [created] = await db.batch([insert, clearTombstone, clearTags, ...tagInserts, ...associationInserts])
 
   if (!created.length)
     return false
@@ -254,7 +311,8 @@ export async function importLink(event: H3Event, link: Link): Promise<boolean> {
 
 export async function migrateKvLink(event: H3Event, link: Link, effectiveExpiresAt?: number): Promise<boolean> {
   const values = linkValues(event, link, effectiveExpiresAt)
-  const result = await event.context.cloudflare.env.DB.prepare(`
+  const { DB } = event.context.cloudflare.env
+  const insert = DB.prepare(`
     INSERT INTO links (
       slug, id, url, comment, created_at, updated_at, expiration, title,
       description, image, apple, google, cloaking, redirect_with_query,
@@ -284,8 +342,22 @@ export async function migrateKvLink(event: H3Event, link: Link, effectiveExpires
     values.normalizedUrl,
     values.effectiveExpiresAt,
     values.slug,
-  ).run()
-  return result.meta.changes > 0
+  )
+  // Each guarded upsert reports one change, carrying the initial link insert result through the batch.
+  const tagStatements = link.tags.flatMap(tag => [
+    DB.prepare(`
+      INSERT INTO tags (name)
+      SELECT ? WHERE changes() = 1
+      ON CONFLICT(name) DO UPDATE SET name = excluded.name
+    `).bind(tag),
+    DB.prepare(`
+      INSERT INTO link_tags (link_slug, tag_name)
+      SELECT ?, ? WHERE changes() = 1
+      ON CONFLICT(link_slug, tag_name) DO UPDATE SET tag_name = excluded.tag_name
+    `).bind(link.slug, tag),
+  ])
+  const [result] = await DB.batch([insert, ...tagStatements])
+  return (result?.meta.changes ?? 0) > 0
 }
 
 interface ExpectedLinkVersion {
@@ -295,12 +367,27 @@ interface ExpectedLinkVersion {
 
 export async function updateLink(event: H3Event, link: Link, expected?: ExpectedLinkVersion): Promise<boolean> {
   const values = linkValues(event, link)
-  const updated = await getDatabase(event).update(links).set(values).where(and(
+  const db = getDatabase(event)
+  const update = db.update(links).set(values).where(and(
     eq(links.slug, link.slug),
-    activeCondition(),
     expected ? eq(links.id, expected.id) : undefined,
     expected ? eq(links.updatedAt, expected.updatedAt) : undefined,
   )).returning({ slug: links.slug })
+  const currentVersion = and(
+    eq(links.slug, link.slug),
+    expected ? eq(links.id, expected.id) : undefined,
+    expected ? eq(links.updatedAt, expected.updatedAt) : undefined,
+  )
+  const clearTags = db.delete(linkTags).where(and(
+    eq(linkTags.linkSlug, link.slug),
+    sql`exists (select 1 from ${links} where ${currentVersion})`,
+  ))
+  const tagInserts = link.tags.map(tag => db.insert(tags).values({ name: tag }).onConflictDoNothing())
+  const associationInserts = link.tags.map(tag => db.insert(linkTags).select(
+    db.select({ linkSlug: links.slug, tagName: sql<string>`${tag}`.as('tag_name') }).from(links).where(currentVersion),
+  ).onConflictDoNothing())
+  const results = await db.batch([clearTags, ...tagInserts, ...associationInserts, update])
+  const updated = results.at(-1) as { slug: string }[]
   if (!updated.length)
     return false
   await writeThroughCache(event, link, values.effectiveExpiresAt)
@@ -328,6 +415,8 @@ interface ListLinksOptions {
   limit: number
   cursor?: string
   sort?: LinkSortBy
+  tag?: string
+  status?: LinkStatus
 }
 
 interface ListLinksResult {
@@ -340,18 +429,20 @@ interface D1Cursor {
   sort: LinkSortBy
   slug: string
   createdAt?: number
+  tag?: string
+  status: LinkStatus
 }
 
 function encodeCursor(cursor: D1Cursor): string {
   return `${D1_CURSOR_PREFIX}${btoa(JSON.stringify(cursor))}`
 }
 
-function decodeCursor(cursor: string | undefined, sort: LinkSortBy): D1Cursor | undefined {
+function decodeCursor(cursor: string | undefined, sort: LinkSortBy, tag: string | undefined, status: LinkStatus): D1Cursor | undefined {
   if (!cursor || !cursor.startsWith(D1_CURSOR_PREFIX))
     return undefined
   try {
     const decoded = JSON.parse(atob(cursor.slice(D1_CURSOR_PREFIX.length))) as D1Cursor
-    if (decoded.sort !== sort || typeof decoded.slug !== 'string')
+    if (decoded.sort !== sort || decoded.tag !== tag || decoded.status !== status || typeof decoded.slug !== 'string')
       throw new Error('Cursor does not match sort')
     if ((sort === 'newest' || sort === 'oldest') && typeof decoded.createdAt !== 'number')
       throw new Error('Cursor is missing creation time')
@@ -386,8 +477,19 @@ async function listLegacyLinks(event: H3Event, options: ListLinksOptions): Promi
   const { KV } = event.context.cloudflare.env
   const list = await KV.list({ prefix: 'link:', limit: options.limit, cursor: decodeKvCursor(options.cursor) })
   const values = await Promise.all(list.keys.map(async key => (await getCachedLinkWithMetadata(event, key.name.slice(5))).link))
+  let links = values.filter((link): link is Link => link !== null)
+  if (options.status === 'expired')
+    links = []
+  if (options.tag)
+    links = links.filter(link => link.tags.includes(options.tag!))
+  const sort = options.sort ?? 'newest'
+  links.sort((a, b) => {
+    if (sort === 'az' || sort === 'za')
+      return (sort === 'az' ? 1 : -1) * a.slug.localeCompare(b.slug)
+    return (sort === 'newest' ? -1 : 1) * (a.createdAt - b.createdAt) || a.slug.localeCompare(b.slug)
+  })
   return {
-    links: values.filter((link): link is Link => link !== null),
+    links,
     list_complete: list.list_complete,
     cursor: 'cursor' in list && list.cursor ? encodeKvCursor(list.cursor) : undefined,
   }
@@ -403,8 +505,9 @@ export async function listLinks(event: H3Event, options: ListLinksOptions): Prom
   if (source === 'kv')
     return await listLegacyLinks(event, options)
 
-  const sort = options.sort ?? 'az'
-  const cursor = decodeCursor(options.cursor, sort)
+  const sort = options.sort ?? 'newest'
+  const status = options.status ?? 'active'
+  const cursor = decodeCursor(options.cursor, sort, options.tag, status)
   let cursorCondition
   let order
 
@@ -425,14 +528,17 @@ export async function listLinks(event: H3Event, options: ListLinksOptions): Prom
     order = [asc(links.createdAt), asc(links.slug)]
   }
 
-  const rows = await getDatabase(event).select().from(links).where(and(activeCondition(), cursorCondition)).orderBy(...order).limit(options.limit + 1)
+  const tagCondition = options.tag
+    ? sql`exists (select 1 from ${linkTags} where ${linkTags.linkSlug} = ${links.slug} and ${linkTags.tagName} = ${options.tag})`
+    : undefined
+  const rows = await getDatabase(event).select().from(links).where(and(statusCondition(status), tagCondition, cursorCondition)).orderBy(...order).limit(options.limit + 1)
   const hasMore = rows.length > options.limit
   const page = hasMore ? rows.slice(0, options.limit) : rows
   const last = page.at(-1)
   return {
-    links: page.map(rowToLink),
+    links: await rowsToLinks(event, page),
     list_complete: !hasMore,
-    cursor: hasMore && last ? encodeCursor({ sort, slug: last.slug, createdAt: last.createdAt }) : undefined,
+    cursor: hasMore && last ? encodeCursor({ sort, slug: last.slug, createdAt: last.createdAt, tag: options.tag, status }) : undefined,
   }
 }
 
@@ -440,18 +546,21 @@ interface SearchLinksOptions {
   q?: string
   url?: string
   limit?: number
+  tag?: string
+  status?: LinkStatus
 }
 
 export async function searchLinks(event: H3Event, options: SearchLinksOptions): Promise<LinkSearchItem[]> {
+  const status = options.status ?? 'active'
   if (!await isLinkMigrationComplete(event)) {
     const result: LinkSearchItem[] = []
     let cursor: string | undefined
     do {
-      const page = await listLegacyLinks(event, { limit: 1000, cursor })
+      const page = await listLegacyLinks(event, { limit: 1000, cursor, status, tag: options.tag })
       for (const link of page.links) {
-        const item = { slug: link.slug, url: withoutQuery(link.url), comment: link.comment }
+        const item = { slug: link.slug, url: withoutQuery(link.url), comment: link.comment, tags: link.tags }
         if ((!options.url || item.url === withoutQuery(options.url))
-          && (!options.q || `${item.slug}\n${item.url}\n${item.comment ?? ''}`.toLowerCase().includes(options.q.toLowerCase()))) {
+          && (!options.q || `${item.slug}\n${item.url}\n${item.comment ?? ''}\n${item.tags.join('\n')}`.toLowerCase().includes(options.q.toLowerCase()))) {
           result.push(item)
         }
       }
@@ -462,7 +571,10 @@ export async function searchLinks(event: H3Event, options: SearchLinksOptions): 
     return options.limit ? result.slice(0, options.limit) : result
   }
 
-  const conditions = [activeCondition()]
+  const conditions = [statusCondition(status)]
+  if (options.tag) {
+    conditions.push(sql`exists (select 1 from ${linkTags} where ${linkTags.linkSlug} = ${links.slug} and ${linkTags.tagName} = ${options.tag})`)
+  }
   if (options.url)
     conditions.push(eq(links.normalizedUrl, withoutQuery(options.url)))
   if (options.q) {
@@ -471,6 +583,7 @@ export async function searchLinks(event: H3Event, options: SearchLinksOptions): 
       sql`lower(${links.slug}) like ${pattern} escape '!'`,
       sql`lower(${links.url}) like ${pattern} escape '!'`,
       sql`lower(coalesce(${links.comment}, '')) like ${pattern} escape '!'`,
+      sql`exists (select 1 from ${linkTags} where ${linkTags.linkSlug} = ${links.slug} and lower(${linkTags.tagName}) like ${pattern} escape '!')`,
     )!)
   }
 
@@ -478,5 +591,15 @@ export async function searchLinks(event: H3Event, options: SearchLinksOptions): 
   if (options.limit)
     query = query.limit(options.limit)
   const rows = await query
-  return rows.map(row => ({ slug: row.slug, url: row.url, ...(row.comment === null ? {} : { comment: row.comment }) }))
+  const result = rows.map(row => ({ slug: row.slug, url: row.url, tags: [] as string[], ...(row.comment === null ? {} : { comment: row.comment }) }))
+  return await addTagsToLinks(event, result, result.map(link => link.slug))
+}
+
+export async function listTags(event: H3Event): Promise<{ name: string, count: number }[]> {
+  return await getDatabase(event)
+    .select({ name: tags.name, count: count(linkTags.linkSlug) })
+    .from(tags)
+    .innerJoin(linkTags, eq(linkTags.tagName, tags.name))
+    .groupBy(tags.name)
+    .orderBy(asc(tags.name))
 }

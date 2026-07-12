@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Link, LinkFormData } from '@/types'
+import type { DashboardLink, DashboardLinkFormData } from '@/types/dashboard-links'
 import { useForm } from '@tanstack/vue-form'
 import { useDebounceFn } from '@vueuse/core'
 import { ExternalLink, Shuffle, Sparkles } from 'lucide-vue-next'
@@ -9,12 +9,12 @@ import { LinkSchema, nanoid } from '#shared/schemas/link'
 import { isMaskedLinkPassword } from '#shared/utils/link-password'
 
 const props = defineProps<{
-  link: Partial<Link>
+  link: Partial<DashboardLink>
   isEdit: boolean
 }>()
 
 const emit = defineEmits<{
-  success: [link: Link]
+  success: [link: DashboardLink]
 }>()
 
 const { t } = useI18n()
@@ -43,6 +43,7 @@ const form = useForm({
     url: props.link.url ?? '',
     slug: props.link.slug ?? '',
     comment: props.link.comment ?? '',
+    tags: props.link.tags ?? [],
     expiration: props.link.expiration
       ? unix2date(props.link.expiration)
       : undefined,
@@ -56,7 +57,7 @@ const form = useForm({
     password: props.link.password ?? '',
     unsafe: props.link.unsafe ?? false,
     geo: props.link.geo ? Object.entries(props.link.geo).map(([country, url]) => ({ country, url })) : [],
-  } satisfies LinkFormData,
+  } satisfies DashboardLinkFormData,
   onSubmit: async ({ value }) => {
     try {
       const geoRecord: Record<string, string> = {}
@@ -71,6 +72,7 @@ const form = useForm({
         url: value.url,
         slug: value.slug,
         comment: value.comment || undefined,
+        tags: value.tags,
         expiration: value.expiration
           ? date2unix(value.expiration, 'end')
           : undefined,
@@ -85,7 +87,7 @@ const form = useForm({
         unsafe: props.isEdit ? value.unsafe : value.unsafe || undefined,
         geo: Object.keys(geoRecord).length > 0 ? geoRecord : undefined,
       }
-      const { link: newLink } = await useAPI<{ link: Link }>(
+      const { link: newLink } = await useAPI<{ link: DashboardLink }>(
         props.isEdit ? '/api/link/edit' : '/api/link/create',
         {
           method: props.isEdit ? 'PUT' : 'POST',
@@ -103,6 +105,7 @@ const form = useForm({
     }
   },
 })
+const tagsInput = useTemplateRef<{ commit: () => boolean }>('tagsInput')
 
 const validateUrl = makeZodValidator(urlValidator)
 const validateSlug = makeZodValidator(slugValidator)
@@ -186,10 +189,22 @@ watch(currentUrl, (url) => {
 const shortDuplicateLink = computed(() => duplicateLink.value ? `${requestUrl.origin}/${duplicateLink.value.slug}` : '')
 
 const { previewMode } = useRuntimeConfig().public
+const isExpiredLink = computed(() => Boolean(
+  props.isEdit
+  && props.link.expiration
+  && props.link.expiration <= Math.floor(Date.now() / 1000),
+))
 
 async function applyUtmUrl(url: string) {
   form.setFieldValue('url', url)
   await form.validateField('url', 'blur')
+}
+
+function submitForm() {
+  if (tagsInput.value?.commit() === false)
+    return
+
+  form.handleSubmit()
 }
 
 defineExpose({ randomSlug })
@@ -199,13 +214,25 @@ defineExpose({ randomSlug })
   <form
     id="link-editor-form"
     class="w-full space-y-4 px-1"
-    @submit.prevent="form.handleSubmit"
+    @submit.prevent="submitForm"
   >
     <p
       v-if="previewMode"
       class="text-sm text-muted-foreground"
     >
       {{ $t('links.preview_mode_tip') }}
+    </p>
+
+    <p
+      v-if="isExpiredLink"
+      class="
+        rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm
+        text-amber-800
+        dark:text-amber-200
+      "
+      role="status"
+    >
+      {{ $t('links.form.expired_recovery') }}
     </p>
 
     <FieldGroup>
@@ -329,6 +356,14 @@ defineExpose({ randomSlug })
           :invalid="isInvalid(field)"
           :aria-invalid="getAriaInvalid(field)"
           :errors="formatErrors(field.state.meta.errors)"
+        />
+      </form.Field>
+
+      <form.Field v-slot="{ field }" name="tags">
+        <DashboardLinksEditorTagsInput
+          ref="tagsInput"
+          :model-value="field.state.value"
+          @update:model-value="field.handleChange"
         />
       </form.Field>
     </FieldGroup>

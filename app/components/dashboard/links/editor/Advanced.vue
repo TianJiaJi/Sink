@@ -163,6 +163,7 @@ async function aiOg() {
                   <Calendar
                     :model-value="field.state.value"
                     :default-placeholder="today(getTimeZone())"
+                    :min-value="today(getTimeZone())"
                     layout="month-and-year"
                     initial-focus
                     @update:model-value="(v: DateValue | undefined) => {
@@ -172,6 +173,15 @@ async function aiOg() {
                   />
                 </PopoverContent>
               </Popover>
+              <Button
+                v-if="field.state.value"
+                type="button"
+                variant="ghost"
+                size="sm"
+                @click="field.handleChange(undefined)"
+              >
+                {{ $t('links.form.clear_expiration') }}
+              </Button>
               <FieldError
                 v-if="isInvalid(field)"
                 :errors="formatErrors(field.state.meta.errors)"

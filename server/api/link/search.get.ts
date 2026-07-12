@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 defineRouteMeta({
   openAPI: {
-    description: 'Search links by slug, URL, or comment',
+    description: 'Search links by slug, URL, comment, or tag',
     security: [{ bearerAuth: [] }],
     parameters: [
       {
@@ -10,7 +10,7 @@ defineRouteMeta({
         in: 'query',
         required: false,
         schema: { type: 'string' },
-        description: 'Case-insensitive substring to match against slug, URL, or comment',
+        description: 'Case-insensitive substring to match against slug, URL, comment, or tag',
       },
       {
         name: 'url',
@@ -18,6 +18,20 @@ defineRouteMeta({
         required: false,
         schema: { type: 'string' },
         description: 'Normalized target URL to match exactly',
+      },
+      {
+        name: 'tag',
+        in: 'query',
+        required: false,
+        schema: { type: 'string' },
+        description: 'Exact normalized tag filter',
+      },
+      {
+        name: 'status',
+        in: 'query',
+        required: false,
+        schema: { type: 'string', enum: ['active', 'expired', 'all'], default: 'active' },
+        description: 'Expiration status filter',
       },
       {
         name: 'limit',
@@ -31,16 +45,18 @@ defineRouteMeta({
 })
 
 const SearchQuerySchema = z.object({
-  q: z.string().trim().refine(value => new TextEncoder().encode(value.replace(/[!%_]/g, '!$&')).length <= 48, {
+  q: z.string().trim().refine(value => new TextEncoder().encode(value.toLowerCase().replace(/[!%_]/g, '!$&')).length <= 48, {
     message: 'Search query must not exceed 48 UTF-8 bytes',
   }).optional(),
   url: z.string().trim().url().max(2048).optional(),
   limit: z.coerce.number().int().min(1).max(1000).optional(),
+  tag: z.string().trim().toLowerCase().min(1).max(32).optional(),
+  status: z.enum(['active', 'expired', 'all']).default('active'),
 })
 
 export default eventHandler(async (event) => {
   const query = await getValidatedQuery(event, SearchQuerySchema.parse)
-  const hasSearch = query.q !== undefined || query.url !== undefined
+  const hasSearch = query.q !== undefined || query.url !== undefined || query.tag !== undefined
   return await searchLinks(event, {
     ...query,
     limit: hasSearch ? (query.limit ?? 20) : query.limit,

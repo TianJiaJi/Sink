@@ -23,8 +23,22 @@ defineRouteMeta({
         name: 'sort',
         in: 'query',
         required: false,
-        schema: { type: 'string', enum: ['az', 'za', 'newest', 'oldest'], default: 'az' },
+        schema: { type: 'string', enum: ['az', 'za', 'newest', 'oldest'], default: 'newest' },
         description: 'Link sort order',
+      },
+      {
+        name: 'tag',
+        in: 'query',
+        required: false,
+        schema: { type: 'string' },
+        description: 'Exact normalized tag filter',
+      },
+      {
+        name: 'status',
+        in: 'query',
+        required: false,
+        schema: { type: 'string', enum: ['active', 'expired', 'all'], default: 'active' },
+        description: 'Expiration status filter',
       },
     ],
   },
@@ -33,13 +47,15 @@ defineRouteMeta({
 const ListQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(1024).default(20),
   cursor: z.string().trim().max(1024).optional(),
-  sort: z.enum(['az', 'za', 'newest', 'oldest']).default('az'),
+  sort: z.enum(['az', 'za', 'newest', 'oldest']).default('newest'),
+  tag: z.string().trim().toLowerCase().min(1).max(32).optional(),
+  status: z.enum(['active', 'expired', 'all']).default('active'),
 })
 
 export default eventHandler(async (event) => {
-  const { limit, cursor, sort } = await getValidatedQuery(event, ListQuerySchema.parse)
+  const { limit, cursor, sort, tag, status } = await getValidatedQuery(event, ListQuerySchema.parse)
 
-  const list = await listLinks(event, { limit, cursor, sort })
+  const list = await listLinks(event, { limit, cursor, sort, tag, status })
   return {
     ...list,
     links: sanitizeLinksPassword(list.links),

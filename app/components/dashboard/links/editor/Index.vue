@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Link } from '@/types'
+import type { DashboardLink } from '@/types/dashboard-links'
 
 const props = withDefaults(defineProps<{
-  link?: Partial<Link>
+  link?: Partial<DashboardLink>
 }>(), {
   link: () => ({}),
 })
@@ -23,7 +23,7 @@ watch(dialogOpen, (open) => {
   }
 })
 
-function handleSuccess(link: Link) {
+function handleSuccess(link: DashboardLink) {
   dialogOpen.value = false
   linksSearchStore.syncLink(link, isEdit ? 'edit' : 'create')
   linksStore.notifyLinkUpdate(link, isEdit ? 'edit' : 'create')
