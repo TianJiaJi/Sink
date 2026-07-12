@@ -129,7 +129,9 @@ export default defineNuxtConfig({
         'd3-scale',
         'lucide-vue-next',
         'nanoid',
+        'qr-code-styling', // CJS
         'reka-ui',
+        'reka-ui/date',
         'tailwind-merge',
         'twgl.js',
         'vaul-vue',
