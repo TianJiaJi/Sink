@@ -89,6 +89,7 @@ const stopResizeWatch = watch([width, height, pixelRatio], ([nextWidth, nextHeig
 
 async function initialize() {
   initializationController?.abort()
+  trafficEventBus.setReady(false)
   globe.destroy()
   trafficEvent.cleanup()
   if (trafficListening) {
@@ -129,6 +130,7 @@ async function initialize() {
       return
     trafficEventBus.on(trafficEvent.handleTrafficEvent)
     trafficListening = true
+    trafficEventBus.setReady(true)
   }
   catch (error) {
     if (!disposed && !controller.signal.aborted) {
@@ -154,6 +156,7 @@ function handleContextLost(event: Event) {
   hasError.value = true
   initializationController?.abort()
   globe.destroy()
+  trafficEventBus.setReady(false)
   trafficEvent.cleanup()
   if (trafficListening) {
     trafficEventBus.off(trafficEvent.handleTrafficEvent)
@@ -205,6 +208,7 @@ onBeforeUnmount(() => {
   stopResizeWatch()
   globeData.dispose()
   globe.destroy()
+  trafficEventBus.setReady(false)
   if (trafficListening)
     trafficEventBus.off(trafficEvent.handleTrafficEvent)
   trafficEvent.cleanup()

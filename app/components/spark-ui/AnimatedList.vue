@@ -13,6 +13,7 @@ const reducedMotion = usePreferredReducedMotion()
   <div :class="cn('overflow-auto', $props.class)">
     <transition-group
       :name="reducedMotion === 'reduce' ? undefined : 'list'"
+      appear
       tag="div"
       class="flex flex-col items-center gap-2 p-2"
     >
@@ -22,16 +23,16 @@ const reducedMotion = usePreferredReducedMotion()
 </template>
 
 <style scoped>
-.list-enter-active,
-.list-leave-active,
-.list-move {
+:deep(.list-enter-active),
+:deep(.list-leave-active),
+:deep(.list-move) {
   transition:
     opacity 0.2s ease,
     transform 0.2s ease;
 }
 
-.list-enter-from,
-.list-leave-to {
+:deep(.list-enter-from),
+:deep(.list-leave-to) {
   opacity: 0;
   transform: translateY(-0.5rem);
 }
