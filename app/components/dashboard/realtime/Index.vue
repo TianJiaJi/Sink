@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
       <span
         aria-hidden="true"
         class="
-          size-1.5 rounded-full bg-green-400
+          size-1.5 rounded-full bg-chart-2
           motion-safe:animate-pulse
         "
       />

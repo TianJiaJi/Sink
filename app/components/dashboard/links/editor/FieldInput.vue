@@ -3,6 +3,7 @@ import type { AnyFieldApi } from '@/types'
 
 defineProps<{
   field: AnyFieldApi
+  inputId: string
   label: string
   type?: string
   placeholder?: string
@@ -16,11 +17,11 @@ defineProps<{
 
 <template>
   <Field :data-invalid="invalid || undefined">
-    <FieldLabel :for="field.name">
+    <FieldLabel :for="inputId">
       {{ label }}
     </FieldLabel>
     <Input
-      :id="field.name"
+      :id="inputId"
       :name="field.name"
       :model-value="field.state.value"
       :type="type"

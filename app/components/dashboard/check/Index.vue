@@ -149,6 +149,7 @@ onMounted(() => {
     </Card>
 
     <section
+      :aria-label="$t('check.title')"
       class="
         grid grid-cols-2 gap-4
         lg:grid-cols-5
@@ -157,31 +158,41 @@ onMounted(() => {
       <Card>
         <CardHeader class="pb-2">
           <CardDescription>{{ $t('check.stats.total') }}</CardDescription>
-          <CardTitle>{{ totalCount }}</CardTitle>
+          <CardTitle class="tabular-nums">
+            {{ totalCount }}
+          </CardTitle>
         </CardHeader>
       </Card>
       <Card>
         <CardHeader class="pb-2">
           <CardDescription>{{ $t('check.stats.checked') }}</CardDescription>
-          <CardTitle>{{ checkedCount }}</CardTitle>
+          <CardTitle class="tabular-nums">
+            {{ checkedCount }}
+          </CardTitle>
         </CardHeader>
       </Card>
       <Card>
         <CardHeader class="pb-2">
           <CardDescription>{{ $t('check.stats.normal') }}</CardDescription>
-          <CardTitle>{{ normalCount }}</CardTitle>
+          <CardTitle class="tabular-nums">
+            {{ normalCount }}
+          </CardTitle>
         </CardHeader>
       </Card>
       <Card>
         <CardHeader class="pb-2">
           <CardDescription>{{ $t('check.stats.abnormal') }}</CardDescription>
-          <CardTitle>{{ abnormalCount }}</CardTitle>
+          <CardTitle class="tabular-nums">
+            {{ abnormalCount }}
+          </CardTitle>
         </CardHeader>
       </Card>
       <Card>
         <CardHeader class="pb-2">
           <CardDescription>{{ $t('check.stats.network_error') }}</CardDescription>
-          <CardTitle>{{ networkErrorCount }}</CardTitle>
+          <CardTitle class="tabular-nums">
+            {{ networkErrorCount }}
+          </CardTitle>
         </CardHeader>
       </Card>
     </section>
@@ -189,12 +200,16 @@ onMounted(() => {
     <Card>
       <CardHeader>
         <CardTitle>{{ $t('check.progress.title') }}</CardTitle>
-        <CardDescription>
+        <CardDescription :role="checking ? 'status' : undefined" :aria-live="checking ? 'polite' : undefined">
           {{ wasStopped ? $t('check.progress.stopped') : $t('check.progress.description', { checked: checkedCount, total: totalCount }) }}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Progress :model-value="progress" />
+        <Progress
+          :model-value="progress"
+          :aria-label="$t('check.progress.title')"
+          :aria-valuetext="$t('check.progress.description', { checked: checkedCount, total: totalCount })"
+        />
       </CardContent>
     </Card>
 

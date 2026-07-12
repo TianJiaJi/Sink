@@ -246,8 +246,8 @@ onBeforeUnmount(() => {
     >
       <Button
         variant="outline"
-        size="icon"
-        class="bg-background/80 backdrop-blur-sm"
+        size="icon-lg"
+        class="size-11 bg-background/80 backdrop-blur-sm"
         :aria-label="t('dashboard.realtime.globe_zoom_out')"
         :disabled="globe.zoom.value <= 0"
         @click="globe.zoomBy(-0.1)"
@@ -256,8 +256,8 @@ onBeforeUnmount(() => {
       </Button>
       <Button
         variant="outline"
-        size="icon"
-        class="bg-background/80 backdrop-blur-sm"
+        size="icon-lg"
+        class="size-11 bg-background/80 backdrop-blur-sm"
         :aria-label="t('dashboard.realtime.globe_reset')"
         @click="resetView"
       >
@@ -265,8 +265,8 @@ onBeforeUnmount(() => {
       </Button>
       <Button
         variant="outline"
-        size="icon"
-        class="bg-background/80 backdrop-blur-sm"
+        size="icon-lg"
+        class="size-11 bg-background/80 backdrop-blur-sm"
         :aria-label="t('dashboard.realtime.globe_zoom_in')"
         :disabled="globe.zoom.value >= 1"
         @click="globe.zoomBy(0.1)"

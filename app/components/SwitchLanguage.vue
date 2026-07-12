@@ -14,7 +14,6 @@ const { setLocale, locales } = useI18n()
     </DropdownMenuTrigger>
     <DropdownMenuContent
       align="end"
-      class="min-w-min"
     >
       <DropdownMenuItem
         v-for="locale in locales"

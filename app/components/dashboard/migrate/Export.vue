@@ -72,9 +72,21 @@ async function handleExport() {
       <CardDescription>{{ $t('migrate.export.description') }}</CardDescription>
     </CardHeader>
     <CardContent>
-      <Button :disabled="isExporting" @click="handleExport">
-        <Loader v-if="isExporting" class="mr-2 size-4 animate-spin" />
-        <Download v-else class="mr-2 size-4" />
+      <Button
+        class="
+          min-h-11
+          lg:min-h-9
+        "
+        :disabled="isExporting"
+        @click="handleExport"
+      >
+        <Loader
+          v-if="isExporting" aria-hidden="true" class="
+            mr-2 size-4
+            motion-safe:animate-spin
+          "
+        />
+        <Download v-else aria-hidden="true" class="mr-2 size-4" />
         <template v-if="isExporting && exportedCount > 0">
           {{ exportedCount }} {{ $t('migrate.export.total_links') }}…
         </template>

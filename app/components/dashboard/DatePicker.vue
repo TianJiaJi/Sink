@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { DateRange, DateValue } from 'reka-ui'
 import { getLocalTimeZone } from '@internationalized/date'
+import { useMediaQuery } from '@vueuse/core'
 
 const analysisStore = useDashboardAnalysisStore()
 const { locale } = useI18n()
+const isDesktop = useMediaQuery('(min-width: 640px)')
 
 const openCustomDateRange = ref(false)
 const customDate = ref<DateValue | undefined>()
@@ -44,7 +46,12 @@ function onPresetChange(value: string | number | bigint | Record<string, any> | 
 
 <template>
   <Select :model-value="analysisStore.datePreset" @update:model-value="onPresetChange">
-    <SelectTrigger>
+    <SelectTrigger
+      class="
+        min-h-11
+        lg:min-h-9
+      " :aria-label="$t('dashboard.date_range')"
+    >
       <SelectValue v-if="analysisStore.datePreset" />
       <div v-else>
         {{ shortDate(analysisStore.dateRange.startAt, locale) }} - {{ shortDate(analysisStore.dateRange.endAt, locale) }}
@@ -85,24 +92,39 @@ function onPresetChange(value: string | number | bigint | Record<string, any> | 
   <ResponsiveModal
     v-model:open="openCustomDateRange"
     :title="$t('dashboard.date_picker.custom_title')"
-    content-class="w-auto md:max-w-(--breakpoint-md)"
+    content-class="w-[calc(100vw_-_2rem)] overflow-x-hidden sm:w-auto md:max-w-(--breakpoint-md)"
   >
     <Tabs
       default-value="range"
     >
       <div class="flex justify-center">
-        <TabsList>
-          <TabsTrigger value="date">
+        <TabsList
+          class="
+            h-auto min-h-11
+            lg:h-9 lg:min-h-0
+          "
+        >
+          <TabsTrigger
+            value="date" class="
+              min-h-11
+              lg:min-h-0
+            "
+          >
             {{ $t('dashboard.date_picker.single_date') }}
           </TabsTrigger>
-          <TabsTrigger value="range">
+          <TabsTrigger
+            value="range" class="
+              min-h-11
+              lg:min-h-0
+            "
+          >
             {{ $t('dashboard.date_picker.date_range') }}
           </TabsTrigger>
         </TabsList>
       </div>
       <TabsContent
         value="date"
-        class="h-80 overflow-y-auto"
+        class="h-80 overflow-x-hidden overflow-y-auto"
       >
         <Calendar
           :model-value="customDate"
@@ -113,13 +135,13 @@ function onPresetChange(value: string | number | bigint | Record<string, any> | 
       </TabsContent>
       <TabsContent
         value="range"
-        class="h-80 overflow-y-auto"
+        class="h-80 overflow-x-hidden overflow-y-auto"
       >
         <RangeCalendar
           :model-value="customDateRange"
           initial-focus
           weekday-format="short"
-          :number-of-months="2"
+          :number-of-months="isDesktop ? 2 : 1"
           :is-date-disabled="isDateDisabled"
           @update:model-value="updateCustomDateRange"
         />

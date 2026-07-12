@@ -74,13 +74,18 @@ function getNumberInputChangeValue(event: Event) {
             min="1"
             max="30"
             step="1"
+            inputmode="numeric"
+            autocomplete="off"
             :model-value="getNumberInputValue(field.state.value)"
             :aria-invalid="getAriaInvalid(field)"
+            :aria-describedby="`${field.name}-description${isInvalid(field) ? ` ${field.name}-error` : ''}`"
             @blur="field.handleBlur"
             @input="field.handleChange(getNumberInputChangeValue($event))"
           />
-          <FieldDescription>{{ $t('check.config.timeout_description') }}</FieldDescription>
-          <FieldError v-if="isInvalid(field)" :errors="field.state.meta.errors" />
+          <FieldDescription :id="`${field.name}-description`">
+            {{ $t('check.config.timeout_description') }}
+          </FieldDescription>
+          <FieldError v-if="isInvalid(field)" :id="`${field.name}-error`" :errors="field.state.meta.errors" />
         </Field>
       </form.Field>
 
@@ -100,13 +105,18 @@ function getNumberInputChangeValue(event: Event) {
             min="1"
             max="10"
             step="1"
+            inputmode="numeric"
+            autocomplete="off"
             :model-value="getNumberInputValue(field.state.value)"
             :aria-invalid="getAriaInvalid(field)"
+            :aria-describedby="`${field.name}-description${isInvalid(field) ? ` ${field.name}-error` : ''}`"
             @blur="field.handleBlur"
             @input="field.handleChange(getNumberInputChangeValue($event))"
           />
-          <FieldDescription>{{ $t('check.config.batch_size_description') }}</FieldDescription>
-          <FieldError v-if="isInvalid(field)" :errors="field.state.meta.errors" />
+          <FieldDescription :id="`${field.name}-description`">
+            {{ $t('check.config.batch_size_description') }}
+          </FieldDescription>
+          <FieldError v-if="isInvalid(field)" :id="`${field.name}-error`" :errors="field.state.meta.errors" />
         </Field>
       </form.Field>
     </FieldGroup>
@@ -114,16 +124,22 @@ function getNumberInputChangeValue(event: Event) {
     <div class="flex flex-wrap gap-2">
       <Button
         type="submit"
+        class="
+          min-h-11
+          sm:min-h-9
+        "
         :disabled="checking || loadingLinks || !hasLinks"
-        aria-label="Start link check"
       >
         {{ checking ? $t('check.actions.checking') : $t('check.actions.start') }}
       </Button>
       <Button
         type="button"
         variant="destructive"
+        class="
+          min-h-11
+          sm:min-h-9
+        "
         :disabled="!checking"
-        aria-label="Stop link check"
         @click="emit('stop')"
       >
         {{ $t('check.actions.stop') }}
@@ -131,17 +147,23 @@ function getNumberInputChangeValue(event: Event) {
       <Button
         type="button"
         variant="outline"
+        class="
+          min-h-11
+          sm:min-h-9
+        "
         :disabled="checking || loadingLinks"
-        aria-label="Reload links"
         @click="emit('reload')"
       >
         {{ loadingLinks ? $t('check.actions.loading') : $t('check.actions.reload') }}
       </Button>
       <Button
         type="button"
-        variant="outline"
+        variant="destructive"
+        class="
+          min-h-11
+          sm:min-h-9
+        "
         :disabled="checking || !hasResults"
-        aria-label="Clear check results"
         @click="emit('clear')"
       >
         {{ $t('check.actions.clear') }}
@@ -149,8 +171,11 @@ function getNumberInputChangeValue(event: Event) {
       <Button
         type="button"
         variant="outline"
+        class="
+          min-h-11
+          sm:min-h-9
+        "
         :disabled="exportDisabled"
-        aria-label="Export check results"
         @click="emit('export')"
       >
         {{ $t('check.actions.export') }}

@@ -8,10 +8,16 @@ const props = withDefaults(defineProps<{
 })
 
 const heatmapData = shallowRef<HeatmapDataPoint[]>([])
-const isLoaded = ref(false)
+const loading = shallowRef(false)
+const error = shallowRef(false)
+const hasLoaded = shallowRef(false)
+const retryKey = shallowRef(0)
+const activeCellIndex = shallowRef(0)
+const openTooltipIndex = shallowRef<number>()
+const cellButtons = shallowRef<(HTMLButtonElement | undefined)[]>([])
 const id = inject(LINK_ID_KEY, computed(() => undefined))
 const analysisStore = useDashboardAnalysisStore()
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 
 const effectiveTimeRange = computed(() => ({
   startAt: analysisStore.dateRange.startAt,
@@ -21,7 +27,6 @@ const effectiveTimeRange = computed(() => ({
 const effectiveFilters = computed(() => analysisStore.filters)
 
 const weekdays = computed(() => getWeekdayNames('short', locale.value))
-// weekday indices: Monday=1, Tuesday=2, ..., Sunday=7 (ISO 8601)
 const weekdayIndices = [1, 2, 3, 4, 5, 6, 7]
 
 const hours = Array.from({ length: 24 }, (_, i) => i)
@@ -41,6 +46,22 @@ const gridData = computed(() => {
   return { grid, maxValue }
 })
 
+const metricLabel = computed(() => t(props.metric === 'visits' ? 'dashboard.visits' : 'dashboard.visitors'))
+
+const chartSummary = computed(() => {
+  const total = heatmapData.value.reduce((sum, item) => sum + Number(item[props.metric]), 0)
+  const peak = heatmapData.value.reduce<HeatmapDataPoint | undefined>((current, item) =>
+    !current || Number(item[props.metric]) > Number(current[props.metric]) ? item : current, undefined)
+
+  const summary = `${t('dashboard.weekly_trend')}. ${metricLabel.value}: ${formatNumber(total, locale.value)}.`
+  if (!peak)
+    return summary
+
+  const weekdayIndex = weekdayIndices.indexOf(Number(peak.weekday))
+  const weekday = weekdays.value[weekdayIndex]
+  return `${summary} ${weekday} ${Number(peak.hour)}:00: ${formatNumber(Number(peak[props.metric]), locale.value)}.`
+})
+
 function getCellValue(weekday: number, hour: number): number {
   const key = `${weekday}-${hour}`
   return gridData.value.grid[key] || 0
@@ -50,8 +71,7 @@ function getCellColor(weekday: number, hour: number): string {
   const value = getCellValue(weekday, hour)
   const { maxValue } = gridData.value
 
-  // Calculate alpha based on value intensity
-  let alpha = 0.05 // empty cell
+  let alpha = 0.05
   if (value > 0 && maxValue > 0) {
     alpha = Math.max(0.1, value / maxValue)
   }
@@ -59,15 +79,65 @@ function getCellColor(weekday: number, hour: number): string {
   const baseColor = props.metric === 'visits' ? 'var(--chart-1)' : 'var(--chart-2)'
   const emptyColor = 'var(--foreground)'
 
-  // Use color-mix to apply alpha to the color
   const color = value === 0 ? emptyColor : baseColor
   return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`
 }
 
-watch([effectiveTimeRange, effectiveFilters], async (_values, _oldValues, onCleanup) => {
+function getCellLabel(weekdayIndex: number, weekday: number, hour: number): string {
+  return `${weekdays.value[weekdayIndex]} ${hour}:00. ${metricLabel.value}: ${formatNumber(getCellValue(weekday, hour), locale.value)}.`
+}
+
+function setCellButton(element: unknown, index: number) {
+  cellButtons.value[index] = element instanceof HTMLButtonElement ? element : undefined
+}
+
+function setTooltipOpen(index: number, open: boolean) {
+  if (open) {
+    openTooltipIndex.value = index
+  }
+  else if (openTooltipIndex.value === index) {
+    openTooltipIndex.value = undefined
+  }
+}
+
+function activateCell(index: number) {
+  activeCellIndex.value = index
+  openTooltipIndex.value = index
+}
+
+async function handleCellKeydown(event: KeyboardEvent, index: number) {
+  const row = Math.floor(index / hours.length)
+  const column = index % hours.length
+  let nextIndex: number
+
+  switch (event.key) {
+    case 'ArrowLeft':
+      nextIndex = row * hours.length + Math.max(0, column - 1)
+      break
+    case 'ArrowRight':
+      nextIndex = row * hours.length + Math.min(hours.length - 1, column + 1)
+      break
+    case 'ArrowUp':
+      nextIndex = Math.max(0, row - 1) * hours.length + column
+      break
+    case 'ArrowDown':
+      nextIndex = Math.min(weekdayIndices.length - 1, row + 1) * hours.length + column
+      break
+    default:
+      return
+  }
+
+  event.preventDefault()
+  activeCellIndex.value = nextIndex
+  await nextTick()
+  cellButtons.value[nextIndex]?.focus()
+}
+
+watch([effectiveTimeRange, effectiveFilters, retryKey], async (_values, _oldValues, onCleanup) => {
   const controller = new AbortController()
   onCleanup(() => controller.abort())
-  isLoaded.value = false
+  loading.value = true
+  error.value = false
   const { startAt, endAt } = effectiveTimeRange.value
   try {
     const result = await useAPI<{ data: HeatmapDataPoint[] }>('/api/stats/heatmap', {
@@ -89,13 +159,15 @@ watch([effectiveTimeRange, effectiveFilters], async (_values, _oldValues, onClea
       weekday: +item.weekday,
       hour: +item.hour,
     }))
-    await nextTick()
-    if (!controller.signal.aborted)
-      isLoaded.value = true
+    hasLoaded.value = true
   }
-  catch (error) {
+  catch {
     if (!controller.signal.aborted)
-      console.error(error)
+      error.value = true
+  }
+  finally {
+    if (!controller.signal.aborted)
+      loading.value = false
   }
 }, { deep: true, immediate: true })
 </script>
@@ -107,16 +179,57 @@ watch([effectiveTimeRange, effectiveFilters], async (_values, _oldValues, onClea
       md:p-10
     "
   >
-    <!-- Heatmap container with same aspect ratio as Views -->
     <div
+      v-if="loading && !hasLoaded"
+      role="status"
       class="
-        aspect-4/1 w-full overflow-x-auto transition-opacity duration-500
-        ease-out
+        flex aspect-4/1 items-center justify-center text-sm
+        text-muted-foreground
       "
-      :class="isLoaded ? 'opacity-100' : 'opacity-0'"
+    >
+      {{ $t('dashboard.loading') }}
+    </div>
+    <div
+      v-else-if="error"
+      role="alert"
+      class="
+        flex aspect-4/1 items-center justify-center gap-2 text-sm
+        text-destructive
+      "
+    >
+      {{ $t('dashboard.realtime.stats_error') }}
+      <Button
+        type="button"
+        variant="link"
+        class="
+          h-11 px-3 text-destructive
+          lg:h-auto lg:min-h-0 lg:p-0
+        "
+        @click="retryKey++"
+      >
+        {{ $t('common.try_again') }}
+      </Button>
+    </div>
+    <div
+      v-else-if="hasLoaded && !heatmapData.length"
+      role="status"
+      class="
+        flex aspect-4/1 items-center justify-center text-sm
+        text-muted-foreground
+      "
+    >
+      {{ $t('dashboard.no_data') }}
+    </div>
+    <div
+      v-else
+      class="
+        aspect-4/1 w-full overflow-x-auto rounded-sm transition-opacity
+        duration-500 ease-out
+        motion-reduce:transition-none
+      "
+      :class="loading ? 'opacity-60' : 'opacity-100'"
     >
       <div class="flex h-full min-w-[600px] flex-col">
-        <!-- Hours header -->
         <div
           class="
             mb-2 ml-12 grid flex-none grid-cols-24 gap-2 text-[10px]
@@ -128,44 +241,71 @@ watch([effectiveTimeRange, effectiveFilters], async (_values, _oldValues, onClea
           </div>
         </div>
 
-        <!-- Heatmap grid -->
-        <div class="flex flex-1 flex-col gap-3">
+        <div
+          class="flex flex-1 flex-col gap-3"
+          role="grid"
+          :aria-busy="loading"
+          :aria-label="chartSummary"
+          :aria-colcount="hours.length"
+          :aria-rowcount="weekdayIndices.length"
+        >
           <div
             v-for="(weekdayIdx, arrayIdx) in weekdayIndices"
             :key="weekdayIdx"
             class="flex flex-1 items-center gap-3"
+            role="row"
           >
             <div
               class="w-9 shrink-0 text-right text-[10px] text-muted-foreground"
+              role="rowheader"
             >
               {{ weekdays[arrayIdx] }}
             </div>
             <div class="grid h-full flex-1 grid-cols-24 gap-2">
-              <Tooltip v-for="hour in hours" :key="hour">
-                <TooltipTrigger as-child>
-                  <div
-                    class="
-                      h-full cursor-pointer rounded-sm
-                      transition-[background-color,box-shadow] duration-300
-                      hover:ring-1 hover:ring-foreground/10
-                    "
-                    role="gridcell"
-                    :aria-label="`${weekdays[arrayIdx]} ${hour}:00 - ${metric === 'visits' ? $t('dashboard.visits') : $t('dashboard.visitors')}: ${formatNumber(getCellValue(weekdayIdx, hour), locale)}`"
-                    :style="{
-                      backgroundColor: getCellColor(weekdayIdx, hour),
-                    }"
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p class="font-medium">
-                    {{ weekdays[arrayIdx] }} {{ hour }}:00
-                  </p>
-                  <p class="text-muted-foreground">
-                    {{ metric === 'visits' ? $t('dashboard.visits') : $t('dashboard.visitors') }}:
-                    {{ formatNumber(getCellValue(weekdayIdx, hour), locale) }}
-                  </p>
-                </TooltipContent>
-              </Tooltip>
+              <div
+                v-for="hour in hours"
+                :key="hour"
+                class="size-full"
+                role="gridcell"
+              >
+                <Tooltip
+                  :open="openTooltipIndex === arrayIdx * hours.length + hour"
+                  disable-closing-trigger
+                  @update:open="setTooltipOpen(arrayIdx * hours.length + hour, $event)"
+                >
+                  <TooltipTrigger as-child>
+                    <button
+                      :ref="element => setCellButton(element, arrayIdx * hours.length + hour)"
+                      type="button"
+                      class="
+                        relative block size-full rounded-sm border-0 p-0
+                        transition-[background-color,box-shadow] duration-300
+                        hover:ring-1 hover:ring-foreground/10
+                        focus-visible:z-10 focus-visible:ring-2
+                        focus-visible:ring-ring focus-visible:outline-none
+                        motion-reduce:transition-none
+                      "
+                      :style="{
+                        backgroundColor: getCellColor(weekdayIdx, hour),
+                      }"
+                      :tabindex="activeCellIndex === arrayIdx * hours.length + hour ? 0 : -1"
+                      :aria-label="getCellLabel(arrayIdx, weekdayIdx, hour)"
+                      @click="activateCell(arrayIdx * hours.length + hour)"
+                      @focus="activeCellIndex = arrayIdx * hours.length + hour"
+                      @keydown="handleCellKeydown($event, arrayIdx * hours.length + hour)"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p class="font-medium">
+                      {{ weekdays[arrayIdx] }} {{ hour }}:00
+                    </p>
+                    <p class="text-muted-foreground">
+                      {{ metric === 'visits' ? $t('dashboard.visits') : $t('dashboard.visitors') }}:
+                      {{ formatNumber(getCellValue(weekdayIdx, hour), locale) }}
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
           </div>
         </div>

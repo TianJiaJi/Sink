@@ -15,13 +15,10 @@ function handleFilterChange(type: string, value: string) {
 
 <template>
   <main class="space-y-6">
+    <h1 class="sr-only">
+      {{ $t('nav.analysis') }}
+    </h1>
     <Teleport to="#dashboard-header-actions" defer>
-      <div
-        class="
-          flex-1
-          sm:hidden
-        "
-      />
       <DashboardDatePicker />
       <DashboardFilters :filters="analysisStore.filters" @change="handleFilterChange" />
     </Teleport>

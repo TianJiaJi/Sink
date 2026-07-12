@@ -21,34 +21,25 @@ function formatName(name: string, type: string): string {
 </script>
 
 <template>
-  <TooltipProvider>
-    <Tooltip>
-      <TooltipTrigger class="w-full text-left">
-        <DashboardAnalysisMetricsNameReferer
-          v-if="name && type === 'referer'"
-          :name="name"
-        />
-        <DashboardAnalysisMetricsNameSlug
-          v-else-if="name && type === 'slug'"
-          :name="name"
-        />
-        <DashboardAnalysisMetricsNameIcon
-          v-else-if="name && ['os', 'browser', 'browserType', 'device', 'deviceType'].includes(type)"
-          :name="name"
-          :type="type"
-        />
-        <div
-          v-else
-          class="w-full truncate"
-        >
-          {{ formatName(name, type) || $t('dashboard.none') }}
-        </div>
-      </TooltipTrigger>
-      <TooltipContent v-if="name">
-        <p>
-          {{ formatName(name, type) }}
-        </p>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
+  <div class="w-full min-w-0 text-left">
+    <DashboardAnalysisMetricsNameReferer
+      v-if="name && type === 'referer'"
+      :name="name"
+    />
+    <DashboardAnalysisMetricsNameSlug
+      v-else-if="name && type === 'slug'"
+      :name="name"
+    />
+    <DashboardAnalysisMetricsNameIcon
+      v-else-if="name && ['os', 'browser', 'browserType', 'device', 'deviceType'].includes(type)"
+      :name="name"
+      :type="type"
+    />
+    <div
+      v-else
+      class="w-full wrap-break-word"
+    >
+      {{ formatName(name, type) || $t('dashboard.none') }}
+    </div>
+  </div>
 </template>

@@ -2,6 +2,7 @@
 import type { DateRange, DateValue } from 'reka-ui'
 import { getLocalTimeZone } from '@internationalized/date'
 import { useForm } from '@tanstack/vue-form'
+import { useMediaQuery } from '@vueuse/core'
 import { Download, Loader } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { z } from 'zod'
@@ -16,6 +17,7 @@ interface AccessExportForm {
 
 const { t, locale } = useI18n()
 const tz = getLocalTimeZone()
+const isDesktop = useMediaQuery('(min-width: 640px)')
 const openCustomDateRange = ref(false)
 const customDateRange = ref<DateRange | undefined>()
 const isExporting = ref(false)
@@ -114,9 +116,17 @@ function updateCustomDateRange(value: DateRange) {
         <FieldGroup>
           <form.Field name="datePreset">
             <Field>
-              <FieldLabel>{{ $t('migrate.access_export.date_range') }}</FieldLabel>
+              <FieldLabel for="access-export-date-range">
+                {{ $t('migrate.access_export.date_range') }}
+              </FieldLabel>
               <Select :model-value="currentDatePreset" @update:model-value="onPresetChange">
-                <SelectTrigger>
+                <SelectTrigger
+                  id="access-export-date-range"
+                  class="
+                    min-h-11
+                    lg:min-h-9
+                  "
+                >
                   <SelectValue v-if="currentDatePreset" />
                   <div v-else>
                     {{ dateRangeLabel }}
@@ -162,10 +172,13 @@ function updateCustomDateRange(value: DateRange) {
             :validators="{ onChange: validateSlugFilter }"
           >
             <Field>
-              <FieldLabel>{{ $t('migrate.access_export.slug_label') }}</FieldLabel>
+              <FieldLabel id="access-export-slug-label">
+                {{ $t('migrate.access_export.slug_label') }}
+              </FieldLabel>
               <DashboardFilters
                 :filters="{ slug: field.state.value }"
                 :debounce="0"
+                aria-labelledby="access-export-slug-label"
                 @change="(_, value) => field.handleChange(value)"
               />
               <FieldDescription>{{ $t('migrate.access_export.slug_description') }}</FieldDescription>
@@ -174,9 +187,21 @@ function updateCustomDateRange(value: DateRange) {
           </form.Field>
         </FieldGroup>
 
-        <Button type="submit" :disabled="isExporting">
-          <Loader v-if="isExporting" class="mr-2 size-4 animate-spin" />
-          <Download v-else class="mr-2 size-4" />
+        <Button
+          type="submit"
+          class="
+            min-h-11
+            lg:min-h-9
+          "
+          :disabled="isExporting"
+        >
+          <Loader
+            v-if="isExporting" aria-hidden="true" class="
+              mr-2 size-4
+              motion-safe:animate-spin
+            "
+          />
+          <Download v-else aria-hidden="true" class="mr-2 size-4" />
           <template v-if="isExporting">
             {{ $t('migrate.access_export.exporting') }}
           </template>
@@ -190,13 +215,14 @@ function updateCustomDateRange(value: DateRange) {
     <ResponsiveModal
       v-model:open="openCustomDateRange"
       :title="$t('dashboard.date_picker.custom_title')"
-      content-class="w-auto md:max-w-(--breakpoint-md)"
+      content-class="w-[calc(100vw_-_2rem)] overflow-x-hidden sm:w-auto md:max-w-(--breakpoint-md)"
     >
       <RangeCalendar
         :model-value="customDateRange"
         initial-focus
         weekday-format="short"
-        :number-of-months="2"
+        :number-of-months="isDesktop ? 2 : 1"
+        class="max-w-full overflow-x-hidden"
         :is-date-disabled="isDateDisabled"
         @update:model-value="updateCustomDateRange"
       />

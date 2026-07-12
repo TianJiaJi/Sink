@@ -64,15 +64,16 @@ linksStore.onLinkUpdate(() => void fetchTags())
 
     <div
       class="
-        flex min-w-0 items-center gap-2
+        flex min-w-0 flex-wrap items-center gap-2
         md:ml-auto
       "
     >
+      <DashboardLinksSort />
       <Select :model-value="linksStore.tag ?? allTagsValue" :disabled="loading" @update:model-value="selectTag">
         <SelectTrigger
           class="
             min-w-0 flex-1
-            md:w-56
+            md:w-56 md:flex-none
           "
           :aria-label="$t('links.filters.tag_label')"
         >
@@ -90,7 +91,12 @@ linksStore.onLinkUpdate(() => void fetchTags())
           </SelectItem>
         </SelectContent>
       </Select>
-      <Button v-if="error" type="button" variant="ghost" size="sm" @click="fetchTags">
+      <Button
+        v-if="error" type="button" variant="ghost" size="sm" class="
+          min-h-11 w-full
+          md:min-h-8 md:w-auto
+        " @click="fetchTags"
+      >
         {{ $t('common.try_again') }}
       </Button>
     </div>

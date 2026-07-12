@@ -65,9 +65,10 @@ watch([
       >
         <h2 class="flex items-center gap-2 text-sm font-medium">
           <span
+            aria-hidden="true"
             class="
-              inline-flex size-1.5 rounded-full bg-green-400 opacity-75
-              motion-safe:animate-ping
+              inline-flex size-1.5 rounded-full bg-chart-1
+              motion-safe:animate-pulse
             "
           />
           {{ $t('dashboard.visits') }}
@@ -88,7 +89,9 @@ watch([
           role="alert"
         >
           {{ $t('dashboard.realtime.stats_error') }}
-          <Button variant="link" class="h-auto p-0" @click="retryKey++">
+          <Button
+            type="button" variant="link" class="h-auto p-0 text-destructive" @click="retryKey++"
+          >
             {{ $t('common.try_again') }}
           </Button>
         </div>

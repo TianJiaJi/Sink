@@ -16,6 +16,7 @@ const { locale } = useI18n()
       class="
         flex justify-between border-b leading-[48px] transition-colors
         hover:bg-muted/50
+        motion-reduce:transition-none
       "
     >
       <div
@@ -42,11 +43,12 @@ const { locale } = useI18n()
         class="
           border-b px-4 py-2 transition-colors
           hover:bg-muted/50
+          motion-reduce:transition-none
         "
       >
-        <div class="flex justify-between">
+        <div class="flex items-start justify-between gap-3">
           <div
-            class="flex-1 truncate leading-5"
+            class="min-w-0 flex-1 leading-5"
           >
             <DashboardAnalysisMetricsName
               :name="metric.name"
@@ -54,28 +56,20 @@ const { locale } = useI18n()
             />
           </div>
           <div
-            class="text-right"
+            class="shrink-0 text-right"
           >
             {{ formatNumber(metric.count, locale) }}
-            <span class="text-xs text-gray-500">({{ metric.percent }}%)</span>
+            <span class="text-xs text-muted-foreground">({{ metric.percent }}%)</span>
           </div>
         </div>
         <div
           class="flex-1"
         >
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger class="w-full">
-                <Progress
-                  v-model="metric.percent"
-                  class="h-2"
-                />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{{ metric.percent }}%</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Progress
+            v-model="metric.percent"
+            class="h-2"
+            :aria-label="`${$t('dashboard.count')}: ${metric.percent}%`"
+          />
         </div>
       </div>
     </VList>

@@ -3,6 +3,7 @@ import { Check, ChevronsUpDown } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{
+  id: string
   modelValue?: string
   placeholder?: string
   searchPlaceholder?: string
@@ -43,10 +44,12 @@ function selectCountry(code: string) {
   <Popover v-model:open="open">
     <PopoverTrigger as-child>
       <Button
+        :id="id"
         type="button"
         variant="outline"
         role="combobox"
         :aria-expanded="open"
+        :aria-label="placeholder"
         :disabled="disabled"
         class="w-full justify-between px-3"
       >

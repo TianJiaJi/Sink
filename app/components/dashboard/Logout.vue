@@ -12,9 +12,15 @@ function logOut() {
 <template>
   <AlertDialog>
     <AlertDialogTrigger as-child>
-      <LogOut
-        class="size-4 cursor-pointer"
-      />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-lg"
+        class="size-11"
+        :aria-label="$t('logout.action')"
+      >
+        <LogOut aria-hidden="true" />
+      </Button>
     </AlertDialogTrigger>
     <AlertDialogContent
       class="
@@ -30,7 +36,7 @@ function logOut() {
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>{{ $t('common.cancel') }}</AlertDialogCancel>
-        <AlertDialogAction @click="logOut">
+        <AlertDialogAction variant="destructive" @click="logOut">
           {{ $t('logout.action') }}
         </AlertDialogAction>
       </AlertDialogFooter>

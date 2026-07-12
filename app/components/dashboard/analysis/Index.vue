@@ -11,23 +11,44 @@ const analysisStore = useDashboardAnalysisStore()
 </script>
 
 <template>
-  <h3 v-if="link" class="text-xl/10 font-bold">
+  <h2 v-if="link" class="text-xl/10 font-bold">
     {{ $t('dashboard.stats', { slug: link.slug }) }}
-  </h3>
+  </h2>
   <DashboardAnalysisCounters />
   <Tabs v-model="analysisStore.viewMode" default-value="trend">
     <div class="mb-4 flex items-center justify-between">
-      <TabsList>
-        <TabsTrigger value="trend">
+      <TabsList
+        class="
+          min-h-11
+          lg:min-h-8
+        "
+      >
+        <TabsTrigger
+          value="trend" class="
+            min-h-11
+            lg:min-h-0
+          "
+        >
           {{ $t('dashboard.trend') }}
         </TabsTrigger>
-        <TabsTrigger value="heatmap">
+        <TabsTrigger
+          value="heatmap" class="
+            min-h-11
+            lg:min-h-0
+          "
+        >
           {{ $t('dashboard.weekly_trend') }}
         </TabsTrigger>
       </TabsList>
 
       <Select v-if="analysisStore.viewMode === 'heatmap'" v-model="analysisStore.heatmapMetric">
-        <SelectTrigger class="h-8 w-[120px]">
+        <SelectTrigger
+          class="
+            h-11 min-h-11 w-[120px]
+            lg:h-8 lg:min-h-8
+          "
+          :aria-label="`${$t('dashboard.weekly_trend')}: ${$t('dashboard.visits')} / ${$t('dashboard.visitors')}`"
+        >
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

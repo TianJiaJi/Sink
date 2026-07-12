@@ -88,10 +88,12 @@ defineExpose({ commit })
     </FieldDescription>
     <div
       class="
-        flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border
-        bg-transparent px-2 py-1.5
-        focus-within:ring-2 focus-within:ring-ring/50
+        flex min-h-9 flex-wrap items-center gap-1.5 rounded-4xl border
+        border-input bg-input/30 px-2 py-1 text-sm transition-colors
+        outline-none
+        focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50
       "
+      :aria-invalid="error ? 'true' : undefined"
     >
       <Badge
         v-for="(tag, index) in model"
@@ -103,7 +105,7 @@ defineExpose({ commit })
         <button
           type="button"
           class="
-            rounded-sm p-0.5
+            inline-flex size-7 items-center justify-center rounded-full
             hover:bg-muted-foreground/20
             focus-visible:ring-2 focus-visible:ring-ring
             focus-visible:outline-none
@@ -120,8 +122,9 @@ defineExpose({ commit })
         type="text"
         autocomplete="off"
         class="
-          min-w-28 flex-1 bg-transparent p-1 text-sm outline-none
+          h-7 min-w-28 flex-1 bg-transparent px-1 text-base outline-none
           placeholder:text-muted-foreground
+          md:text-sm
         "
         :placeholder="$t('links.form.tags_placeholder')"
         :aria-describedby="`${descriptionId} ${error ? errorId : ''}`"

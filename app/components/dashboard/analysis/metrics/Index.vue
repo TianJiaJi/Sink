@@ -19,7 +19,8 @@ const translatedTabs = computed(() => ({
 </script>
 
 <template>
-  <main
+  <section
+    :aria-label="$t('dashboard.details')"
     class="
       grid gap-8
       lg:grid-cols-12
@@ -56,5 +57,5 @@ const translatedTabs = computed(() => ({
       :tabs="translatedTabs.browser"
       :raw-tabs="tabs.browser"
     />
-  </main>
+  </section>
 </template>

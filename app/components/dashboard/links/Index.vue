@@ -2,7 +2,7 @@
 import type { CounterData, LinkUpdateType } from '@/types'
 import type { DashboardLink, DashboardLinkListResponse } from '@/types/dashboard-links'
 import { useInfiniteScroll } from '@vueuse/core'
-import { Loader } from 'lucide-vue-next'
+import { AlertCircle, Inbox, Loader } from 'lucide-vue-next'
 
 const linksStore = useDashboardLinksStore()
 
@@ -52,6 +52,7 @@ const scrollContainer = ref<HTMLElement | Window | null>(null)
 
 onMounted(() => {
   scrollContainer.value = document.querySelector('.overflow-y-auto') as HTMLElement | null
+  void getLinks()
 })
 
 async function getLinks() {
@@ -163,6 +164,7 @@ linksStore.onLinkUpdate(({ link, type }) => {
 
 <template>
   <section
+    v-if="links.length"
     class="
       grid grid-cols-1 gap-4
       md:grid-cols-2
@@ -175,11 +177,39 @@ linksStore.onLinkUpdate(({ link, type }) => {
       :link="link"
     />
   </section>
-  <div
-    v-if="listLoading"
-    class="flex items-center justify-center"
+  <section
+    v-else-if="listLoading"
+    class="
+      grid grid-cols-1 gap-4
+      md:grid-cols-2
+      lg:grid-cols-3
+    "
+    role="status"
+    aria-live="polite"
   >
-    <Loader class="animate-spin" />
+    <Card v-for="index in 6" :key="index" class="h-48">
+      <CardContent class="flex h-full flex-col gap-4">
+        <div class="flex items-center gap-3">
+          <Skeleton class="size-10 rounded-full" />
+          <div class="flex-1 space-y-2">
+            <Skeleton class="h-4 w-2/3" />
+            <Skeleton class="h-3 w-1/2" />
+          </div>
+        </div>
+        <Skeleton class="mt-auto h-5 w-full" />
+        <Skeleton class="h-5 w-1/2" />
+      </CardContent>
+    </Card>
+    <span class="sr-only">{{ $t('dashboard.loading') }}</span>
+  </section>
+  <div
+    v-if="listLoading && links.length"
+    class="flex items-center justify-center py-4"
+    role="status"
+    aria-live="polite"
+  >
+    <Loader class="motion-safe:animate-spin" aria-hidden="true" />
+    <span class="sr-only">{{ $t('dashboard.loading') }}</span>
   </div>
   <div
     v-if="!listLoading && listComplete && links.length > 0"
@@ -187,22 +217,33 @@ linksStore.onLinkUpdate(({ link, type }) => {
   >
     {{ $t('links.no_more') }}
   </div>
-  <div
+  <Card
     v-if="!listLoading && listComplete && links.length === 0"
-    class="
-      flex items-center justify-center py-8 text-center text-sm
-      text-muted-foreground
-    "
+    class="border-dashed"
   >
-    {{ $t('links.no_filtered_results') }}
-  </div>
-  <div
+    <CardContent
+      class="
+        flex min-h-48 flex-col items-center justify-center gap-3 text-center
+        text-muted-foreground
+      "
+    >
+      <Inbox class="size-8" aria-hidden="true" />
+      <p class="text-sm">
+        {{ $t('links.no_filtered_results') }}
+      </p>
+    </CardContent>
+  </Card>
+  <Alert
     v-if="listError"
-    class="flex items-center justify-center text-sm"
+    variant="destructive"
+    class="mx-auto max-w-xl"
   >
-    {{ $t('links.load_failed') }}
-    <Button variant="link" @click="getLinks">
-      {{ $t('common.try_again') }}
-    </Button>
-  </div>
+    <AlertCircle aria-hidden="true" />
+    <AlertTitle>{{ $t('links.load_failed') }}</AlertTitle>
+    <AlertDescription>
+      <Button variant="link" class="h-11 px-0 text-destructive" @click="getLinks">
+        {{ $t('common.try_again') }}
+      </Button>
+    </AlertDescription>
+  </Alert>
 </template>

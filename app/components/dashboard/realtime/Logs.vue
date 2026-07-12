@@ -190,7 +190,7 @@ onBeforeUnmount(() => {
       role="alert"
     >
       {{ $t('dashboard.realtime.events_error') }}
-      <Button variant="link" @click="retryKey++">
+      <Button type="button" variant="link" class="text-destructive" @click="retryKey++">
         {{ $t('common.try_again') }}
       </Button>
     </div>

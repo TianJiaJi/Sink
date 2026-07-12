@@ -18,17 +18,8 @@ onMounted(() => {
   <Tabs v-if="migration.completed.value" v-model="linksStore.status" default-value="active" as-child>
     <main class="space-y-6">
       <Teleport to="#dashboard-header-actions" defer>
+        <DashboardLinksSearch />
         <DashboardLinksEditor />
-        <div
-          class="
-            flex-1
-            sm:hidden
-          "
-        />
-        <DashboardLinksSort />
-        <DashboardLinksSearch
-          class="max-sm:w-full"
-        />
       </Teleport>
 
       <DashboardLinksFilters />
@@ -80,7 +71,12 @@ onMounted(() => {
     >
       <div class="relative">
         <Database class="size-10 text-muted-foreground" />
-        <Loader class="absolute -right-3 -bottom-2 size-5 animate-spin" />
+        <Loader
+          class="
+            absolute -right-3 -bottom-2 size-5
+            motion-safe:animate-spin
+          "
+        />
       </div>
       <p class="font-medium">
         {{ $t('links.migration_gate.loading') }}

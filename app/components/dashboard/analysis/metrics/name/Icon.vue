@@ -228,11 +228,12 @@ const iconMaps: Record<string, Component> = {
 </script>
 
 <template>
-  <div class="w-full truncate">
+  <div class="flex w-full min-w-0 items-start gap-1">
     <component
       :is="iconMaps[name.toLowerCase()] || iconMaps[type]"
-      class="float-left size-5 py-0.5"
+      aria-hidden="true"
+      class="size-5 shrink-0 py-0.5"
     />
-    <span>{{ name }}</span>
+    <span class="min-w-0 wrap-break-word">{{ name }}</span>
   </div>
 </template>

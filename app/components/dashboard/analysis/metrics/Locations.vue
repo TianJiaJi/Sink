@@ -13,6 +13,12 @@ const { t, locale } = useI18n()
 
 const worldMapTopoJSON = ref<Record<string, unknown>>({})
 const areaData = ref<AreaData[]>([])
+const loading = shallowRef(false)
+const mapLoading = shallowRef(true)
+const metricsError = shallowRef(false)
+const mapError = shallowRef(false)
+const hasLoaded = shallowRef(false)
+const metricsRetryKey = shallowRef(0)
 
 const chartConfig = computed<ChartConfig>(() => ({
   count: {
@@ -22,14 +28,25 @@ const chartConfig = computed<ChartConfig>(() => ({
 }))
 
 async function getWorldMapJSON() {
-  const data = await $fetch('/world.json')
-  worldMapTopoJSON.value = data as Record<string, unknown>
+  mapLoading.value = true
+  mapError.value = false
+  try {
+    const data = await $fetch('/world.json')
+    worldMapTopoJSON.value = data as Record<string, unknown>
+  }
+  catch {
+    mapError.value = true
+  }
+  finally {
+    mapLoading.value = false
+  }
 }
 
-watch([() => analysisStore.dateRange, () => analysisStore.filters], async (_values, _oldValues, onCleanup) => {
+watch([() => analysisStore.dateRange, () => analysisStore.filters, metricsRetryKey], async (_values, _oldValues, onCleanup) => {
   const controller = new AbortController()
   onCleanup(() => controller.abort())
-  areaData.value = []
+  loading.value = true
+  metricsError.value = false
   try {
     const result = await useAPI<{ data: Array<{ name: string, count: number }> }>('/api/stats/metrics', {
       signal: controller.signal,
@@ -46,11 +63,16 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters], async (_valu
         ...country,
         id: country.name,
       }))
+      hasLoaded.value = true
     }
   }
-  catch (error) {
+  catch {
     if (!controller.signal.aborted)
-      console.error(error)
+      metricsError.value = true
+  }
+  finally {
+    if (!controller.signal.aborted)
+      loading.value = false
   }
 }, { deep: true, immediate: true })
 
@@ -65,12 +87,10 @@ watch(locale, () => {
 })
 
 function tooltipTemplate(d: any): string {
-  // VisTopoJSONMap 传入的数据结构可能是嵌套的
   const data = d?.data ?? d
   if (!data?.name)
     return ''
 
-  // 检查缓存
   if (tooltipCache.has(data))
     return tooltipCache.get(data) as string
 
@@ -99,9 +119,68 @@ function tooltipTemplate(d: any): string {
     <CardHeader>
       <CardTitle>{{ $t('dashboard.locations') }}</CardTitle>
     </CardHeader>
-    <CardContent class="relative flex-1">
+    <CardContent class="relative flex-1" :aria-busy="loading || mapLoading">
+      <div
+        v-if="mapError || metricsError"
+        class="
+          flex min-h-64 flex-col items-center justify-center gap-4 text-sm
+          text-destructive
+        "
+        role="alert"
+      >
+        <div v-if="mapError" class="flex flex-col items-center gap-2">
+          <span>{{ $t('dashboard.realtime.stats_error') }}</span>
+          <Button
+            type="button"
+            variant="link"
+            class="
+              h-11 px-3 text-destructive
+              lg:h-auto lg:min-h-0 lg:p-0
+            "
+            :aria-label="`${$t('common.try_again')}: ${$t('dashboard.locations')}`"
+            @click="getWorldMapJSON"
+          >
+            {{ $t('common.try_again') }}
+          </Button>
+        </div>
+        <div v-if="metricsError" class="flex flex-col items-center gap-2">
+          <span>{{ $t('dashboard.realtime.stats_error') }}</span>
+          <Button
+            type="button"
+            variant="link"
+            class="
+              h-11 px-3 text-destructive
+              lg:h-auto lg:min-h-0 lg:p-0
+            "
+            :aria-label="`${$t('common.try_again')}: ${$t('dashboard.metrics.country')}`"
+            @click="metricsRetryKey++"
+          >
+            {{ $t('common.try_again') }}
+          </Button>
+        </div>
+      </div>
+      <div
+        v-else-if="(loading && !hasLoaded) || mapLoading"
+        class="
+          flex min-h-64 items-center justify-center text-sm
+          text-muted-foreground
+        "
+        role="status"
+      >
+        {{ $t('dashboard.loading') }}
+      </div>
+      <div
+        v-else-if="hasLoaded && !areaData.length"
+        class="
+          flex min-h-64 items-center justify-center text-sm
+          text-muted-foreground
+        "
+        role="status"
+      >
+        {{ $t('dashboard.no_data') }}
+      </div>
       <VisSingleContainer
-        v-if="worldMapTopoJSON.type"
+        v-else-if="worldMapTopoJSON.type"
         :data="{ areas: areaData }"
         :style="{ height: isMounted ? '100%' : 'auto', width: '100%' }"
         class="absolute inset-0"

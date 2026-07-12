@@ -9,6 +9,8 @@ import { cn } from '@/lib/utils'
 const props = withDefaults(defineProps<{
   filters?: DashboardSlugFilters
   debounce?: number
+  ariaLabel?: string
+  ariaLabelledby?: string
 }>(), {
   debounce: 500,
 })
@@ -37,7 +39,6 @@ const filteredLinks = computed(() => {
   return links.value.filter(link => link.slug.toLocaleLowerCase().includes(query))
 })
 
-// Sync selectedLinks when props.filters changes (e.g., store restore/clear)
 watch(() => props.filters?.slug, (newSlug) => {
   const newValue = newSlug?.split(',').filter(Boolean) ?? []
   if (JSON.stringify(newValue) !== JSON.stringify(selectedLinks.value)) {
@@ -96,10 +97,12 @@ else {
       variant="outline"
       role="combobox"
       :aria-expanded="isOpen"
-      :aria-label="$t('dashboard.realtime.filter_label')"
+      :aria-label="ariaLabelledby ? undefined : (ariaLabel ?? $t('dashboard.realtime.filter_label'))"
+      :aria-labelledby="ariaLabelledby"
       class="
-        flex w-full justify-between px-3
+        flex min-h-11 w-full justify-between px-3
         sm:w-48
+        lg:min-h-9
       "
     >
       <div
@@ -122,7 +125,7 @@ else {
           :placeholder="selectedLinks.length ? selectedLinks.join(', ') : $t('dashboard.filter_placeholder')"
           autocomplete="off"
           class="
-            h-10 border-0 bg-transparent px-0 shadow-none
+            h-11 border-0 bg-transparent px-0 shadow-none
             focus-visible:ring-0
           "
         />

@@ -5,12 +5,19 @@ const linksStore = useDashboardLinksStore()
 </script>
 
 <template>
-  <DropdownMenu>
-    <DropdownMenuTrigger as-child>
-      <Button variant="outline">
-        <TooltipProvider>
-          <Tooltip :delay-duration="100">
-            <TooltipTrigger class="flex items-center">
+  <TooltipProvider>
+    <Tooltip :delay-duration="100">
+      <DropdownMenu>
+        <TooltipTrigger as-child>
+          <DropdownMenuTrigger as-child>
+            <Button
+              variant="outline"
+              class="
+                min-h-11
+                lg:min-h-9
+              "
+              :aria-label="$t(`links.sort.${linksStore.sortBy}`)"
+            >
               <ArrowUpDown
                 class="
                   size-4
@@ -25,27 +32,27 @@ const linksStore = useDashboardLinksStore()
               >
                 {{ $t(`links.sort.${linksStore.sortBy}`) }}
               </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{{ $t('links.sort.tip') }}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent>
-      <DropdownMenuItem @click="linksStore.sortBy = 'newest'">
-        {{ $t('links.sort.newest') }}
-      </DropdownMenuItem>
-      <DropdownMenuItem @click="linksStore.sortBy = 'oldest'">
-        {{ $t('links.sort.oldest') }}
-      </DropdownMenuItem>
-      <DropdownMenuItem @click="linksStore.sortBy = 'az'">
-        {{ $t('links.sort.az') }}
-      </DropdownMenuItem>
-      <DropdownMenuItem @click="linksStore.sortBy = 'za'">
-        {{ $t('links.sort.za') }}
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem @click="linksStore.sortBy = 'newest'">
+            {{ $t('links.sort.newest') }}
+          </DropdownMenuItem>
+          <DropdownMenuItem @click="linksStore.sortBy = 'oldest'">
+            {{ $t('links.sort.oldest') }}
+          </DropdownMenuItem>
+          <DropdownMenuItem @click="linksStore.sortBy = 'az'">
+            {{ $t('links.sort.az') }}
+          </DropdownMenuItem>
+          <DropdownMenuItem @click="linksStore.sortBy = 'za'">
+            {{ $t('links.sort.za') }}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <TooltipContent>
+        <p>{{ $t('links.sort.tip') }}</p>
+      </TooltipContent>
+    </Tooltip>
+  </TooltipProvider>
 </template>

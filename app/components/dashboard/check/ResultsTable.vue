@@ -72,9 +72,13 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
           </TableCell>
           <TableCell>
             <Badge :variant="resultVariant(result)">
-              <WifiOff v-if="result.status === 0" class="size-3.5" />
-              <CircleCheck v-else-if="result.ok" class="size-3.5" />
-              <CircleX v-else class="size-3.5" />
+              <WifiOff
+                v-if="result.status === 0" aria-hidden="true" class="size-3.5"
+              />
+              <CircleCheck
+                v-else-if="result.ok" aria-hidden="true" class="size-3.5"
+              />
+              <CircleX v-else aria-hidden="true" class="size-3.5" />
               {{ $t(resultLabel(result)) }}
             </Badge>
           </TableCell>
@@ -94,24 +98,30 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
                 as="a"
                 variant="outline"
                 size="sm"
+                class="
+                  min-h-11
+                  sm:min-h-8
+                "
                 :href="result.url"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Open original link"
               >
-                <ExternalLink class="size-4" />
+                <ExternalLink aria-hidden="true" class="size-4" />
                 {{ $t('check.actions.original') }}
               </Button>
               <Button
                 as="a"
                 variant="outline"
                 size="sm"
+                class="
+                  min-h-11
+                  sm:min-h-8
+                "
                 :href="getDashboardLinkDetailUrl(result.slug)"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Open link detail"
               >
-                <ExternalLink class="size-4" />
+                <ExternalLink aria-hidden="true" class="size-4" />
                 {{ $t('check.actions.detail') }}
               </Button>
             </div>

@@ -5,6 +5,7 @@ import { IMAGE_ALLOWED_TYPES, IMAGE_MAX_SIZE } from '@/utils/image'
 
 const props = defineProps<{
   slug: string
+  inputId: string
 }>()
 
 const imageUrl = defineModel<string>()
@@ -16,6 +17,9 @@ const dragOver = ref(false)
 const fileInput = useTemplateRef<HTMLInputElement>('fileInput')
 
 async function handleFile(file: File) {
+  if (uploading.value)
+    return
+
   if (!canUpload.value) {
     toast.error(t('links.form.slug_required'))
     return
@@ -92,12 +96,23 @@ function openFilePicker() {
 
 <template>
   <div class="space-y-2">
+    <input
+      :id="inputId"
+      ref="fileInput"
+      type="file"
+      accept="image/jpeg,image/png,image/webp,image/gif"
+      class="hidden"
+      :disabled="!canUpload || uploading"
+      @change="onFileChange"
+    >
     <AspectRatio
       v-if="!imageUrl"
       :ratio="1200 / 630"
       class="
         relative flex cursor-pointer items-center justify-center rounded-md
-        border-2 border-dashed transition-colors
+        border-2 border-dashed transition-colors outline-none
+        focus-visible:border-ring focus-visible:ring-3
+        focus-visible:ring-ring/50
       "
       :class="[
         !canUpload ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
@@ -106,24 +121,29 @@ function openFilePicker() {
           hover:border-primary/50
         `,
       ]"
+      role="button"
+      :tabindex="canUpload && !uploading ? 0 : -1"
+      :aria-disabled="!canUpload || uploading"
+      :aria-busy="uploading"
+      :aria-label="canUpload ? $t('links.form.image_upload_hint') : $t('links.form.slug_required')"
       @click="canUpload && openFilePicker()"
+      @keydown.enter.prevent="canUpload && !uploading && openFilePicker()"
+      @keydown.space.prevent="canUpload && !uploading && openFilePicker()"
       @drop.prevent="onDrop"
       @dragover.prevent="onDragOver"
       @dragleave="onDragLeave"
     >
       <div class="flex flex-col items-center gap-1 text-muted-foreground">
-        <Loader2 v-if="uploading" class="size-8 animate-spin" />
+        <Loader2
+          v-if="uploading" class="
+            size-8
+            motion-safe:animate-spin
+          "
+        />
         <ImagePlus v-else class="size-8" />
         <span class="text-sm">{{ canUpload ? $t('links.form.image_upload_hint') : $t('links.form.slug_required') }}</span>
         <span v-if="canUpload" class="text-xs opacity-60">{{ $t('links.form.image_ratio_hint') }}</span>
       </div>
-      <input
-        ref="fileInput"
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        class="hidden"
-        @change="onFileChange"
-      >
     </AspectRatio>
 
     <AspectRatio v-else :ratio="1200 / 630" class="relative">
@@ -136,7 +156,11 @@ function openFilePicker() {
         type="button"
         variant="destructive"
         size="icon"
-        class="absolute top-2 right-2 size-6"
+        class="
+          absolute top-2 right-2 size-11
+          sm:size-9
+        "
+        :aria-label="`${$t('common.delete')}: ${$t('links.form.image_preview')}`"
         @click="clearImage"
       >
         <X class="size-4" />

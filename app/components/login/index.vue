@@ -7,8 +7,8 @@ const { t } = useI18n()
 const { previewMode } = useRuntimeConfig().public
 const { setToken, removeToken } = useAuthToken()
 
-const token = ref('')
-const error = ref('')
+const token = shallowRef('')
+const error = shallowRef('')
 
 const LoginSchema = z.object({
   token: z.string().min(1),
@@ -41,8 +41,10 @@ async function handleSubmit() {
 <template>
   <Card class="w-full max-w-sm">
     <CardHeader>
-      <CardTitle class="text-2xl">
-        {{ $t('login.title') }}
+      <CardTitle>
+        <h1 class="text-2xl font-medium text-balance">
+          {{ $t('login.title') }}
+        </h1>
       </CardTitle>
       <CardDescription>
         {{ $t('login.description') }}
@@ -50,14 +52,13 @@ async function handleSubmit() {
     </CardHeader>
     <CardContent class="grid gap-4">
       <form class="space-y-6" @submit.prevent="handleSubmit">
-        <!-- Hidden username field for password managers -->
         <Input
           type="text"
           name="username"
           autocomplete="username"
           value="root"
           readonly
-          class="sr-only"
+          class="sr-only size-px min-h-px min-w-px p-0"
           tabindex="-1"
           aria-hidden="true"
         />
@@ -74,21 +75,33 @@ async function handleSubmit() {
               autocomplete="current-password"
               placeholder="********"
               :aria-invalid="!!error"
+              :aria-describedby="error ? 'token-error' : undefined"
+              autocapitalize="none"
+              spellcheck="false"
             />
-            <FieldError v-if="error" :errors="[error]" />
+            <FieldError v-if="error" id="token-error" :errors="[error]" />
           </Field>
         </FieldGroup>
 
         <Alert v-if="previewMode">
-          <AlertCircle class="size-4" />
+          <AlertCircle aria-hidden="true" class="size-4" />
           <AlertTitle>{{ $t('login.tips') }}</AlertTitle>
           <AlertDescription>
             {{ $t('login.preview_token') }}
-            <code class="font-mono text-green-500">SinkCool</code>
+            <code
+              class="
+                rounded-md bg-muted px-1.5 py-0.5 font-mono text-foreground
+              "
+            >SinkCool</code>
           </AlertDescription>
         </Alert>
 
-        <Button class="w-full" type="submit">
+        <Button
+          class="
+            min-h-11 w-full
+            lg:min-h-9
+          " type="submit"
+        >
           {{ $t('login.submit') }}
         </Button>
       </form>

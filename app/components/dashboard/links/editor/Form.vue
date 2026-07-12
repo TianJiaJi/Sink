@@ -11,10 +11,12 @@ import { isMaskedLinkPassword } from '#shared/utils/link-password'
 const props = defineProps<{
   link: Partial<DashboardLink>
   isEdit: boolean
+  formId: string
 }>()
 
 const emit = defineEmits<{
-  success: [link: DashboardLink]
+  'success': [link: DashboardLink]
+  'update:submitting': [value: boolean]
 }>()
 
 const { t } = useI18n()
@@ -105,7 +107,10 @@ const form = useForm({
     }
   },
 })
+const isSubmitting = form.useStore(state => state.isSubmitting)
 const tagsInput = useTemplateRef<{ commit: () => boolean }>('tagsInput')
+
+watch(isSubmitting, value => emit('update:submitting', value), { immediate: true })
 
 const validateUrl = makeZodValidator(urlValidator)
 const validateSlug = makeZodValidator(slugValidator)
@@ -212,8 +217,9 @@ defineExpose({ randomSlug })
 
 <template>
   <form
-    id="link-editor-form"
-    class="w-full space-y-4 px-1"
+    :id="formId"
+    class="w-full space-y-6 px-1"
+    :aria-busy="isSubmitting"
     @submit.prevent="submitForm"
   >
     <p
@@ -223,163 +229,175 @@ defineExpose({ randomSlug })
       {{ $t('links.preview_mode_tip') }}
     </p>
 
-    <p
+    <Alert
       v-if="isExpiredLink"
-      class="
-        rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm
-        text-amber-800
-        dark:text-amber-200
-      "
-      role="status"
     >
-      {{ $t('links.form.expired_recovery') }}
-    </p>
+      <AlertDescription>
+        {{ $t('links.form.expired_recovery') }}
+      </AlertDescription>
+    </Alert>
 
-    <FieldGroup>
-      <form.Field
-        v-slot="{ field }"
-        name="url"
-        :validators="{ onBlur: validateUrl, onSubmit: validateUrl }"
-      >
-        <Field :data-invalid="isInvalid(field)">
-          <div class="flex items-center justify-between">
-            <FieldLabel :for="field.name">
-              {{ $t('links.form.url') }}
-            </FieldLabel>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              class="h-6 px-2 text-xs font-medium"
-              aria-label="Open UTM builder"
-              @click="utmBuilderOpen = true"
-            >
-              UTM
-            </Button>
-          </div>
-          <Input
-            :id="field.name"
-            :name="field.name"
-            :model-value="field.state.value"
-            :aria-invalid="getAriaInvalid(field)"
-            placeholder="https://example.com"
-            autocomplete="url"
-            @blur="field.handleBlur"
-            @input="field.handleChange(($event.target as HTMLInputElement).value)"
-          />
-          <FieldDescription
-            v-if="!isInvalid(field) && duplicateLink"
-            class="flex items-center gap-2"
-          >
-            <span>{{ $t('links.form.duplicate_url_hint', { shortLink: shortDuplicateLink }) }}</span>
-            <NuxtLink
-              :to="getDashboardLinkDetailLocation(duplicateLink.slug)"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Open duplicate link details in new tab"
-              class="
-                inline-flex shrink-0 items-center text-primary/80 no-underline
-                hover:text-primary
-              "
-            >
-              <ExternalLink class="size-4" />
-            </NuxtLink>
-          </FieldDescription>
-          <FieldError
-            v-if="isInvalid(field)"
-            :errors="formatErrors(field.state.meta.errors)"
-          />
-        </Field>
-      </form.Field>
-
-      <form.Field
-        v-slot="{ field }"
-        name="slug"
-        :validators="{ onBlur: validateSlug, onSubmit: validateSlug }"
-      >
-        <Field :data-invalid="isInvalid(field)">
-          <div class="flex items-center justify-between">
-            <FieldLabel :for="field.name">
-              {{ $t('links.form.slug') }}
-            </FieldLabel>
-            <div v-if="!isEdit" class="flex space-x-3">
+    <fieldset :disabled="isSubmitting" class="space-y-6">
+      <FieldGroup>
+        <form.Field
+          v-slot="{ field }"
+          name="url"
+          :validators="{ onBlur: validateUrl, onSubmit: validateUrl }"
+        >
+          <Field :data-invalid="isInvalid(field)">
+            <div class="flex items-center justify-between">
+              <FieldLabel :for="`${formId}-${field.name}`">
+                {{ $t('links.form.url') }}
+              </FieldLabel>
               <Button
                 type="button"
                 variant="ghost"
-                size="icon"
-                aria-label="Generate random slug"
-                @click="randomSlug"
+                size="sm"
+                class="
+                  min-h-11 px-3 text-xs font-medium
+                  sm:min-h-8
+                "
+                :aria-label="$t('links.form.utm_builder')"
+                @click="utmBuilderOpen = true"
               >
-                <Shuffle class="size-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label="Generate AI slug"
-                :disabled="aiSlugPending"
-                @click="aiSlug"
-              >
-                <Sparkles
-                  class="size-4"
-                  :class="{ 'animate-bounce': aiSlugPending }"
-                />
+                UTM
               </Button>
             </div>
-          </div>
-          <Input
-            :id="field.name"
-            :name="field.name"
-            :model-value="field.state.value"
-            :disabled="isEdit"
+            <Input
+              :id="`${formId}-${field.name}`"
+              :name="field.name"
+              :model-value="field.state.value"
+              :aria-invalid="getAriaInvalid(field)"
+              placeholder="https://example.com"
+              autocomplete="url"
+              @blur="field.handleBlur"
+              @input="field.handleChange(($event.target as HTMLInputElement).value)"
+            />
+            <FieldDescription
+              v-if="!isInvalid(field) && duplicateLink"
+              class="flex items-center gap-2"
+            >
+              <span>{{ $t('links.form.duplicate_url_hint', { shortLink: shortDuplicateLink }) }}</span>
+              <NuxtLink
+                :to="getDashboardLinkDetailLocation(duplicateLink.slug)"
+                target="_blank"
+                rel="noopener noreferrer"
+                :aria-label="$t('links.form.duplicate_url_hint', { shortLink: shortDuplicateLink })"
+                class="
+                  inline-flex shrink-0 items-center text-primary/80 no-underline
+                  hover:text-primary
+                "
+              >
+                <ExternalLink class="size-4" />
+              </NuxtLink>
+            </FieldDescription>
+            <FieldError
+              v-if="isInvalid(field)"
+              :errors="formatErrors(field.state.meta.errors)"
+            />
+          </Field>
+        </form.Field>
+
+        <form.Field
+          v-slot="{ field }"
+          name="slug"
+          :validators="{ onBlur: validateSlug, onSubmit: validateSlug }"
+        >
+          <Field :data-invalid="isInvalid(field)">
+            <div class="flex items-center justify-between">
+              <FieldLabel :for="`${formId}-${field.name}`">
+                {{ $t('links.form.slug') }}
+              </FieldLabel>
+              <div v-if="!isEdit" class="flex space-x-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  class="
+                    size-11
+                    sm:size-9
+                  "
+                  aria-label="Generate random slug"
+                  @click="randomSlug"
+                >
+                  <Shuffle class="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  class="
+                    size-11
+                    sm:size-9
+                  "
+                  aria-label="Generate AI slug"
+                  :disabled="aiSlugPending"
+                  @click="aiSlug"
+                >
+                  <Sparkles
+                    class="size-4"
+                    :class="{ 'motion-safe:animate-bounce': aiSlugPending }"
+                  />
+                </Button>
+              </div>
+            </div>
+            <Input
+              :id="`${formId}-${field.name}`"
+              :name="field.name"
+              :model-value="field.state.value"
+              :disabled="isEdit"
+              :aria-invalid="getAriaInvalid(field)"
+              placeholder="my-short-link"
+              autocomplete="off"
+              @blur="field.handleBlur"
+              @input="field.handleChange(($event.target as HTMLInputElement).value)"
+            />
+            <FieldError
+              v-if="isInvalid(field)"
+              :errors="formatErrors(field.state.meta.errors)"
+            />
+          </Field>
+        </form.Field>
+
+        <form.Field
+          v-slot="{ field }"
+          name="comment"
+          :validators="{ onBlur: validateComment, onSubmit: validateComment }"
+        >
+          <DashboardLinksEditorFieldTextarea
+            :field="field"
+            :input-id="`${formId}-${field.name}`"
+            :label="$t('links.form.comment')"
+            :invalid="isInvalid(field)"
             :aria-invalid="getAriaInvalid(field)"
-            placeholder="my-short-link"
-            autocomplete="off"
-            @blur="field.handleBlur"
-            @input="field.handleChange(($event.target as HTMLInputElement).value)"
-          />
-          <FieldError
-            v-if="isInvalid(field)"
             :errors="formatErrors(field.state.meta.errors)"
           />
-        </Field>
-      </form.Field>
+        </form.Field>
 
-      <form.Field
-        v-slot="{ field }"
-        name="comment"
-        :validators="{ onBlur: validateComment, onSubmit: validateComment }"
-      >
-        <DashboardLinksEditorFieldTextarea
-          :field="field"
-          :label="$t('links.form.comment')"
-          :invalid="isInvalid(field)"
-          :aria-invalid="getAriaInvalid(field)"
-          :errors="formatErrors(field.state.meta.errors)"
-        />
-      </form.Field>
+        <form.Field v-slot="{ field }" name="tags">
+          <DashboardLinksEditorTagsInput
+            ref="tagsInput"
+            :model-value="field.state.value"
+            @update:model-value="field.handleChange"
+          />
+        </form.Field>
+      </FieldGroup>
 
-      <form.Field v-slot="{ field }" name="tags">
-        <DashboardLinksEditorTagsInput
-          ref="tagsInput"
-          :model-value="field.state.value"
-          @update:model-value="field.handleChange"
-        />
-      </form.Field>
-    </FieldGroup>
-
-    <DashboardLinksEditorAdvanced
-      :form="form"
-      :validate-optional-url="validateOptionalUrl"
-      :is-invalid="isInvalid"
-      :get-aria-invalid="getAriaInvalid"
-      :format-errors="formatErrors"
-      :current-slug="currentSlug"
-    />
+      <DashboardLinksEditorAdvanced
+        :form="form"
+        :id-prefix="formId"
+        :validate-optional-url="validateOptionalUrl"
+        :is-invalid="isInvalid"
+        :get-aria-invalid="getAriaInvalid"
+        :format-errors="formatErrors"
+        :current-slug="currentSlug"
+      />
+    </fieldset>
   </form>
 
   <DashboardLinksEditorUtmBuilder
     v-model:open="utmBuilderOpen"
+    :id-prefix="formId"
     :url="currentUrl"
     @apply="applyUtmUrl"
   />

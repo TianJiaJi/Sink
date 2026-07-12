@@ -14,6 +14,7 @@ const props = defineProps<{
     getFieldValue: (name: keyof LinkFormData) => LinkFormData[keyof LinkFormData]
     setFieldValue: (name: keyof LinkFormData, value: any) => void
   }
+  idPrefix: string
   validateOptionalUrl: (ctx: { value: string }) => string | undefined
   isInvalid: (field: AnyFieldApi) => boolean
   getAriaInvalid: (field: AnyFieldApi) => string | undefined
@@ -105,7 +106,7 @@ async function aiOg() {
         <FieldGroup>
           <props.form.Field v-slot="{ field }" name="redirectWithQuery">
             <DashboardLinksEditorFieldSwitch
-              :id="field.name"
+              :id="`${idPrefix}-${field.name}`"
               :model-value="field.state.value"
               :label="$t('links.form.redirect_with_query_label')"
               :description="$t('links.form.redirect_with_query_description')"
@@ -115,7 +116,7 @@ async function aiOg() {
 
           <props.form.Field v-slot="{ field }" name="cloaking">
             <DashboardLinksEditorFieldSwitch
-              :id="field.name"
+              :id="`${idPrefix}-${field.name}`"
               :model-value="field.state.value"
               :label="$t('links.form.cloaking_label')"
               :description="$t('links.form.cloaking_description')"
@@ -125,7 +126,7 @@ async function aiOg() {
 
           <props.form.Field v-slot="{ field }" name="unsafe">
             <DashboardLinksEditorFieldSwitch
-              :id="field.name"
+              :id="`${idPrefix}-${field.name}`"
               :model-value="field.state.value"
               :label="$t('links.form.unsafe_label')"
               :description="$t('links.form.unsafe_description')"
@@ -135,7 +136,7 @@ async function aiOg() {
 
           <props.form.Field v-slot="{ field }" name="expiration">
             <Field :data-invalid="isInvalid(field)">
-              <FieldLabel :for="field.name">
+              <FieldLabel :for="`${idPrefix}-${field.name}`">
                 {{ $t('links.form.expiration') }}
               </FieldLabel>
               <FieldDescription class="text-xs">
@@ -144,7 +145,7 @@ async function aiOg() {
               <Popover v-model:open="datePickerOpen">
                 <PopoverTrigger as-child>
                   <Button
-                    :id="field.name"
+                    :id="`${idPrefix}-${field.name}`"
                     variant="outline"
                     :class="cn(
                       'w-full justify-start text-left font-normal',
@@ -178,6 +179,10 @@ async function aiOg() {
                 type="button"
                 variant="ghost"
                 size="sm"
+                class="
+                  min-h-11
+                  sm:min-h-8
+                "
                 @click="field.handleChange(undefined)"
               >
                 {{ $t('links.form.clear_expiration') }}
@@ -191,20 +196,19 @@ async function aiOg() {
 
           <props.form.Field v-slot="{ field }" name="password">
             <Field>
-              <FieldLabel :for="field.name">
+              <FieldLabel :for="`${idPrefix}-${field.name}`">
                 {{ $t('links.form.password_label') }}
               </FieldLabel>
               <FieldDescription class="text-xs">
                 {{ $t('links.form.password_description') }}
               </FieldDescription>
               <Input
-                :id="field.name"
+                :id="`${idPrefix}-${field.name}`"
                 :name="field.name"
                 :model-value="formatPasswordDisplay(field.state.value)"
                 :placeholder="$t('links.form.password_placeholder')"
                 :type="isMaskedLinkPassword(field.state.value) ? 'text' : 'password'"
                 autocomplete="off"
-                class="mt-1.5"
                 @blur="field.handleBlur"
                 @input="field.handleChange(($event.target as HTMLInputElement).value)"
               />
@@ -223,26 +227,29 @@ async function aiOg() {
           <props.form.Field v-slot="{ field }" name="title">
             <Field>
               <div class="flex items-center justify-between">
-                <FieldLabel :for="field.name">
+                <FieldLabel :for="`${idPrefix}-${field.name}`">
                   {{ $t('links.form.og_title') }}
                 </FieldLabel>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  class="size-auto p-0"
+                  class="
+                    size-11
+                    sm:size-9
+                  "
                   :aria-label="$t('links.form.ai_og_generate')"
                   :disabled="aiOgPending"
                   @click="aiOg"
                 >
                   <Sparkles
                     class="size-4"
-                    :class="{ 'animate-bounce': aiOgPending }"
+                    :class="{ 'motion-safe:animate-bounce': aiOgPending }"
                   />
                 </Button>
               </div>
               <Input
-                :id="field.name"
+                :id="`${idPrefix}-${field.name}`"
                 :name="field.name"
                 :model-value="field.state.value"
                 :placeholder="$t('links.form.og_title_placeholder')"
@@ -255,6 +262,7 @@ async function aiOg() {
           <props.form.Field v-slot="{ field }" name="description">
             <DashboardLinksEditorFieldTextarea
               :field="field"
+              :input-id="`${idPrefix}-${field.name}`"
               :label="$t('links.form.og_description')"
               :placeholder="$t('links.form.og_description_placeholder')"
             />
@@ -262,12 +270,13 @@ async function aiOg() {
 
           <props.form.Field v-slot="{ field }" name="image">
             <Field>
-              <FieldLabel :for="field.name">
+              <FieldLabel :for="`${idPrefix}-${field.name}`">
                 {{ $t('links.form.og_image') }}
               </FieldLabel>
               <DashboardLinksEditorImageUploader
                 :model-value="field.state.value"
                 :slug="currentSlug"
+                :input-id="`${idPrefix}-${field.name}`"
                 @update:model-value="field.handleChange($event || '')"
               />
             </Field>
@@ -289,6 +298,7 @@ async function aiOg() {
           >
             <DashboardLinksEditorFieldInput
               :field="field"
+              :input-id="`${idPrefix}-${field.name}`"
               :label="$t('links.form.google_play')"
               placeholder="https://play.google.com/store/apps/…"
               autocomplete="off"
@@ -305,6 +315,7 @@ async function aiOg() {
           >
             <DashboardLinksEditorFieldInput
               :field="field"
+              :input-id="`${idPrefix}-${field.name}`"
               :label="$t('links.form.app_store')"
               placeholder="https://apps.apple.com/app/…"
               autocomplete="off"
@@ -337,7 +348,13 @@ async function aiOg() {
                     sm:w-56
                   "
                 >
+                  <FieldLabel
+                    :for="`${idPrefix}-geo-country-${i}`" class="sr-only"
+                  >
+                    {{ $t('links.form.select_country') }}
+                  </FieldLabel>
                   <DashboardLinksEditorCountrySelect
+                    :id="`${idPrefix}-geo-country-${i}`"
                     :model-value="item.country"
                     :placeholder="$t('links.form.select_country')"
                     :search-placeholder="$t('links.form.search_country')"
@@ -346,14 +363,28 @@ async function aiOg() {
                   />
                 </Field>
                 <Field class="flex-1">
+                  <FieldLabel :for="`${idPrefix}-geo-url-${i}`" class="sr-only">
+                    {{ $t('links.form.url') }}
+                  </FieldLabel>
                   <Input
+                    :id="`${idPrefix}-geo-url-${i}`"
                     :model-value="item.url"
                     placeholder="https://..."
                     autocomplete="url"
                     @input="field.handleChange(updateGeoRoute(field.state.value, i, { url: ($event.target as HTMLInputElement).value }))"
                   />
                 </Field>
-                <Button type="button" variant="ghost" size="icon" @click="field.handleChange(removeGeoRoute(field.state.value, i))">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  class="
+                    size-11
+                    sm:size-9
+                  "
+                  :aria-label="$t('common.delete')"
+                  @click="field.handleChange(removeGeoRoute(field.state.value, i))"
+                >
                   <Trash2 class="size-4 text-muted-foreground" />
                 </Button>
               </div>

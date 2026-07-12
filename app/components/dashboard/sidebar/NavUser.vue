@@ -47,7 +47,10 @@ function logOut() {
         <DropdownMenuTrigger as-child>
           <SidebarMenuButton
             size="lg"
+            :aria-label="user.name"
             class="
+              min-h-11
+              focus-visible:ring-3 focus-visible:ring-sidebar-ring/50
               data-[state=open]:bg-sidebar-accent
               data-[state=open]:text-sidebar-accent-foreground
             "
@@ -62,7 +65,7 @@ function logOut() {
               <span class="truncate font-medium">{{ user.name }}</span>
               <span class="truncate text-xs">{{ user.email }}</span>
             </div>
-            <ChevronsUpDown class="ml-auto size-4" />
+            <ChevronsUpDown aria-hidden="true" class="ml-auto size-4" />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -89,10 +92,11 @@ function logOut() {
           <AlertDialog>
             <AlertDialogTrigger as-child>
               <DropdownMenuItem
-                class="cursor-pointer"
+                variant="destructive"
+                class="min-h-11 cursor-pointer"
                 @select.prevent
               >
-                <LogOut class="mr-2 size-4" />
+                <LogOut aria-hidden="true" class="mr-2 size-4" />
                 {{ $t('logout.action') }}
               </DropdownMenuItem>
             </AlertDialogTrigger>
@@ -110,7 +114,7 @@ function logOut() {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>{{ $t('common.cancel') }}</AlertDialogCancel>
-                <AlertDialogAction @click="logOut">
+                <AlertDialogAction variant="destructive" @click="logOut">
                   {{ $t('logout.action') }}
                 </AlertDialogAction>
               </AlertDialogFooter>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useMediaQuery } from '@vueuse/core'
 import { parseQuery, parseURL, withQuery } from 'ufo'
 import { toast } from 'vue-sonner'
 import { LinkSchema } from '#shared/schemas/link'
@@ -13,6 +14,7 @@ interface UtmFormValues {
 
 const props = defineProps<{
   url: string
+  idPrefix: string
 }>()
 
 const emit = defineEmits<{
@@ -22,6 +24,7 @@ const emit = defineEmits<{
 const open = defineModel<boolean>('open', { default: false })
 
 const { t } = useI18n()
+const isDesktop = useMediaQuery('(min-width: 640px)')
 
 const urlValidator = LinkSchema.shape.url
 const utmValues = reactive<UtmFormValues>(createEmptyUtmValues())
@@ -138,24 +141,24 @@ function applyBuilder() {
           "
         >
           <Field>
-            <FieldLabel for="utm-source">
+            <FieldLabel :for="`${idPrefix}-utm-source`">
               {{ $t('links.form.utm_source') }}
             </FieldLabel>
             <Input
-              id="utm-source"
+              :id="`${idPrefix}-utm-source`"
               v-model="utmValues.source"
-              autofocus
+              :autofocus="isDesktop"
               placeholder="newsletter"
               autocomplete="off"
             />
           </Field>
 
           <Field>
-            <FieldLabel for="utm-medium">
+            <FieldLabel :for="`${idPrefix}-utm-medium`">
               {{ $t('links.form.utm_medium') }}
             </FieldLabel>
             <Input
-              id="utm-medium"
+              :id="`${idPrefix}-utm-medium`"
               v-model="utmValues.medium"
               placeholder="email"
               autocomplete="off"
@@ -164,11 +167,11 @@ function applyBuilder() {
         </div>
 
         <Field>
-          <FieldLabel for="utm-campaign">
+          <FieldLabel :for="`${idPrefix}-utm-campaign`">
             {{ $t('links.form.utm_campaign') }}
           </FieldLabel>
           <Input
-            id="utm-campaign"
+            :id="`${idPrefix}-utm-campaign`"
             v-model="utmValues.campaign"
             placeholder="spring_sale"
             autocomplete="off"
@@ -182,11 +185,11 @@ function applyBuilder() {
           "
         >
           <Field>
-            <FieldLabel for="utm-term">
+            <FieldLabel :for="`${idPrefix}-utm-term`">
               {{ $t('links.form.utm_term') }}
             </FieldLabel>
             <Input
-              id="utm-term"
+              :id="`${idPrefix}-utm-term`"
               v-model="utmValues.term"
               placeholder="running-shoes"
               autocomplete="off"
@@ -194,11 +197,11 @@ function applyBuilder() {
           </Field>
 
           <Field>
-            <FieldLabel for="utm-content">
+            <FieldLabel :for="`${idPrefix}-utm-content`">
               {{ $t('links.form.utm_content') }}
             </FieldLabel>
             <Input
-              id="utm-content"
+              :id="`${idPrefix}-utm-content`"
               v-model="utmValues.content"
               placeholder="hero_button"
               autocomplete="off"

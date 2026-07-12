@@ -67,7 +67,7 @@ async function handleFile(file: File) {
         return `${path}: ${err.message}`
       })
       if (result.error.issues.length > 10) {
-        errors.push(`... and ${result.error.issues.length - 10} more errors`)
+        errors.push(`… (+${result.error.issues.length - 10})`)
       }
       validationErrors.value = errors
       parseError.value = t('migrate.import.errors.invalid_format')
@@ -224,37 +224,49 @@ function reset() {
     </CardHeader>
     <CardContent class="space-y-4">
       <div v-if="!parsedData && !parseError && !importResult">
+        <FieldLabel for="links-import-file" class="mb-2">
+          {{ $t('migrate.import.dropzone') }}
+        </FieldLabel>
         <Input
+          id="links-import-file"
           ref="fileInput"
+          name="links-import-file"
           type="file"
           accept=".json"
-          class="cursor-pointer"
+          class="
+            min-h-11 cursor-pointer
+            lg:min-h-9
+          "
           @change="handleFileSelect"
         />
       </div>
 
-      <div
-        v-if="parseError" class="
-          rounded-lg border border-destructive/50 bg-destructive/10 p-4
-        "
-      >
-        <div class="flex items-center gap-2 text-destructive">
-          <AlertCircle class="size-5" />
-          <span class="font-medium">{{ parseError }}</span>
-        </div>
-        <div v-if="validationErrors.length > 0" class="mt-2 space-y-1">
-          <p
-            v-for="(error, index) in validationErrors"
-            :key="index"
-            class="font-mono text-sm text-destructive/80"
+      <Alert v-if="parseError" variant="destructive">
+        <AlertCircle aria-hidden="true" />
+        <AlertTitle>{{ parseError }}</AlertTitle>
+        <AlertDescription>
+          <div v-if="validationErrors.length > 0" class="mt-2 space-y-1">
+            <p
+              v-for="(error, index) in validationErrors"
+              :key="index"
+              class="font-mono text-sm"
+            >
+              {{ error }}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            class="
+              mt-3 min-h-11
+              lg:min-h-8
+            "
+            @click="reset"
           >
-            {{ error }}
-          </p>
-        </div>
-        <Button variant="outline" size="sm" class="mt-3" @click="reset">
-          {{ $t('common.try_again') }}
-        </Button>
-      </div>
+            {{ $t('common.try_again') }}
+          </Button>
+        </AlertDescription>
+      </Alert>
 
       <div v-if="parsedData && !importResult" class="space-y-4">
         <div class="rounded-lg border bg-muted/30 p-4">
@@ -267,77 +279,116 @@ function reset() {
                 {{ parsedData.links.length }} {{ $t('migrate.import.links_found') }}
               </p>
             </div>
-            <Button variant="ghost" size="sm" @click="reset">
-              <XCircle class="size-4" />
+            <Button
+              variant="ghost"
+              size="icon"
+              class="
+                min-h-11 min-w-11
+                lg:min-h-9 lg:min-w-9
+              "
+              :aria-label="$t('migrate.import.import_more')"
+              @click="reset"
+            >
+              <XCircle aria-hidden="true" class="size-4" />
             </Button>
           </div>
         </div>
 
-        <div v-if="isImporting" class="space-y-2">
+        <div v-if="isImporting" class="space-y-2" role="status" aria-live="polite">
           <div class="flex items-center justify-between text-sm">
             <span>{{ $t('migrate.import.importing') }}</span>
             <span>{{ importProgress }}%</span>
           </div>
-          <Progress :model-value="importProgress" />
+          <Progress
+            :model-value="importProgress"
+            :aria-label="$t('migrate.import.importing')"
+            :aria-valuetext="`${importProgress}%`"
+          />
         </div>
 
         <Button
           v-else
-          class="w-full"
+          class="
+            min-h-11 w-full
+            lg:min-h-9
+          "
           @click="handleImport"
         >
-          <Upload class="mr-2 size-4" />
+          <Upload aria-hidden="true" class="mr-2 size-4" />
           {{ $t('migrate.import.button') }}
         </Button>
       </div>
 
       <div v-if="importResult" class="space-y-4">
-        <div class="rounded-lg border bg-muted/30 p-4">
-          <h4 class="mb-3 font-medium">
+        <Alert role="status">
+          <AlertTitle>
             {{ $t('migrate.import.result.title') }}
-          </h4>
-          <div class="space-y-2">
-            <div class="flex items-center gap-2 text-sm">
-              <CheckCircle class="size-4 text-green-500" />
-              <span>{{ $t('migrate.import.result.success') }}: {{ importResult.success }}</span>
+          </AlertTitle>
+          <AlertDescription>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2 text-sm">
+                <CheckCircle aria-hidden="true" class="size-4" />
+                <span>{{ $t('migrate.import.result.success') }}: {{ importResult.success }}</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                <SkipForward
+                  aria-hidden="true" class="size-4 text-muted-foreground"
+                />
+                <span>{{ $t('migrate.import.result.skipped') }}: {{ importResult.skipped }}</span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-destructive">
+                <XCircle aria-hidden="true" class="size-4 text-destructive" />
+                <span>{{ $t('migrate.import.result.failed') }}: {{ importResult.failed }}</span>
+              </div>
             </div>
-            <div class="flex items-center gap-2 text-sm">
-              <SkipForward class="size-4 text-yellow-500" />
-              <span>{{ $t('migrate.import.result.skipped') }}: {{ importResult.skipped }}</span>
-            </div>
-            <div class="flex items-center gap-2 text-sm">
-              <XCircle class="size-4 text-red-500" />
-              <span>{{ $t('migrate.import.result.failed') }}: {{ importResult.failed }}</span>
-            </div>
-          </div>
-        </div>
+          </AlertDescription>
+        </Alert>
 
         <div class="flex flex-wrap gap-2">
-          <Button variant="outline" @click="reset">
+          <Button
+            variant="outline"
+            class="
+              min-h-11
+              lg:min-h-9
+            "
+            @click="reset"
+          >
             {{ $t('migrate.import.import_more') }}
           </Button>
           <Button
             v-if="importResult.success > 0"
             variant="default"
+            class="
+              min-h-11
+              lg:min-h-9
+            "
             @click="downloadSuccessItems"
           >
-            <Download class="mr-2 size-4" />
+            <Download aria-hidden="true" class="mr-2 size-4" />
             {{ $t('migrate.import.download_success') }}
           </Button>
           <Button
             v-if="importResult.skipped > 0"
             variant="secondary"
+            class="
+              min-h-11
+              lg:min-h-9
+            "
             @click="downloadSkippedItems"
           >
-            <Download class="mr-2 size-4" />
+            <Download aria-hidden="true" class="mr-2 size-4" />
             {{ $t('migrate.import.download_skipped') }}
           </Button>
           <Button
             v-if="importResult.failed > 0"
-            variant="destructive"
+            variant="outline"
+            class="
+              min-h-11
+              lg:min-h-9
+            "
             @click="downloadFailedItems"
           >
-            <Download class="mr-2 size-4" />
+            <Download aria-hidden="true" class="mr-2 size-4" />
             {{ $t('migrate.import.download_failed') }}
           </Button>
         </div>

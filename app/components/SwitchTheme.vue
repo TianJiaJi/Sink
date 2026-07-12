@@ -27,7 +27,6 @@ const colorMode = useColorMode()
     </DropdownMenuTrigger>
     <DropdownMenuContent
       align="end"
-      class="min-w-min"
     >
       <DropdownMenuItem
         class="cursor-pointer"

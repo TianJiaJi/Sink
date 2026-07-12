@@ -10,14 +10,19 @@ const defaultData: CounterData = Object.freeze({
 })
 
 const counters = ref<CounterData>(defaultData)
+const loading = shallowRef(false)
+const error = shallowRef(false)
+const hasLoaded = shallowRef(false)
+const retryKey = shallowRef(0)
 
 const id = inject(LINK_ID_KEY, computed(() => undefined))
 const analysisStore = useDashboardAnalysisStore()
 
-watch([() => analysisStore.dateRange, () => analysisStore.filters], async (_values, _oldValues, onCleanup) => {
+watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], async (_values, _oldValues, onCleanup) => {
   const controller = new AbortController()
   onCleanup(() => controller.abort())
-  counters.value = defaultData
+  loading.value = true
+  error.value = false
   try {
     const result = await useAPI<{ data: CounterData[] }>('/api/stats/counters', {
       signal: controller.signal,
@@ -28,18 +33,42 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters], async (_valu
         endAt: analysisStore.dateRange.endAt,
       },
     })
-    if (!controller.signal.aborted)
+    if (!controller.signal.aborted) {
       counters.value = result.data?.[0] ?? defaultData
+      hasLoaded.value = true
+    }
   }
-  catch (error) {
+  catch {
     if (!controller.signal.aborted)
-      console.error(error)
+      error.value = true
+  }
+  finally {
+    if (!controller.signal.aborted)
+      loading.value = false
   }
 }, { deep: true, immediate: true })
 </script>
 
 <template>
+  <Alert v-if="error" variant="destructive">
+    <AlertTitle>{{ $t('dashboard.realtime.stats_error') }}</AlertTitle>
+    <AlertDescription>
+      <Button
+        type="button"
+        variant="link"
+        class="
+          h-11 px-3 text-destructive
+          lg:h-auto lg:min-h-0 lg:p-0
+        "
+        @click="retryKey++"
+      >
+        {{ $t('common.try_again') }}
+      </Button>
+    </AlertDescription>
+  </Alert>
   <div
+    v-else
+    :aria-busy="loading"
     class="
       grid gap-4
       sm:grid-cols-3 sm:gap-3
@@ -58,7 +87,8 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters], async (_valu
         />
       </CardHeader>
       <CardContent>
-        <NumberFlow class="text-2xl font-bold tabular-nums" :class="{ 'opacity-60 blur-md': !counters.visits }" :value="counters.visits" />
+        <Skeleton v-if="loading && !hasLoaded" class="h-8 w-20" />
+        <NumberFlow v-else class="text-2xl font-bold tabular-nums" :value="counters.visits" />
       </CardContent>
     </Card>
     <Card class="gap-0">
@@ -71,7 +101,8 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters], async (_valu
         <Users aria-hidden="true" class="size-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <NumberFlow class="text-2xl font-bold tabular-nums" :class="{ 'opacity-60 blur-md': !counters.visitors }" :value="counters.visitors" />
+        <Skeleton v-if="loading && !hasLoaded" class="h-8 w-20" />
+        <NumberFlow v-else class="text-2xl font-bold tabular-nums" :value="counters.visitors" />
       </CardContent>
     </Card>
     <Card class="gap-0">
@@ -84,7 +115,8 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters], async (_valu
         <Flame aria-hidden="true" class="size-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <NumberFlow class="text-2xl font-bold tabular-nums" :class="{ 'opacity-60 blur-md': !counters.referers }" :value="counters.referers" />
+        <Skeleton v-if="loading && !hasLoaded" class="h-8 w-20" />
+        <NumberFlow v-else class="text-2xl font-bold tabular-nums" :value="counters.referers" />
       </CardContent>
     </Card>
   </div>

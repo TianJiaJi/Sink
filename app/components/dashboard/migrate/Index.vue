@@ -51,20 +51,50 @@ watch(
 <template>
   <Tabs v-model="activeTab" default-value="links-export" class="min-w-0">
     <div class="max-w-full overflow-x-auto pb-1">
-      <TabsList class="min-w-max">
-        <TabsTrigger value="links-export">
+      <TabsList
+        class="
+          h-auto min-h-11 min-w-max
+          lg:h-9 lg:min-h-0
+        "
+      >
+        <TabsTrigger
+          value="links-export" class="
+            min-h-11
+            lg:min-h-0
+          "
+        >
           {{ $t('migrate.export.title') }}
         </TabsTrigger>
-        <TabsTrigger value="links-import">
+        <TabsTrigger
+          value="links-import" class="
+            min-h-11
+            lg:min-h-0
+          "
+        >
           {{ $t('migrate.import.title') }}
         </TabsTrigger>
-        <TabsTrigger value="access-export">
+        <TabsTrigger
+          value="access-export" class="
+            min-h-11
+            lg:min-h-0
+          "
+        >
           {{ $t('migrate.access_export.title') }}
         </TabsTrigger>
-        <TabsTrigger value="backup">
+        <TabsTrigger
+          value="backup" class="
+            min-h-11
+            lg:min-h-0
+          "
+        >
           {{ $t('migrate.backup.title') }}
         </TabsTrigger>
-        <TabsTrigger value="d1">
+        <TabsTrigger
+          value="d1" class="
+            min-h-11
+            lg:min-h-0
+          "
+        >
           {{ $t('migrate.d1.title') }}
         </TabsTrigger>
       </TabsList>

@@ -12,7 +12,7 @@ function handleFilterChange(type: string, value: string) {
 </script>
 
 <template>
-  <div
+  <main
     class="
       w-full
       lg:h-full lg:overflow-hidden
@@ -23,16 +23,10 @@ function handleFilterChange(type: string, value: string) {
     </h1>
 
     <Teleport to="#dashboard-header-actions" defer>
-      <div
-        class="
-          flex-1
-          sm:hidden
-        "
-      />
       <DashboardTimePicker />
       <DashboardFilters :filters="realtimeStore.filters" @change="handleFilterChange" />
     </Teleport>
 
     <DashboardRealtime />
-  </div>
+  </main>
 </template>

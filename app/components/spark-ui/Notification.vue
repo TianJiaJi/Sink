@@ -6,7 +6,6 @@ const props = defineProps<{
   class?: string
   description: string
   icon?: string
-  color?: string
   time: number
 }>()
 
@@ -19,7 +18,7 @@ const dateTime = computed(() => new Date(props.time * 1000).toISOString())
   <article
     :class="cn(
       `
-        relative mx-auto my-1 min-h-fit w-full rounded-2xl border border-border
+        relative mx-auto my-1 min-h-fit w-full rounded-lg border border-border
         bg-card text-card-foreground shadow-sm
       `,
       props.class,
@@ -27,8 +26,10 @@ const dateTime = computed(() => new Date(props.time * 1000).toISOString())
   >
     <div class="flex flex-row items-center gap-2 p-2">
       <div
-        class="flex size-10 shrink-0 items-center justify-center rounded-2xl"
-        :style="{ backgroundColor: props.color || 'transparent' }"
+        class="
+          flex size-10 shrink-0 items-center justify-center rounded-md
+          bg-secondary text-secondary-foreground
+        "
       >
         <span aria-hidden="true" class="text-lg">{{ props.icon }}</span>
       </div>
@@ -39,7 +40,7 @@ const dateTime = computed(() => new Date(props.time * 1000).toISOString())
           <span
             :title="props.name"
             class="
-              min-w-0 truncate text-sm text-foreground
+              min-w-0 truncate text-sm text-card-foreground
               sm:text-lg
             "
           >{{ props.name }}</span>
@@ -51,7 +52,11 @@ const dateTime = computed(() => new Date(props.time * 1000).toISOString())
             {{ shortTime(props.time, locale) }}
           </time>
         </div>
-        <p class="text-sm font-normal wrap-break-word text-muted-foreground">
+        <p
+          v-if="props.description" class="
+            text-sm font-normal wrap-break-word text-muted-foreground
+          "
+        >
           {{ props.description }}
         </p>
       </div>

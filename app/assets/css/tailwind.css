@@ -45,6 +45,7 @@
 }
 
 :root {
+  color-scheme: light;
   --radius: 0.625rem;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
@@ -80,6 +81,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
@@ -137,6 +139,15 @@
     @apply cursor-pointer;
   }
 
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role='button'] {
+    touch-action: manipulation;
+  }
+
   ::-webkit-scrollbar {
     width: 5px;
   }
@@ -146,5 +157,16 @@
   ::-webkit-scrollbar-thumb {
     background: var(--border);
     border-radius: 5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

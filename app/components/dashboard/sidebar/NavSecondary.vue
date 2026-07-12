@@ -28,14 +28,16 @@ const { hasUpdate, currentVersion, latestVersion } = useVersionCheck()
                     <a
                       :href="coffee"
                       target="_blank"
-                      :title="$t('sidebar.coffee')"
+                      rel="noopener noreferrer"
+                      :aria-label="$t('sidebar.coffee')"
                       class="
-                        flex h-8 items-center justify-center rounded-md px-2
+                        flex size-11 items-center justify-center rounded-md
                         hover:bg-sidebar-accent
                         hover:text-sidebar-accent-foreground
+                        focus-visible:ring-3 focus-visible:ring-sidebar-ring/50
                       "
                     >
-                      <Coffee class="size-4" />
+                      <Coffee aria-hidden="true" class="size-4" />
                     </a>
                   </TooltipTrigger>
                   <TooltipContent :side="state === 'collapsed' ? 'right' : 'top'">
@@ -50,18 +52,22 @@ const { hasUpdate, currentVersion, latestVersion } = useVersionCheck()
                     <a
                       href="https://github.com/ccbikai/Sink/releases"
                       target="_blank"
+                      rel="noopener noreferrer"
+                      :aria-label="$t('sidebar.update', { current: currentVersion, version: latestVersion })"
                       class="
-                        relative flex h-8 items-center justify-center rounded-md
-                        px-2
+                        relative flex size-11 items-center justify-center
+                        rounded-md
                         hover:bg-sidebar-accent
                         hover:text-sidebar-accent-foreground
+                        focus-visible:ring-3 focus-visible:ring-sidebar-ring/50
                       "
                     >
-                      <ArrowUpCircle class="size-4" />
+                      <ArrowUpCircle aria-hidden="true" class="size-4" />
                       <span
                         class="
-                          absolute top-1 right-1 size-2 animate-pulse
-                          rounded-full bg-green-500
+                          absolute top-1.5 right-1.5 size-2 rounded-full
+                          bg-primary
+                          motion-safe:animate-pulse
                         "
                       />
                     </a>
@@ -81,25 +87,26 @@ const { hasUpdate, currentVersion, latestVersion } = useVersionCheck()
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
+                    type="button"
+                    :aria-label="$t('layouts.header.select_language')"
                     class="
-                      flex size-8 items-center justify-center rounded-md
+                      flex size-11 items-center justify-center rounded-md
                       hover:bg-sidebar-accent
                       hover:text-sidebar-accent-foreground
+                      focus-visible:ring-3 focus-visible:ring-sidebar-ring/50
                     "
                   >
-                    <Languages class="size-4" />
-                    <span class="sr-only">{{ $t('layouts.header.select_language') }}</span>
+                    <Languages aria-hidden="true" class="size-4" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   :align="state === 'collapsed' ? 'start' : 'end'"
                   :side="state === 'collapsed' ? 'right' : 'top'"
-                  class="min-w-min"
                 >
                   <DropdownMenuItem
                     v-for="locale in locales"
                     :key="locale.code"
-                    class="cursor-pointer"
+                    class="min-h-11 cursor-pointer"
                     @click="setLocale(locale.code)"
                   >
                     <span class="mr-1">{{ locale.emoji }}</span>
@@ -111,51 +118,54 @@ const { hasUpdate, currentVersion, latestVersion } = useVersionCheck()
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
+                    type="button"
+                    :aria-label="$t('theme.toggle')"
                     class="
-                      flex size-8 items-center justify-center rounded-md
+                      flex size-11 items-center justify-center rounded-md
                       hover:bg-sidebar-accent
                       hover:text-sidebar-accent-foreground
+                      focus-visible:ring-3 focus-visible:ring-sidebar-ring/50
                     "
                   >
                     <Sun
+                      aria-hidden="true"
                       class="
                         size-4
                         dark:hidden
                       "
                     />
                     <Moon
+                      aria-hidden="true"
                       class="
                         hidden size-4
                         dark:block
                       "
                     />
-                    <span class="sr-only">{{ $t('theme.toggle') }}</span>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   :align="state === 'collapsed' ? 'start' : 'end'"
                   :side="state === 'collapsed' ? 'right' : 'top'"
-                  class="min-w-min"
                 >
                   <DropdownMenuItem
-                    class="cursor-pointer"
+                    class="min-h-11 cursor-pointer"
                     @click="colorMode.preference = 'light'"
                   >
-                    <Sun class="mr-1 size-4" />
+                    <Sun aria-hidden="true" class="mr-1 size-4" />
                     {{ $t('theme.light') }}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    class="cursor-pointer"
+                    class="min-h-11 cursor-pointer"
                     @click="colorMode.preference = 'dark'"
                   >
-                    <Moon class="mr-1 size-4" />
+                    <Moon aria-hidden="true" class="mr-1 size-4" />
                     {{ $t('theme.dark') }}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    class="cursor-pointer"
+                    class="min-h-11 cursor-pointer"
                     @click="colorMode.preference = 'system'"
                   >
-                    <Laptop class="mr-1 size-4" />
+                    <Laptop aria-hidden="true" class="mr-1 size-4" />
                     {{ $t('theme.system') }}
                   </DropdownMenuItem>
                 </DropdownMenuContent>

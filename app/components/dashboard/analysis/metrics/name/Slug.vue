@@ -12,8 +12,8 @@ const detailLocation = computed(() => props.name
 <template>
   <NuxtLink
     :to="detailLocation"
-    class="inline-flex w-full items-center justify-start"
+    class="inline-flex w-full min-w-0 items-start justify-start"
   >
-    <span class="w-full truncate">{{ name }}</span>
+    <span class="w-full break-all">{{ name }}</span>
   </NuxtLink>
 </template>

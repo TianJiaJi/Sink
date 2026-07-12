@@ -36,4 +36,12 @@ const reducedMotion = usePreferredReducedMotion()
   opacity: 0;
   transform: translateY(-0.5rem);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  :deep(.list-enter-active),
+  :deep(.list-leave-active),
+  :deep(.list-move) {
+    transition: none;
+  }
+}
 </style>

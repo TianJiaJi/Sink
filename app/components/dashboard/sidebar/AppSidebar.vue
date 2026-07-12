@@ -52,7 +52,12 @@ const settingsItems = computed<NavItem[]>(() => [
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size="lg" as-child>
-            <NuxtLink to="/" :title="title">
+            <NuxtLink
+              to="/" :title="title" class="
+                min-h-11
+                focus-visible:ring-3 focus-visible:ring-sidebar-ring/50
+              "
+            >
               <div
                 class="
                   flex aspect-square size-8 items-center justify-center
@@ -61,7 +66,9 @@ const settingsItems = computed<NavItem[]>(() => [
               >
                 <img
                   src="/sink.png"
-                  :alt="title"
+                  alt=""
+                  width="32"
+                  height="32"
                   class="size-8 rounded-full"
                 >
               </div>

@@ -27,7 +27,7 @@ function closeMobileMenu() {
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col">
+  <div class="flex min-h-svh flex-col overflow-x-clip">
     <a
       href="#main-content"
       class="
@@ -42,7 +42,12 @@ function closeMobileMenu() {
 
     <!-- Header -->
     <header>
-      <div class="fixed z-20 w-full border-b bg-background/50 backdrop-blur-3xl">
+      <div
+        class="
+          fixed z-20 w-full border-b bg-background/80
+          pt-[env(safe-area-inset-top)] text-foreground backdrop-blur-3xl
+        "
+      >
         <div class="mx-auto max-w-6xl px-6">
           <div
             class="
@@ -123,7 +128,10 @@ function closeMobileMenu() {
                   type="button"
                   :aria-label="$t('layouts.header.toggle_menu_aria_label')"
                   class="
-                    -m-2.5 -mr-4 cursor-pointer p-2.5
+                    -mr-2 flex size-11 touch-manipulation items-center
+                    justify-center rounded-xl
+                    hover:bg-muted
+                    focus-visible:ring-2 focus-visible:ring-ring
                     lg:hidden
                   "
                 >
@@ -133,7 +141,10 @@ function closeMobileMenu() {
               <SheetContent
                 side="right"
                 class="
-                  p-0
+                  overscroll-contain p-0
+                  **:data-[slot=sheet-close]:top-[calc(1rem+env(safe-area-inset-top))]
+                  **:data-[slot=sheet-close]:right-2
+                  **:data-[slot=sheet-close]:size-11
                   lg:hidden
                 "
               >
@@ -146,7 +157,14 @@ function closeMobileMenu() {
                   </SheetDescription>
                 </SheetHeader>
 
-                <div class="flex h-full flex-col gap-8 px-6 pt-16 pb-6">
+                <div
+                  class="
+                    flex h-full flex-col gap-8 overflow-y-auto
+                    overscroll-contain px-6
+                    pt-[calc(4.5rem+env(safe-area-inset-top))]
+                    pb-[calc(1.5rem+env(safe-area-inset-bottom))]
+                  "
+                >
                   <nav class="flex flex-col gap-1">
                     <a
                       :href="documentation"
@@ -206,12 +224,20 @@ function closeMobileMenu() {
     </header>
 
     <!-- Main Content -->
-    <main id="main-content" class="flex flex-1 flex-col pt-20">
+    <main
+      id="main-content"
+      class="flex flex-1 flex-col pt-[calc(5rem+env(safe-area-inset-top))]"
+    >
       <slot />
     </main>
 
     <!-- Footer -->
-    <footer class="border-t bg-background py-8">
+    <footer
+      class="
+        border-t bg-background pt-8 pb-[calc(2rem+env(safe-area-inset-bottom))]
+        text-foreground
+      "
+    >
       <div class="mx-auto max-w-6xl px-6">
         <div
           class="
@@ -247,7 +273,12 @@ function closeMobileMenu() {
               </div>
             </NuxtLink>
 
-            <small class="block text-center text-sm text-muted-foreground">
+            <small
+              class="
+                flex flex-wrap items-center justify-center gap-x-1 text-center
+                text-sm text-muted-foreground
+              "
+            >
               &copy; {{ new Date().getFullYear() }}
               <a
                 href="https://html.zone"
@@ -261,7 +292,7 @@ function closeMobileMenu() {
             </small>
           </div>
 
-          <div class="flex justify-center gap-6 text-sm">
+          <div class="flex flex-wrap justify-center gap-2 text-sm">
             <a
               v-if="twitter"
               :href="twitter"
@@ -270,8 +301,10 @@ function closeMobileMenu() {
               :title="$t('layouts.footer.social.twitter')"
               aria-label="Twitter"
               class="
-                block text-muted-foreground
-                hover:text-primary
+                flex size-11 items-center justify-center rounded-xl
+                text-muted-foreground
+                hover:bg-muted hover:text-primary
+                focus-visible:ring-2 focus-visible:ring-ring
               "
             >
               <XIcon class="size-6" aria-hidden="true" />
@@ -284,8 +317,10 @@ function closeMobileMenu() {
               :title="$t('layouts.footer.social.telegram')"
               aria-label="Telegram"
               class="
-                block text-muted-foreground
-                hover:text-primary
+                flex size-11 items-center justify-center rounded-xl
+                text-muted-foreground
+                hover:bg-muted hover:text-primary
+                focus-visible:ring-2 focus-visible:ring-ring
               "
             >
               <TelegramIcon class="size-6" aria-hidden="true" />
@@ -298,8 +333,10 @@ function closeMobileMenu() {
               :title="$t('layouts.footer.social.github')"
               aria-label="GitHub"
               class="
-                block text-muted-foreground
-                hover:text-primary
+                flex size-11 items-center justify-center rounded-xl
+                text-muted-foreground
+                hover:bg-muted hover:text-primary
+                focus-visible:ring-2 focus-visible:ring-ring
               "
             >
               <GitHubIcon class="size-6" aria-hidden="true" />

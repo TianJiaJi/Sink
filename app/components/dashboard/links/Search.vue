@@ -77,12 +77,15 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
   <TriggerTemplate v-slot="attrs">
     <Button
       v-bind="sanitizeSlotAttrs(attrs)"
+      data-link-search-trigger
       variant="outline"
       size="sm"
       class="
-        relative h-9 w-full justify-start bg-background text-muted-foreground
-        sm:w-32
+        relative min-h-11 min-w-0 flex-1 justify-start bg-background
+        text-muted-foreground
+        sm:w-32 sm:flex-none
         md:w-48
+        lg:min-h-9
       "
     >
       <span
@@ -99,9 +102,9 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
       >{{ $t('common.search') }}</span>
       <kbd
         class="
-          pointer-events-none absolute top-2 right-[0.3rem] hidden h-5
-          items-center gap-1 rounded-sm border bg-muted px-1.5 font-mono
-          text-[10px] font-medium opacity-100 select-none
+          pointer-events-none absolute top-1/2 right-[0.3rem] hidden h-5
+          -translate-y-1/2 items-center gap-1 rounded-sm border bg-muted px-1.5
+          font-mono text-[10px] font-medium opacity-100 select-none
           sm:flex
         "
       >
