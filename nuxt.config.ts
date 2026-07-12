@@ -60,6 +60,9 @@ export default defineNuxtConfig({
     '/api/**': {
       cors: process.env.NUXT_API_CORS === 'true',
     },
+    '/_docs/**': {
+      headers: { 'X-Robots-Tag': 'noindex, follow' },
+    },
     '/sphere.bin': {
       headers: { 'Cache-Control': 'public, max-age=2592000, immutable' },
     },
@@ -91,7 +94,7 @@ export default defineNuxtConfig({
       production: 'runtime',
       meta: {
         title: 'Sink API',
-        description: 'A Simple / Speedy / Secure Link Shortener with Analytics, 100% run on Cloudflare.',
+        description: 'A Simple / Speedy / Secure Link Shortener with Analytics, 100% run on Cloudflare.\n\n[Return to this Sink instance](/) · [Read the documentation](https://docs.sink.cool)',
       },
       route: '/_docs/openapi.json',
       ui: {

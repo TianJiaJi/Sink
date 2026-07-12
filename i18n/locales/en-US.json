@@ -47,7 +47,17 @@
       }
     },
     "header": {
-      "select_language": "Select Language"
+      "select_language": "Select Language",
+      "toggle_menu_aria_label": "Toggle menu"
+    },
+    "links": {
+      "documentation": "Documentation",
+      "api_reference": "API Reference",
+      "documentation_aria_label": "Open Sink documentation (opens in a new tab)",
+      "resources_aria_label": "Resources",
+      "skip_to_content": "Skip to content",
+      "home_aria_label": "Home",
+      "github_aria_label": "Sink on GitHub"
     }
   },
   "nav": {

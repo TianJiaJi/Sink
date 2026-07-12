@@ -47,7 +47,17 @@
       }
     },
     "header": {
-      "select_language": "Sprache auswählen"
+      "select_language": "Sprache auswählen",
+      "toggle_menu_aria_label": "Menü ein- oder ausblenden"
+    },
+    "links": {
+      "documentation": "Dokumentation",
+      "api_reference": "API-Referenz",
+      "documentation_aria_label": "Sink-Dokumentation öffnen (wird in einem neuen Tab geöffnet)",
+      "resources_aria_label": "Ressourcen",
+      "skip_to_content": "Zum Hauptinhalt springen",
+      "home_aria_label": "Startseite",
+      "github_aria_label": "Sink auf GitHub"
     }
   },
   "nav": {

@@ -1,15 +1,27 @@
 <script setup lang="ts">
 import NumberFlow from '@number-flow/vue'
-import { Menu, Star, X } from 'lucide-vue-next'
+import { ExternalLink, Menu, Star, X } from 'lucide-vue-next'
 import { GitHubIcon, TelegramIcon, XIcon } from 'vue3-simple-icons'
 
 const showMenu = ref(false)
-const { title, telegram, twitter, github } = useAppConfig()
+const { title, documentation, telegram, twitter, github } = useAppConfig()
 const { rawStats } = useGithubStats()
 </script>
 
 <template>
   <div class="flex min-h-screen flex-col">
+    <a
+      href="#main-content"
+      class="
+        fixed top-4 left-4 z-50 -translate-y-24 rounded-md bg-background px-4
+        py-2 text-sm font-medium shadow-lg
+        focus:translate-y-0
+        focus-visible:ring-2 focus-visible:ring-ring
+      "
+    >
+      {{ $t('layouts.links.skip_to_content') }}
+    </a>
+
     <!-- Header -->
     <header>
       <nav
@@ -32,7 +44,7 @@ const { rawStats } = useGithubStats()
               <NuxtLink
                 to="/"
                 :title="title"
-                aria-label="home"
+                :aria-label="$t('layouts.links.home_aria_label')"
                 class="flex items-center space-x-2"
               >
                 <span
@@ -48,7 +60,7 @@ const { rawStats } = useGithubStats()
               </NuxtLink>
 
               <button
-                aria-label="Toggle Menu"
+                :aria-label="$t('layouts.header.toggle_menu_aria_label')"
                 :aria-expanded="showMenu"
                 aria-controls="mobile-menu"
                 class="
@@ -89,6 +101,46 @@ const { rawStats } = useGithubStats()
             >
               <div
                 class="
+                  flex w-full flex-col gap-1
+                  lg:w-auto lg:flex-row lg:items-center lg:gap-5
+                "
+              >
+                <a
+                  :href="documentation"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  :aria-label="$t('layouts.links.documentation_aria_label')"
+                  class="
+                    flex min-h-11 w-full items-center justify-between gap-2
+                    rounded-xl px-3 text-sm font-medium text-muted-foreground
+                    transition-colors
+                    hover:bg-muted hover:text-foreground
+                    lg:min-h-0 lg:w-auto lg:justify-start lg:rounded-none
+                    lg:px-0
+                    lg:hover:bg-transparent
+                  "
+                  @click="showMenu = false"
+                >
+                  {{ $t('layouts.links.documentation') }}
+                  <ExternalLink class="size-3.5" aria-hidden="true" />
+                </a>
+                <NuxtLink
+                  to="/_docs/scalar"
+                  class="
+                    flex min-h-11 w-full items-center rounded-xl px-3 text-sm
+                    font-medium text-muted-foreground transition-colors
+                    hover:bg-muted hover:text-foreground
+                    lg:min-h-0 lg:w-auto lg:rounded-none lg:px-0
+                    lg:hover:bg-transparent
+                  "
+                  @click="showMenu = false"
+                >
+                  {{ $t('layouts.links.api_reference') }}
+                </NuxtLink>
+              </div>
+
+              <div
+                class="
                   flex w-full flex-col items-center space-y-3
                   sm:flex-row sm:gap-3 sm:space-y-0
                   md:w-fit
@@ -102,7 +154,9 @@ const { rawStats } = useGithubStats()
                   <a
                     :href="github"
                     target="_blank"
+                    rel="noopener noreferrer"
                     :title="$t('layouts.footer.social.github')"
+                    :aria-label="$t('layouts.links.github_aria_label')"
                     class="flex items-center gap-1.5"
                   >
                     <GitHubIcon class="size-4" />
@@ -121,7 +175,7 @@ const { rawStats } = useGithubStats()
     </header>
 
     <!-- Main Content -->
-    <main class="flex flex-1 flex-col pt-20">
+    <main id="main-content" class="flex flex-1 flex-col pt-20">
       <slot />
     </main>
 
@@ -143,7 +197,7 @@ const { rawStats } = useGithubStats()
             <NuxtLink
               to="/"
               :title="title"
-              aria-label="home"
+              :aria-label="$t('layouts.links.home_aria_label')"
               class="block size-fit"
             >
               <div class="flex items-center space-x-2">
@@ -165,6 +219,7 @@ const { rawStats } = useGithubStats()
               <a
                 href="https://html.zone"
                 target="_blank"
+                rel="noopener noreferrer"
                 title="HTML.ZONE"
                 class="hover:text-primary"
               >
@@ -173,49 +228,84 @@ const { rawStats } = useGithubStats()
             </small>
           </div>
 
-          <div class="flex justify-center gap-6 text-sm">
-            <a
-              v-if="twitter"
-              :href="twitter"
-              target="_blank"
-              rel="noopener noreferrer"
-              :title="$t('layouts.footer.social.twitter')"
-              aria-label="Twitter"
-              class="
-                block text-muted-foreground
-                hover:text-primary
-              "
+          <div
+            class="
+              flex flex-col items-center gap-5
+              sm:flex-row sm:gap-6
+            "
+          >
+            <nav
+              :aria-label="$t('layouts.links.resources_aria_label')"
+              class="flex items-center gap-4 text-sm"
             >
-              <XIcon class="size-6" />
-            </a>
-            <a
-              v-if="telegram"
-              :href="telegram"
-              target="_blank"
-              rel="noopener noreferrer"
-              :title="$t('layouts.footer.social.telegram')"
-              aria-label="Telegram"
-              class="
-                block text-muted-foreground
-                hover:text-primary
-              "
-            >
-              <TelegramIcon class="size-6" />
-            </a>
-            <a
-              v-if="github"
-              :href="github"
-              target="_blank"
-              rel="noopener noreferrer"
-              :title="$t('layouts.footer.social.github')"
-              aria-label="GitHub"
-              class="
-                block text-muted-foreground
-                hover:text-primary
-              "
-            >
-              <GitHubIcon class="size-6" />
-            </a>
+              <a
+                :href="documentation"
+                target="_blank"
+                rel="noopener noreferrer"
+                :aria-label="$t('layouts.links.documentation_aria_label')"
+                class="
+                  flex items-center gap-1 text-muted-foreground
+                  hover:text-primary
+                "
+              >
+                {{ $t('layouts.links.documentation') }}
+                <ExternalLink class="size-3.5" aria-hidden="true" />
+              </a>
+              <NuxtLink
+                to="/_docs/scalar"
+                class="
+                  text-muted-foreground
+                  hover:text-primary
+                "
+              >
+                {{ $t('layouts.links.api_reference') }}
+              </NuxtLink>
+            </nav>
+
+            <div class="flex justify-center gap-6 text-sm">
+              <a
+                v-if="twitter"
+                :href="twitter"
+                target="_blank"
+                rel="noopener noreferrer"
+                :title="$t('layouts.footer.social.twitter')"
+                aria-label="Twitter"
+                class="
+                  block text-muted-foreground
+                  hover:text-primary
+                "
+              >
+                <XIcon class="size-6" />
+              </a>
+              <a
+                v-if="telegram"
+                :href="telegram"
+                target="_blank"
+                rel="noopener noreferrer"
+                :title="$t('layouts.footer.social.telegram')"
+                aria-label="Telegram"
+                class="
+                  block text-muted-foreground
+                  hover:text-primary
+                "
+              >
+                <TelegramIcon class="size-6" />
+              </a>
+              <a
+                v-if="github"
+                :href="github"
+                target="_blank"
+                rel="noopener noreferrer"
+                :title="$t('layouts.footer.social.github')"
+                aria-label="GitHub"
+                class="
+                  block text-muted-foreground
+                  hover:text-primary
+                "
+              >
+                <GitHubIcon class="size-6" />
+              </a>
+            </div>
           </div>
         </div>
       </div>
