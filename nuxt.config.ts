@@ -64,7 +64,7 @@ export default defineNuxtConfig({
       headers: { 'X-Robots-Tag': 'noindex, follow' },
     },
     '/sphere.bin': {
-      headers: { 'Cache-Control': 'public, max-age=2592000, immutable' },
+      headers: { 'Cache-Control': 'public, max-age=0, must-revalidate' },
     },
     '/*.json': {
       headers: { 'Cache-Control': 'public, max-age=2592000, immutable' },

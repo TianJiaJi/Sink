@@ -33,7 +33,8 @@ export function useGlobeData() {
   const countryStats = shallowRef<Map<string, number>>(new Map())
   const error = shallowRef(false)
 
-  let requestVersion = 0
+  let initVersion = 0
+  let realtimeVersion = 0
   let initController: AbortController | null = null
   let refreshController: AbortController | null = null
   let disposed = false
@@ -58,7 +59,8 @@ export function useGlobeData() {
     return controller
   }
 
-  const isStale = (version: number, signal: AbortSignal) => disposed || signal.aborted || version !== requestVersion
+  const isInitStale = (version: number, signal: AbortSignal) => disposed || signal.aborted || version !== initVersion
+  const isRealtimeStale = (version: number, signal: AbortSignal) => disposed || signal.aborted || version !== realtimeVersion
 
   async function getGlobeJSON(signal: AbortSignal) {
     return await $fetch<GeoJSONData>('/countries.geojson', { signal })
@@ -128,7 +130,8 @@ export function useGlobeData() {
     refreshController?.abort()
     const controller = createController(signal)
     initController = controller
-    const version = ++requestVersion
+    const version = ++initVersion
+    const snapshotVersion = ++realtimeVersion
     const requestSignal = controller.signal
     error.value = false
 
@@ -140,26 +143,28 @@ export function useGlobeData() {
       getRealtimeSnapshot(requestSignal),
     ])
 
-    if (isStale(version, requestSignal))
+    if (isInitStale(version, requestSignal))
       return
 
     countries.value = nextCountries
     colos.value = nextColos
     currentLocation.value = nextLocation
-    locations.value = nextLocations
-    countryStats.value = nextStats
+    if (!isRealtimeStale(snapshotVersion, requestSignal)) {
+      locations.value = nextLocations
+      countryStats.value = nextStats
+    }
   }
 
   async function refresh() {
     refreshController?.abort()
     const controller = createController()
     refreshController = controller
-    const version = ++requestVersion
+    const version = ++realtimeVersion
     const signal = controller.signal
     try {
       const [nextLocations, nextStats] = await getRealtimeSnapshot(signal)
 
-      if (isStale(version, signal))
+      if (isRealtimeStale(version, signal))
         return
 
       locations.value = nextLocations
@@ -167,7 +172,7 @@ export function useGlobeData() {
       error.value = false
     }
     catch {
-      if (!isStale(version, signal))
+      if (!isRealtimeStale(version, signal))
         error.value = true
     }
   }
@@ -178,7 +183,8 @@ export function useGlobeData() {
 
   function dispose() {
     disposed = true
-    requestVersion++
+    initVersion++
+    realtimeVersion++
     initController?.abort()
     refreshController?.abort()
     initController = null

@@ -185,6 +185,9 @@
       "links_error": "Impossibile caricare i link.",
       "time_range_label": "Seleziona un intervallo di tempo",
       "globe_label": "Globo del traffico in tempo reale",
+      "globe_zoom_out": "Riduci zoom",
+      "globe_reset": "Reimposta",
+      "globe_zoom_in": "Aumenta zoom",
       "globe_instructions": "Trascina per ruotare. Con il focus, usa la rotellina per lo zoom, le frecce per ruotare, +/− per lo zoom, Home per reimpostare ed Escape per uscire dal focus.",
       "globe_fallback": "Il globo interattivo non è disponibile."
     },

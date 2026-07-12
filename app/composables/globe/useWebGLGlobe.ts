@@ -1,7 +1,7 @@
 import type { InertiaState } from './interaction'
 import type { ArcData, RippleData, WebGLGlobeContext } from './types'
 import * as twgl from 'twgl.js'
-import { ref, shallowRef, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { parseColor } from './color'
 import { createArcGeometry, latLngToXYZ } from './geometry'
 import { setupGlobeInteraction } from './interaction'
@@ -31,6 +31,8 @@ function deleteBufferInfo(gl: WebGLRenderingContext, bufferInfo: twgl.BufferInfo
 }
 
 const INTRO_SPIN_DURATION = 1000
+const MAX_ACTIVE_ARCS = 64
+const MAX_ACTIVE_RIPPLES = 96
 
 // Cached MAX_VERTEX_ATTRIBS per WebGL context (WeakMap avoids memory leaks)
 const maxAttribsCache = new WeakMap<WebGLRenderingContext, number>()
@@ -72,6 +74,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   const isAutoRotating = ref(true)
   const isDragging = ref(false)
   const isReady = ref(false)
+  const isSupported = ref(true)
 
   // WebGL state
   let gl: WebGLRenderingContext | null = null
@@ -98,12 +101,16 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   let introStartLat = 0
 
   // Active animations
-  const activeArcs = shallowRef<ArcAnimation[]>([])
-  const activeRipples = shallowRef<RippleAnimation[]>([])
+  let activeArcs: ArcAnimation[] = []
+  let activeRipples: RippleAnimation[] = []
 
   // Reusable ripple buffer
   let rippleBufferInfo: twgl.BufferInfo | null = null
-  const ripplePositionData = new Float32Array(3)
+  const ripplePositionData = new Float32Array(MAX_ACTIVE_RIPPLES * 3)
+  const ripplePointSizeData = new Float32Array(MAX_ACTIVE_RIPPLES)
+  const rippleColorData = new Float32Array(MAX_ACTIVE_RIPPLES * 3)
+  const rippleAlphaData = new Float32Array(MAX_ACTIVE_RIPPLES)
+  const rippleRingWidthData = new Float32Array(MAX_ACTIVE_RIPPLES)
 
   // Sphere geometry (loaded async from prebuilt binary)
   let sphereGeometry: { position: Float32Array, texcoord: Float32Array, indices: Uint16Array } | null = null
@@ -177,13 +184,17 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
 
     gl = canvas.getContext('webgl', { alpha: true, antialias: true })
     if (!gl) {
+      isSupported.value = false
       console.error('WebGL not supported')
       return false
     }
+    isSupported.value = true
 
-    earthProgram = twgl.createProgramInfo(gl, [earthVertexShader, earthFragmentShader])
-    arcProgram = twgl.createProgramInfo(gl, [arcVertexShader, arcFragmentShader])
-    rippleProgram = twgl.createProgramInfo(gl, [rippleVertexShader, rippleFragmentShader])
+    earthProgram = twgl.createProgramInfo(gl, [earthVertexShader, earthFragmentShader]) as twgl.ProgramInfo | null
+    arcProgram = twgl.createProgramInfo(gl, [arcVertexShader, arcFragmentShader]) as twgl.ProgramInfo | null
+    rippleProgram = twgl.createProgramInfo(gl, [rippleVertexShader, rippleFragmentShader]) as twgl.ProgramInfo | null
+    if (!earthProgram || !arcProgram || !rippleProgram)
+      throw new Error('Failed to compile globe shaders')
 
     earthBufferInfo = twgl.createBufferInfoFromArrays(gl, {
       position: { numComponents: 3, data: sphereGeometry.position },
@@ -207,6 +218,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
       isDragging,
       stopAutoRotate,
       resetView,
+      requestRender: startRenderLoop,
       reducedMotion: ctx.reducedMotion,
     }, inertia)
 
@@ -226,14 +238,23 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
 
     const w = ctx.width.value
     const h = ctx.height.value
-    const dpr = window.devicePixelRatio || 1
+    const dpr = Math.min(Math.max(ctx.pixelRatio.value || 1, 1), 2)
+    const maxSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE) as number
+    const targetWidth = Math.max(1, Math.round(w * dpr))
+    const targetHeight = Math.max(1, Math.round(h * dpr))
+    const scale = Math.min(1, maxSize / targetWidth, maxSize / targetHeight)
+    const drawingWidth = Math.max(1, Math.floor(targetWidth * scale))
+    const drawingHeight = Math.max(1, Math.floor(targetHeight * scale))
 
-    canvas.width = w * dpr
-    canvas.height = h * dpr
+    if (canvas.width !== drawingWidth)
+      canvas.width = drawingWidth
+    if (canvas.height !== drawingHeight)
+      canvas.height = drawingHeight
     canvas.style.width = `${w}px`
     canvas.style.height = `${h}px`
 
     gl.viewport(0, 0, canvas.width, canvas.height)
+    startRenderLoop()
   }
 
   async function buildCountryTexture() {
@@ -256,6 +277,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
 
     const currentVersion = ++textureVersion
     lastTextureVersion = currentVersion
+    const textureLifecycle = lifecycleVersion
 
     const countries = ctx.countries.value
     const stats = ctx.countryStats.value
@@ -265,9 +287,6 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     const locs = ctx.locations.value
     const high = ctx.highest.value
     const heatTiers = ctx.heatmapColorTiers.value
-
-    // Keep old texture reference for delayed replacement
-    const oldTexture = countryTexture
 
     const newTexture = await createCountryTexture(
       glContext,
@@ -283,7 +302,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     )
 
     // Guard: gl may have been destroyed during async texture creation
-    if (disposed || gl !== glContext || !isReady.value) {
+    if (disposed || gl !== glContext || !isReady.value || textureLifecycle !== lifecycleVersion) {
       if (newTexture)
         glContext.deleteTexture(newTexture)
       return
@@ -297,10 +316,12 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     }
 
     // Replace texture: assign new first, then delete old (avoids blank frame)
+    const oldTexture = countryTexture
     countryTexture = newTexture
     if (oldTexture && oldTexture !== newTexture) {
       glContext.deleteTexture(oldTexture)
     }
+    startRenderLoop()
   }
 
   async function flushCountryTextureUpdates() {
@@ -369,6 +390,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     if (ctx.reducedMotion.value)
       return
     isAutoRotating.value = true
+    startRenderLoop()
   }
 
   function stopAutoRotate() {
@@ -380,7 +402,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   // ============================================================================
 
   function drawArc(arcData: ArcData, duration: number = 2000) {
-    if (!gl || ctx.reducedMotion.value)
+    if (!gl || disposed || !isReady.value || ctx.reducedMotion.value)
       return
 
     const color = arcData.color ? parseColor(arcData.color) : [1.0, 0.6, 0.2] as [number, number, number]
@@ -400,26 +422,35 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
       dashParam: { numComponents: 1, data: geom.dashParams },
     })
 
-    activeArcs.value = [...activeArcs.value, {
+    while (activeArcs.length >= MAX_ACTIVE_ARCS) {
+      const expired = activeArcs.shift()
+      if (expired)
+        deleteBufferInfo(gl, expired.bufferInfo)
+    }
+    activeArcs.push({
       data: arcData,
       startTime: performance.now(),
       duration,
       bufferInfo,
       vertexCount: geom.positions.length / 3,
       color,
-    }]
+    })
+    startRenderLoop()
   }
 
   function drawRipple(rippleData: RippleData) {
-    if (ctx.reducedMotion.value)
+    if (!gl || disposed || !isReady.value || ctx.reducedMotion.value)
       return
     const color = rippleData.color ? parseColor(rippleData.color) : [1.0, 0.6, 0.2] as [number, number, number]
 
-    activeRipples.value = [...activeRipples.value, {
+    if (activeRipples.length >= MAX_ACTIVE_RIPPLES)
+      activeRipples.shift()
+    activeRipples.push({
       data: rippleData,
       startTime: performance.now(),
       color,
-    }]
+    })
+    startRenderLoop()
   }
 
   // ============================================================================
@@ -489,14 +520,14 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     twgl.drawBufferInfo(gl, earthBufferInfo)
 
     // Draw arcs (ribbon triangle strips)
-    if (arcProgram && activeArcs.value.length > 0) {
+    if (arcProgram && activeArcs.length > 0) {
       gl.enable(gl.BLEND)
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
       gl.depthMask(false)
       gl.disable(gl.CULL_FACE)
 
       const newArcs: ArcAnimation[] = []
-      for (const arc of activeArcs.value) {
+      for (const arc of activeArcs) {
         const elapsed = now - arc.startTime
         const progress = Math.min(elapsed / arc.duration, 1)
 
@@ -521,68 +552,71 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
         }
       }
 
-      activeArcs.value = newArcs
+      activeArcs = newArcs
       gl.enable(gl.CULL_FACE)
       gl.depthMask(true)
       gl.disable(gl.BLEND)
     }
 
     // Draw ripples (depth test off — shader backface check handles occlusion)
-    if (rippleProgram && activeRipples.value.length > 0) {
+    if (rippleProgram && activeRipples.length > 0) {
       gl.enable(gl.BLEND)
       gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
       gl.disable(gl.DEPTH_TEST)
 
       if (!rippleBufferInfo) {
         rippleBufferInfo = twgl.createBufferInfoFromArrays(gl, {
-          position: { numComponents: 3, data: ripplePositionData },
+          position: { numComponents: 3, data: ripplePositionData, drawType: gl.DYNAMIC_DRAW },
+          pointSize: { numComponents: 1, data: ripplePointSizeData, drawType: gl.DYNAMIC_DRAW },
+          color: { numComponents: 3, data: rippleColorData, drawType: gl.DYNAMIC_DRAW },
+          alpha: { numComponents: 1, data: rippleAlphaData, drawType: gl.DYNAMIC_DRAW },
+          ringWidth: { numComponents: 1, data: rippleRingWidthData, drawType: gl.DYNAMIC_DRAW },
         })
       }
 
       const newRipples: RippleAnimation[] = []
-      for (const ripple of activeRipples.value) {
+      let rippleCount = 0
+      for (const ripple of activeRipples) {
         const elapsed = now - ripple.startTime
         const duration = ripple.data.duration ?? 1500
         const progress = elapsed / duration
 
         if (progress < 1) {
           const maxRadius = ripple.data.maxRadius ?? 6
+          const drawingScale = gl.drawingBufferHeight / h
           const projectedGlobeRadius = h * 0.4
           const maxSize = maxRadius * projectedGlobeRadius * Math.PI / 180 * 4
-          const currentSize = Math.max(12, maxSize * progress)
+          const currentSize = Math.max(12, maxSize * progress) * drawingScale
           const alpha = 1.0 - progress
 
           const pos = latLngToXYZ(ripple.data.lat, ripple.data.lng, 1.005)
-          ripplePositionData[0] = pos[0]
-          ripplePositionData[1] = pos[1]
-          ripplePositionData[2] = pos[2]
-
-          const posAttrib = rippleBufferInfo!.attribs?.position
-          if (posAttrib) {
-            gl!.bindBuffer(gl!.ARRAY_BUFFER, posAttrib.buffer)
-            gl!.bufferData(gl!.ARRAY_BUFFER, ripplePositionData, gl!.DYNAMIC_DRAW)
-          }
-
-          disableAllAttribs(gl!)
-          gl!.useProgram(rippleProgram!.program)
-          twgl.setBuffersAndAttributes(gl!, rippleProgram!, rippleBufferInfo!)
-          twgl.setUniforms(rippleProgram!, {
-            model,
-            view,
-            projection,
-            u_pointSize: currentSize,
-            u_color: ripple.color,
-            u_eye: eye,
-            u_alpha: Math.min(alpha, 1.0),
-            u_ringWidth: 0.25 + 0.15 * (1 - progress),
-          })
-
-          gl!.drawArrays(gl!.POINTS, 0, 1)
+          const positionOffset = rippleCount * 3
+          ripplePositionData.set(pos, positionOffset)
+          ripplePointSizeData[rippleCount] = currentSize
+          rippleColorData.set(ripple.color, positionOffset)
+          rippleAlphaData[rippleCount] = Math.min(alpha, 1.0)
+          rippleRingWidthData[rippleCount] = 0.25 + 0.15 * (1 - progress)
+          rippleCount++
           newRipples.push(ripple)
         }
       }
 
-      activeRipples.value = newRipples
+      activeRipples = newRipples
+      if (rippleCount > 0) {
+        const attribs = rippleBufferInfo.attribs
+        if (attribs) {
+          twgl.setAttribInfoBufferFromArray(gl, attribs.position!, ripplePositionData.subarray(0, rippleCount * 3), 0)
+          twgl.setAttribInfoBufferFromArray(gl, attribs.pointSize!, ripplePointSizeData.subarray(0, rippleCount), 0)
+          twgl.setAttribInfoBufferFromArray(gl, attribs.color!, rippleColorData.subarray(0, rippleCount * 3), 0)
+          twgl.setAttribInfoBufferFromArray(gl, attribs.alpha!, rippleAlphaData.subarray(0, rippleCount), 0)
+          twgl.setAttribInfoBufferFromArray(gl, attribs.ringWidth!, rippleRingWidthData.subarray(0, rippleCount), 0)
+        }
+        disableAllAttribs(gl)
+        gl.useProgram(rippleProgram.program)
+        twgl.setBuffersAndAttributes(gl, rippleProgram, rippleBufferInfo)
+        twgl.setUniforms(rippleProgram, { model, view, projection, u_eye: eye })
+        gl.drawArrays(gl.POINTS, 0, rippleCount)
+      }
       gl.enable(gl.DEPTH_TEST)
       gl.disable(gl.BLEND)
     }
@@ -592,16 +626,24 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     if (animationFrameId !== null || disposed || !isReady.value)
       return
 
+    lastFrameTime = performance.now()
     function loop() {
+      animationFrameId = null
       if (disposed || !isReady.value) {
-        animationFrameId = null
         return
       }
       render()
-      animationFrameId = requestAnimationFrame(loop)
+      if (needsContinuousRender())
+        animationFrameId = requestAnimationFrame(loop)
     }
 
     animationFrameId = requestAnimationFrame(loop)
+  }
+
+  function needsContinuousRender() {
+    return (!ctx.reducedMotion.value && (isAutoRotating.value || introSpinActive || inertia.isActive))
+      || activeArcs.length > 0
+      || activeRipples.length > 0
   }
 
   function stopRenderLoop() {
@@ -634,11 +676,18 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
       latitude.value = targetLat
       longitude.value = targetLng
     }
+    startRenderLoop()
   }
 
   function resetView() {
     setPointOfView(0, 0)
     zoom.value = 0
+  }
+
+  function zoomBy(amount: number) {
+    zoom.value = Math.max(0, Math.min(1, zoom.value + amount))
+    stopAutoRotate()
+    startRenderLoop()
   }
 
   function stopMotion() {
@@ -648,11 +697,12 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     inertia.velocityX = 0
     inertia.velocityY = 0
     if (gl) {
-      for (const arc of activeArcs.value)
+      for (const arc of activeArcs)
         deleteBufferInfo(gl, arc.bufferInfo)
     }
-    activeArcs.value = []
-    activeRipples.value = []
+    activeArcs = []
+    activeRipples = []
+    startRenderLoop()
   }
 
   function destroy() {
@@ -725,19 +775,20 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     isAutoRotating,
     isDragging,
     isReady,
+    isSupported,
 
     init,
     updateCanvasSize,
     updateCountryTexture,
     setPointOfView,
+    resetView,
+    zoomBy,
     startAutoRotate,
     stopAutoRotate,
     drawArc,
     drawRipple,
-    startRenderLoop,
-    stopRenderLoop,
     destroy,
 
-    hasActiveAnimations: () => activeArcs.value.length > 0 || activeRipples.value.length > 0,
+    hasActiveAnimations: () => activeArcs.length > 0 || activeRipples.length > 0,
   }
 }

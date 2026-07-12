@@ -24,6 +24,7 @@ export interface WebGLGlobeContext {
   canvasRef: Ref<HTMLCanvasElement | null>
   width: Ref<number>
   height: Ref<number>
+  pixelRatio: Ref<number>
   countries: ShallowRef<GeoJSONData>
   locations: ShallowRef<LocationData[]>
   countryStats: ShallowRef<Map<string, number>>

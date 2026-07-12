@@ -20,7 +20,7 @@ onMounted(() => {
 
   idleCallbackId = rIC(() => {
     showGlobe.value = true
-  })
+  }, { timeout: 1000 })
 })
 
 watch(visibility, (state) => {

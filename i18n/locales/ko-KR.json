@@ -185,6 +185,9 @@
       "links_error": "링크를 불러오지 못했습니다.",
       "time_range_label": "시간 범위 선택",
       "globe_label": "실시간 트래픽 지구본",
+      "globe_zoom_out": "축소",
+      "globe_reset": "초기화",
+      "globe_zoom_in": "확대",
       "globe_instructions": "드래그하여 회전하세요. 포커스한 뒤 스크롤로 확대·축소하고, 방향키로 회전하며, +/−로 확대·축소하세요. Home은 초기화, Escape는 포커스 해제입니다.",
       "globe_fallback": "대화형 지구본을 사용할 수 없습니다."
     },

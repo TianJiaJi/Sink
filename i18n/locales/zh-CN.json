@@ -185,6 +185,9 @@
       "links_error": "链接加载失败。",
       "time_range_label": "选择时间范围",
       "globe_label": "实时流量地球仪",
+      "globe_zoom_out": "缩小",
+      "globe_reset": "重置",
+      "globe_zoom_in": "放大",
       "globe_instructions": "拖动旋转；聚焦后可滚轮缩放、方向键旋转、加号/减号缩放；按 Home 重置，按 Escape 退出焦点。",
       "globe_fallback": "交互式地球仪当前不可用。"
     },

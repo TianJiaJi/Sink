@@ -185,6 +185,9 @@
       "links_error": "Không thể tải liên kết.",
       "time_range_label": "Chọn khoảng thời gian",
       "globe_label": "Quả địa cầu lưu lượng theo thời gian thực",
+      "globe_zoom_out": "Thu nhỏ",
+      "globe_reset": "Đặt lại",
+      "globe_zoom_in": "Phóng to",
       "globe_instructions": "Kéo để xoay. Khi được lấy nét, cuộn để thu phóng, dùng phím mũi tên để xoay, +/− để thu phóng, Home để đặt lại và Escape để thoát lấy nét.",
       "globe_fallback": "Quả địa cầu tương tác hiện không khả dụng."
     },

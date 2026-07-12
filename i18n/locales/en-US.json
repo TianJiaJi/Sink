@@ -185,6 +185,9 @@
       "links_error": "Failed to load links.",
       "time_range_label": "Select a time range",
       "globe_label": "Real-time traffic globe",
+      "globe_zoom_out": "Zoom out",
+      "globe_reset": "Reset",
+      "globe_zoom_in": "Zoom in",
       "globe_instructions": "Drag to rotate. When focused, scroll to zoom, use the arrow keys to rotate, +/− to zoom, Home to reset, and Escape to exit focus.",
       "globe_fallback": "The interactive globe is unavailable."
     },

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useElementSize, usePreferredReducedMotion } from '@vueuse/core'
+import { useDevicePixelRatio, useElementSize, useEventListener, usePreferredReducedMotion } from '@vueuse/core'
+import { RotateCcw, ZoomIn, ZoomOut } from 'lucide-vue-next'
 import { useGlobeColors, useGlobeData, useWebGLGlobe } from '@/composables/globe'
 
 const { t } = useI18n()
@@ -8,14 +9,18 @@ const trafficEventBus = useTrafficEventBus()
 const containerRef = useTemplateRef('containerRef')
 const canvasRef = useTemplateRef('canvasRef')
 const { width, height } = useElementSize(containerRef)
+const { pixelRatio } = useDevicePixelRatio()
 const preferredMotion = usePreferredReducedMotion()
 const reducedMotion = computed(() => preferredMotion.value === 'reduce')
 const instructionsId = useId()
 const isLoading = shallowRef(true)
 const hasError = shallowRef(false)
+const isUnsupported = shallowRef(false)
+const isContextLost = shallowRef(false)
 let disposed = false
 let initializationController: AbortController | null = null
 let resizeTimer: ReturnType<typeof setTimeout> | null = null
+let textureResizePending = false
 let trafficListening = false
 
 const globeData = useGlobeData()
@@ -25,6 +30,7 @@ const globe = useWebGLGlobe({
   canvasRef,
   width,
   height,
+  pixelRatio,
   countries: globeData.countries,
   locations: globeData.locations,
   countryStats: globeData.countryStats,
@@ -66,19 +72,25 @@ const stopDataErrorWatch = watch(globeData.error, (value) => {
   }
 })
 
-const stopResizeWatch = watch([width, height], () => {
+const stopResizeWatch = watch([width, height, pixelRatio], ([nextWidth, nextHeight], [previousWidth, previousHeight]) => {
+  textureResizePending ||= nextWidth !== previousWidth || nextHeight !== previousHeight
   if (resizeTimer)
     clearTimeout(resizeTimer)
   resizeTimer = setTimeout(() => {
     resizeTimer = null
-    if (!disposed)
+    if (!disposed) {
       globe.updateCanvasSize()
+      if (textureResizePending)
+        void globe.updateCountryTexture().catch(handleTextureError)
+    }
+    textureResizePending = false
   }, 100)
 })
 
 async function initialize() {
   initializationController?.abort()
   globe.destroy()
+  trafficEvent.cleanup()
   if (trafficListening) {
     trafficEventBus.off(trafficEvent.handleTrafficEvent)
     trafficListening = false
@@ -88,6 +100,7 @@ async function initialize() {
   initializationController = controller
   isLoading.value = true
   hasError.value = false
+  isUnsupported.value = false
 
   try {
     await globeData.init(controller.signal)
@@ -114,14 +127,15 @@ async function initialize() {
 
     if (disposed || controller.signal.aborted)
       return
-    globe.startRenderLoop()
     trafficEventBus.on(trafficEvent.handleTrafficEvent)
     trafficListening = true
   }
   catch (error) {
     if (!disposed && !controller.signal.aborted) {
       globe.destroy()
-      console.error('Failed to initialize globe', error)
+      isUnsupported.value = !globe.isSupported.value
+      if (!isUnsupported.value)
+        console.error('Failed to initialize globe', error)
       hasError.value = true
     }
   }
@@ -130,6 +144,50 @@ async function initialize() {
       isLoading.value = false
   }
 }
+
+function handleContextLost(event: Event) {
+  event.preventDefault()
+  if (disposed)
+    return
+  isContextLost.value = true
+  isLoading.value = false
+  hasError.value = true
+  initializationController?.abort()
+  globe.destroy()
+  trafficEvent.cleanup()
+  if (trafficListening) {
+    trafficEventBus.off(trafficEvent.handleTrafficEvent)
+    trafficListening = false
+  }
+}
+
+function handleContextRestored() {
+  if (disposed)
+    return
+  isContextLost.value = false
+  void initialize()
+}
+
+function resetView() {
+  globe.stopAutoRotate()
+  globe.resetView()
+}
+
+function retry() {
+  if (isContextLost.value) {
+    window.location.reload()
+    return
+  }
+  void initialize()
+}
+
+watch(hasError, (value) => {
+  if (value)
+    canvasRef.value?.blur()
+})
+
+useEventListener(canvasRef, 'webglcontextlost', handleContextLost)
+useEventListener(canvasRef, 'webglcontextrestored', handleContextRestored)
 
 onMounted(() => {
   void initialize()
@@ -168,10 +226,50 @@ onBeforeUnmount(() => {
         focus-visible:ring-2 focus-visible:ring-ring
       "
       :tabindex="isLoading || hasError ? -1 : 0"
+      :class="[
+        globe.isDragging.value ? 'cursor-grabbing' : 'cursor-grab',
+        { 'opacity-0': isLoading },
+      ]"
       :aria-hidden="isLoading || hasError"
       :aria-label="t('dashboard.realtime.globe_label')"
       :aria-describedby="instructionsId"
-    />
+    >
+      {{ t('dashboard.realtime.globe_fallback') }}
+    </canvas>
+    <div
+      v-if="globe.isReady.value && !isLoading && !hasError"
+      class="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1"
+    >
+      <Button
+        variant="outline"
+        size="icon"
+        class="bg-background/80 backdrop-blur-sm"
+        :aria-label="t('dashboard.realtime.globe_zoom_out')"
+        :disabled="globe.zoom.value <= 0"
+        @click="globe.zoomBy(-0.1)"
+      >
+        <ZoomOut aria-hidden="true" />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        class="bg-background/80 backdrop-blur-sm"
+        :aria-label="t('dashboard.realtime.globe_reset')"
+        @click="resetView"
+      >
+        <RotateCcw aria-hidden="true" />
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        class="bg-background/80 backdrop-blur-sm"
+        :aria-label="t('dashboard.realtime.globe_zoom_in')"
+        :disabled="globe.zoom.value >= 1"
+        @click="globe.zoomBy(0.1)"
+      >
+        <ZoomIn aria-hidden="true" />
+      </Button>
+    </div>
     <div
       v-if="isLoading"
       class="
@@ -190,8 +288,8 @@ onBeforeUnmount(() => {
       "
       role="alert"
     >
-      <span>{{ t('dashboard.realtime.globe_error') }}</span>
-      <Button variant="outline" size="sm" @click="initialize">
+      <span>{{ t(isUnsupported || isContextLost ? 'dashboard.realtime.globe_fallback' : 'dashboard.realtime.globe_error') }}</span>
+      <Button v-if="!isUnsupported" variant="outline" size="sm" @click="retry">
         {{ t('common.try_again') }}
       </Button>
     </div>

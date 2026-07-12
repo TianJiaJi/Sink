@@ -185,6 +185,9 @@
       "links_error": "Não foi possível carregar as ligações.",
       "time_range_label": "Selecionar intervalo de tempo",
       "globe_label": "Globo de tráfego em tempo real",
+      "globe_zoom_out": "Diminuir zoom",
+      "globe_reset": "Repor",
+      "globe_zoom_in": "Aumentar zoom",
       "globe_instructions": "Arraste para rodar. Com foco, use a roda do rato para ampliar, as setas para rodar, +/− para ampliar, Home para repor e Escape para sair do foco.",
       "globe_fallback": "O globo interativo não está disponível."
     },

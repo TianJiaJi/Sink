@@ -185,6 +185,9 @@
       "links_error": "Impossible de charger les liens.",
       "time_range_label": "Sélectionner une période",
       "globe_label": "Globe du trafic en temps réel",
+      "globe_zoom_out": "Dézoomer",
+      "globe_reset": "Réinitialiser",
+      "globe_zoom_in": "Zoomer",
       "globe_instructions": "Faites glisser pour pivoter. Avec le focus, utilisez la molette pour zoomer, les flèches pour pivoter, +/− pour zoomer, Home pour réinitialiser et Échap pour quitter le focus.",
       "globe_fallback": "Le globe interactif est indisponible."
     },

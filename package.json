@@ -14,6 +14,7 @@
     "preview:docs": "pnpm --filter @sink/docs preview",
     "analyze": "nuxt analyze",
     "test": "vitest",
+    "prebuild": "pnpm build:sphere",
     "build": "NODE_OPTIONS=--max-old-space-size=8192 nuxt build",
     "build:map": "node scripts/build-map.js",
     "build:sphere": "node scripts/build-sphere.js",

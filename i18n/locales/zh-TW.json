@@ -185,6 +185,9 @@
       "links_error": "連結載入失敗。",
       "time_range_label": "選擇時間範圍",
       "globe_label": "即時流量地球儀",
+      "globe_zoom_out": "縮小",
+      "globe_reset": "重設",
+      "globe_zoom_in": "放大",
       "globe_instructions": "拖曳旋轉；聚焦後可用滾輪縮放、方向鍵旋轉、加號／減號縮放；按 Home 重設，按 Escape 退出焦點。",
       "globe_fallback": "互動式地球儀目前無法使用。"
     },

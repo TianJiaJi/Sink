@@ -13,6 +13,7 @@ export interface InteractionContext {
   isDragging: Ref<boolean>
   stopAutoRotate: () => void
   resetView: () => void
+  requestRender: () => void
   reducedMotion: Ref<boolean>
 }
 
@@ -38,6 +39,7 @@ export function setupGlobeInteraction(
       return
     if (Math.abs(inertia.velocityX) > 0.01 || Math.abs(inertia.velocityY) > 0.01) {
       inertia.isActive = true
+      ctx.requestRender()
     }
   }
 
@@ -53,15 +55,19 @@ export function setupGlobeInteraction(
     const zoomFactor = 1 - ctx.zoom.value * 0.8
     ctx.longitude.value = ((ctx.longitude.value - deltaX * sensitivity * zoomFactor) % 360 + 540) % 360 - 180
     ctx.latitude.value = Math.max(-85, Math.min(85, ctx.latitude.value + deltaY * sensitivity * zoomFactor))
+    ctx.requestRender()
   }
 
   const onMouseDown = (e: MouseEvent) => {
+    if (e.button !== 0)
+      return
     ctx.isDragging.value = true
     lastMouseX = e.screenX
     lastMouseY = e.screenY
     lastDragTime = performance.now()
     ctx.stopAutoRotate()
     stopInertia()
+    canvas.focus({ preventScroll: true })
   }
 
   const onMouseMove = (e: MouseEvent) => {
@@ -91,6 +97,7 @@ export function setupGlobeInteraction(
     }
     ctx.zoom.value = Math.max(0, Math.min(1, ctx.zoom.value + amount))
     ctx.stopAutoRotate()
+    ctx.requestRender()
   }
 
   const onTouchStart = (e: TouchEvent) => {
@@ -160,6 +167,12 @@ export function setupGlobeInteraction(
     e.preventDefault()
     ctx.stopAutoRotate()
     stopInertia()
+    ctx.requestRender()
+  }
+
+  const onWindowBlur = () => {
+    ctx.isDragging.value = false
+    stopInertia()
   }
 
   canvas.addEventListener('mousedown', onMouseDown)
@@ -171,6 +184,7 @@ export function setupGlobeInteraction(
   canvas.addEventListener('touchend', onTouchEnd)
   canvas.addEventListener('touchcancel', onTouchEnd)
   canvas.addEventListener('keydown', onKeyDown)
+  window.addEventListener('blur', onWindowBlur)
 
   return () => {
     stopInertia()
@@ -183,5 +197,6 @@ export function setupGlobeInteraction(
     canvas.removeEventListener('touchend', onTouchEnd)
     canvas.removeEventListener('touchcancel', onTouchEnd)
     canvas.removeEventListener('keydown', onKeyDown)
+    window.removeEventListener('blur', onWindowBlur)
   }
 }

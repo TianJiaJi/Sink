@@ -185,6 +185,9 @@
       "links_error": "Tautan gagal dimuat.",
       "time_range_label": "Pilih rentang waktu",
       "globe_label": "Globe lalu lintas waktu nyata",
+      "globe_zoom_out": "Perkecil",
+      "globe_reset": "Atur ulang",
+      "globe_zoom_in": "Perbesar",
       "globe_instructions": "Seret untuk memutar. Saat fokus, gulir untuk memperbesar, gunakan tombol panah untuk memutar, +/− untuk memperbesar, Home untuk mengatur ulang, dan Escape untuk keluar dari fokus.",
       "globe_fallback": "Globe interaktif tidak tersedia."
     },

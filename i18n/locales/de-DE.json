@@ -185,6 +185,9 @@
       "links_error": "Links konnten nicht geladen werden.",
       "time_range_label": "Zeitraum auswählen",
       "globe_label": "Globus mit Echtzeitdatenverkehr",
+      "globe_zoom_out": "Verkleinern",
+      "globe_reset": "Zurücksetzen",
+      "globe_zoom_in": "Vergrößern",
       "globe_instructions": "Ziehen zum Drehen. Bei Fokus: Mausrad zum Zoomen, Pfeiltasten zum Drehen, +/− zum Zoomen, Home zum Zurücksetzen und Escape zum Verlassen des Fokus.",
       "globe_fallback": "Der interaktive Globus ist nicht verfügbar."
     },

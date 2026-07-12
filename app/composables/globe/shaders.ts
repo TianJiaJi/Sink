@@ -70,31 +70,40 @@ export const arcFragmentShader = /* glsl */ `
 
 export const rippleVertexShader = /* glsl */ `
   attribute vec3 position;
+  attribute float pointSize;
+  attribute vec3 color;
+  attribute float alpha;
+  attribute float ringWidth;
 
   uniform mat4 model;
   uniform mat4 view;
   uniform mat4 projection;
-  uniform float u_pointSize;
 
   varying vec3 vWorldPos;
+  varying vec3 vColor;
+  varying float vAlpha;
+  varying float vRingWidth;
 
   void main() {
     vec4 worldPos = model * vec4(position, 1.0);
     vWorldPos = worldPos.xyz;
+    vColor = color;
+    vAlpha = alpha;
+    vRingWidth = ringWidth;
     gl_Position = projection * view * worldPos;
-    gl_PointSize = u_pointSize;
+    gl_PointSize = pointSize;
   }
 `
 
 export const rippleFragmentShader = /* glsl */ `
   precision mediump float;
 
-  uniform vec3 u_color;
   uniform vec3 u_eye;
-  uniform float u_alpha;
-  uniform float u_ringWidth;
 
   varying vec3 vWorldPos;
+  varying vec3 vColor;
+  varying float vAlpha;
+  varying float vRingWidth;
 
   void main() {
     vec3 toEye = normalize(u_eye - vWorldPos);
@@ -105,11 +114,11 @@ export const rippleFragmentShader = /* glsl */ `
     if (dist > 0.5) discard;
 
     // Ring shape
-    float inner = 0.5 - u_ringWidth;
+    float inner = 0.5 - vRingWidth;
     float ring = smoothstep(inner - 0.05, inner, dist) * (1.0 - smoothstep(0.45, 0.5, dist));
-    float a = ring * u_alpha;
+    float a = ring * vAlpha;
     if (a < 0.01) discard;
 
-    gl_FragColor = vec4(u_color * a, a);
+    gl_FragColor = vec4(vColor * a, a);
   }
 `
