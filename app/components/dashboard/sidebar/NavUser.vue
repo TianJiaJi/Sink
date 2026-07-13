@@ -5,13 +5,14 @@ import { useSidebar } from '@/components/ui/sidebar'
 interface User {
   name: string
   email: string
-  avatar: string
 }
 
 const { isMobile } = useSidebar()
+const { userEmail } = useAuthSession()
 const menuButton = useTemplateRef<{ $el: HTMLElement }>('menuButton')
 const menuOpen = shallowRef(false)
 const logoutOpen = shallowRef(false)
+const avatarURL = shallowRef('')
 
 async function openLogoutDialog() {
   menuOpen.value = false
@@ -24,18 +25,29 @@ function restoreMenuFocus(event: Event) {
   menuButton.value?.$el.focus()
 }
 
-const hostname = computed<string>(() => {
-  if (import.meta.client) {
-    return window.location.hostname
-  }
-  return 'localhost'
-})
-
 const user = computed<User>(() => ({
-  name: 'Root',
-  email: `root@${hostname.value}`,
-  avatar: '/sink.png',
+  name: userEmail.value?.split('@')[0] || '',
+  email: userEmail.value || '',
 }))
+const avatarFallback = computed(() => user.value.name.charAt(0).toUpperCase() || 'R')
+
+watch(userEmail, async (email, _previousEmail, onCleanup) => {
+  avatarURL.value = ''
+  if (!email)
+    return
+
+  let cancelled = false
+  onCleanup(() => {
+    cancelled = true
+  })
+
+  const bytes = new TextEncoder().encode(email.trim().toLowerCase())
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  if (!cancelled) {
+    const hash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('')
+    avatarURL.value = `https://gravatar.webp.se/avatar/${hash}?d=404`
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -55,13 +67,13 @@ const user = computed<User>(() => ({
             "
           >
             <Avatar class="size-8 rounded-full">
-              <AvatarImage :src="user.avatar" :alt="user.name" />
+              <AvatarImage v-if="avatarURL" :src="avatarURL" alt="" />
               <AvatarFallback class="rounded-full">
-                R
+                {{ avatarFallback }}
               </AvatarFallback>
             </Avatar>
-            <div class="grid flex-1 text-left text-sm/tight">
-              <span class="truncate font-medium">{{ user.name }}</span>
+            <div class="grid min-w-0 flex-1 text-left text-sm/tight">
+              <span class="truncate font-medium capitalize">{{ user.name }}</span>
               <span class="truncate text-xs">{{ user.email }}</span>
             </div>
             <ChevronsUpDown aria-hidden="true" class="ml-auto size-4" />
@@ -76,13 +88,13 @@ const user = computed<User>(() => ({
           <DropdownMenuLabel class="p-0 font-normal">
             <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
               <Avatar class="size-8 rounded-full">
-                <AvatarImage :src="user.avatar" :alt="user.name" />
+                <AvatarImage v-if="avatarURL" :src="avatarURL" alt="" />
                 <AvatarFallback class="rounded-full">
-                  R
+                  {{ avatarFallback }}
                 </AvatarFallback>
               </Avatar>
-              <div class="grid flex-1 text-left text-sm/tight">
-                <span class="truncate font-semibold">{{ user.name }}</span>
+              <div class="grid min-w-0 flex-1 text-left text-sm/tight">
+                <span class="truncate font-semibold capitalize">{{ user.name }}</span>
                 <span class="truncate text-xs">{{ user.email }}</span>
               </div>
             </div>

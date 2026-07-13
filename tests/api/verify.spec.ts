@@ -13,6 +13,8 @@ describe('/api/verify', () => {
       name: 'Sink',
       url: 'https://sink.cool',
       authMethod: 'site-token',
+      userID: 'root',
+      userEmail: 'root@localhost',
       accessEnabled: false,
     })
   })

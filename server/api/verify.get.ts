@@ -14,7 +14,15 @@ defineRouteMeta({
 
 export default eventHandler((event) => {
   const authMethod: unknown = event.context.authMethod
-  if (authMethod !== 'site-token' && authMethod !== 'cloudflare-access') {
+  const userID: unknown = event.context.userID
+  const userEmail: unknown = event.context.userEmail
+  if (
+    (authMethod !== 'site-token' && authMethod !== 'cloudflare-access')
+    || typeof userID !== 'string'
+    || !userID
+    || typeof userEmail !== 'string'
+    || !userEmail
+  ) {
     throw createError({
       status: 401,
       statusText: 'Unauthorized',
@@ -27,6 +35,8 @@ export default eventHandler((event) => {
     name: 'Sink',
     url: 'https://sink.cool',
     authMethod,
+    userID,
+    userEmail,
     accessEnabled: isCloudflareAccessConfigured(cfAccessTeamDomain, cfAccessAud),
   }
 })

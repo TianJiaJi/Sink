@@ -122,6 +122,7 @@ export default defineNuxtConfig({
         '@unovis/vue',
         '@vue/devtools-core',
         '@vue/devtools-kit',
+        '@vueuse/core',
         'class-variance-authority',
         'clsx',
         'd3-geo',

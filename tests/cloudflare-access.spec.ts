@@ -34,45 +34,77 @@ interface TokenOptions {
   exp?: number
   iss?: string
   key?: CryptoKey
+  omitExp?: boolean
+  payload?: Record<string, unknown>
 }
 
 async function createToken(options: TokenOptions = {}) {
   const now = Math.floor(Date.now() / 1000)
-  return await new SignJWT({ type: 'app' })
+  let token = new SignJWT({
+    type: 'app',
+    sub: 'access-user-id',
+    email: 'alice@example.com',
+    ...options.payload,
+  })
     .setProtectedHeader({ alg: 'RS256', kid: keyId })
     .setIssuer(options.iss || issuer)
     .setAudience(options.aud || audience)
     .setIssuedAt(now)
     .setNotBefore(now)
-    .setExpirationTime(options.exp || now + 300)
-    .sign(options.key || privateKey)
+
+  if (!options.omitExp)
+    token = token.setExpirationTime(options.exp ?? now + 300)
+
+  return await token.sign(options.key || privateKey)
 }
 
 describe('cloudflare Access JWT validation', () => {
   it('accepts a valid token', async () => {
     const token = await createToken()
-    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBe(true)
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toEqual({
+      userID: 'access-user-id',
+      userEmail: 'alice@example.com',
+    })
+  })
+
+  it.each([
+    ['missing subject', { sub: undefined }],
+    ['blank subject', { sub: '  ' }],
+    ['non-string subject', { sub: 123 }],
+    ['missing email', { email: undefined }],
+    ['blank email', { email: '  ' }],
+    ['non-string email', { email: 123 }],
+    ['missing type', { type: undefined }],
+    ['incorrect type', { type: 'service' }],
+  ])('rejects a token with %s', async (_name, payload) => {
+    const token = await createToken({ payload })
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
   })
 
   it('rejects an invalid audience', async () => {
     const token = await createToken({ aud: 'other-audience' })
-    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBe(false)
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
   })
 
   it('rejects an invalid issuer', async () => {
     const token = await createToken({ iss: 'https://other.cloudflareaccess.com' })
-    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBe(false)
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
   })
 
   it('rejects an expired token', async () => {
     const token = await createToken({ exp: Math.floor(Date.now() / 1000) - 60 })
-    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBe(false)
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
+  })
+
+  it('rejects a token without an expiration claim', async () => {
+    const token = await createToken({ omitExp: true })
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
   })
 
   it('rejects a token with an invalid signature', async () => {
     const otherKeyPair = await generateKeyPair('RS256')
     const token = await createToken({ key: otherKeyPair.privateKey })
-    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBe(false)
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
   })
 
   it('fails closed when the key source is unavailable', async () => {
@@ -80,7 +112,7 @@ describe('cloudflare Access JWT validation', () => {
     const unavailableJwks = async () => {
       throw new Error('JWKS unavailable')
     }
-    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, unavailableJwks)).resolves.toBe(false)
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, unavailableJwks)).resolves.toBeNull()
   })
 })
 
