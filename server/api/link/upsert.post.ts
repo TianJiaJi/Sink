@@ -45,7 +45,7 @@ export default eventHandler(async (event) => {
   await hashLinkPasswordForCreate(link)
 
   if (!await createLink(event, link)) {
-    const racedLink = await getAuthoritativeLink(event, link.slug, false)
+    const racedLink = await getAuthoritativeLink(event, link.slug)
     if (racedLink)
       return { ...buildLinkResponse(event, racedLink), status: 'existing' }
     throw createError({ status: 409, statusText: 'Link already exists' })

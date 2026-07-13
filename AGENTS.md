@@ -56,6 +56,7 @@ pnpm db:migrate:remote   # mutates the configured remote D1 database
 ```
 
 - Commit generated migrations when changing the Drizzle schema; tests read and apply migrations from `drizzle/` automatically.
+- Prefer Drizzle ORM for constructing and executing SQL. Use raw D1 SQL only when Drizzle cannot express the operation clearly or an existing migration-specific atomic pattern must be preserved.
 - `pnpm deploy:pages` and `pnpm deploy:worker` both run remote D1 migrations before publishing and assume build artifacts already exist. Treat them as production-mutating commands, not verification commands.
 
 ## Testing quirks

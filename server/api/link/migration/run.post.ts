@@ -1,19 +1,13 @@
 import type { LinkMigrationMarker, LinkMigrationRunResult } from '#shared/schemas/link-migration'
+import { and, eq, isNull, sql } from 'drizzle-orm'
+import { drizzle } from 'drizzle-orm/d1'
 import { parseLegacyKvLink } from '#shared/schemas/link'
 import { LinkMigrationRunSchema } from '#shared/schemas/link-migration'
+import { linkMigrationRuns } from '../../../database/schema'
 
 const MIGRATION_CURSOR_PREFIX = 'migration:v1:'
 
-interface MigrationRunRow {
-  id: string
-  expected_cursor: string | null
-  scanned: number
-  inserted: number
-  skipped: number
-  expired: number
-  force: number
-  status: 'running' | 'completed'
-}
+type MigrationRunRow = typeof linkMigrationRuns.$inferSelect
 
 defineRouteMeta({
   openAPI: {
@@ -99,15 +93,17 @@ export default eventHandler(async (event): Promise<LinkMigrationRunResult> => {
   const body = await readBody<Record<string, unknown> | null>(event)
   const input = LinkMigrationRunSchema.parse(Object.assign({}, getQuery(event), body))
   const { DB, KV } = event.context.cloudflare.env
+  const db = drizzle(DB)
   const now = Math.floor(Date.now() / 1000)
   let run: MigrationRunRow | null
 
   if (input.cursor) {
     const runId = decodeMigrationCursor(input.cursor)
-    run = await DB.prepare('SELECT * FROM link_migration_runs WHERE id = ?').bind(runId).first<MigrationRunRow>()
+    const [selectedRun] = await db.select().from(linkMigrationRuns).where(eq(linkMigrationRuns.id, runId)).limit(1)
+    run = selectedRun ?? null
     if (!run)
       throw createError({ status: 409, statusText: 'Migration run no longer exists' })
-    if (input.force !== Boolean(run.force))
+    if (input.force !== run.force)
       throw createError({ status: 400, statusText: 'Migration cursor does not match force mode' })
   }
   else {
@@ -118,19 +114,17 @@ export default eventHandler(async (event): Promise<LinkMigrationRunResult> => {
     const runId = crypto.randomUUID()
     run = {
       id: runId,
-      expected_cursor: null,
+      expectedCursor: null,
       scanned: 0,
       inserted: 0,
       skipped: 0,
       expired: 0,
-      force: Number(input.force),
+      force: input.force,
       status: 'running',
+      createdAt: now,
+      updatedAt: now,
     }
-    await DB.prepare(`
-      INSERT INTO link_migration_runs
-        (id, expected_cursor, scanned, inserted, skipped, expired, force, status, created_at, updated_at)
-      VALUES (?, NULL, 0, 0, 0, 0, ?, 'running', ?, ?)
-    `).bind(runId, run.force, now, now).run()
+    await db.insert(linkMigrationRuns).values(run)
   }
 
   if (run.status === 'completed') {
@@ -138,7 +132,7 @@ export default eventHandler(async (event): Promise<LinkMigrationRunResult> => {
     return completedResult()
   }
 
-  const page = await KV.list({ prefix: 'link:', limit: 40, cursor: run.expected_cursor ?? undefined })
+  const page = await KV.list({ prefix: 'link:', limit: 40, cursor: run.expectedCursor ?? undefined })
   const result: LinkMigrationRunResult = {
     completed: false,
     list_complete: false,
@@ -184,30 +178,29 @@ export default eventHandler(async (event): Promise<LinkMigrationRunResult> => {
   }
 
   if (result.failed > 0) {
-    await DB.prepare('DELETE FROM link_migration_runs WHERE id = ?').bind(run.id).run()
+    await db.delete(linkMigrationRuns).where(eq(linkMigrationRuns.id, run.id))
     delete result.cursor
     return result
   }
 
-  const nextCursor = 'cursor' in page ? page.cursor : null
+  const nextCursor: string | null = 'cursor' in page && typeof page.cursor === 'string' ? page.cursor : null
   const status = page.list_complete ? 'completed' : 'running'
-  const updatedRun = await DB.prepare(`
-    UPDATE link_migration_runs
-    SET expected_cursor = ?, scanned = scanned + ?, inserted = inserted + ?,
-        skipped = skipped + ?, expired = expired + ?, status = ?, updated_at = ?
-    WHERE id = ? AND status = 'running' AND expected_cursor IS ?
-    RETURNING *
-  `).bind(
-    nextCursor,
-    result.scanned,
-    result.inserted,
-    result.skipped,
-    result.expired,
+  const cursorCondition = run.expectedCursor === null
+    ? isNull(linkMigrationRuns.expectedCursor)
+    : eq(linkMigrationRuns.expectedCursor, run.expectedCursor)
+  const [updatedRun] = await db.update(linkMigrationRuns).set({
+    expectedCursor: nextCursor,
+    scanned: sql<number>`${linkMigrationRuns.scanned} + ${result.scanned}`,
+    inserted: sql<number>`${linkMigrationRuns.inserted} + ${result.inserted}`,
+    skipped: sql<number>`${linkMigrationRuns.skipped} + ${result.skipped}`,
+    expired: sql<number>`${linkMigrationRuns.expired} + ${result.expired}`,
     status,
-    now,
-    run.id,
-    run.expected_cursor,
-  ).first<MigrationRunRow>()
+    updatedAt: now,
+  }).where(and(
+    eq(linkMigrationRuns.id, run.id),
+    eq(linkMigrationRuns.status, 'running'),
+    cursorCondition,
+  )).returning()
 
   if (!updatedRun)
     throw createError({ status: 409, statusText: 'Migration page was already processed' })

@@ -1,4 +1,5 @@
 import type { Link } from '../shared/schemas/link'
+import type { LinkMigrationMarker } from '../shared/schemas/link-migration'
 import { env, exports } from 'cloudflare:workers'
 import { expect } from 'vitest'
 import { LINK_PASSWORD_HASH_PREFIX, LINK_PASSWORD_MASK_PREFIX } from '../shared/utils/link-password'
@@ -61,6 +62,19 @@ export async function clearLinkMigrationState() {
     env.KV.delete('migration:kv-to-d1:v1'),
     env.DB.prepare('DELETE FROM link_migration_runs').run(),
   ])
+}
+
+export async function setLinkStoreD1Mode() {
+  await clearLinkMigrationState()
+  const marker: LinkMigrationMarker = {
+    version: 1,
+    completedAt: new Date().toISOString(),
+    scanned: 0,
+    inserted: 0,
+    skipped: 0,
+    expired: 0,
+  }
+  await env.KV.put('migration:kv-to-d1:v1', JSON.stringify(marker))
 }
 
 export function expectMaskedPassword(password: string | undefined, plainText: string) {

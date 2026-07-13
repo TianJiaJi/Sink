@@ -1,10 +1,14 @@
 import type { ImportResult } from '../../shared/schemas/import'
 import type { ExportData } from '../../shared/schemas/link'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { LINK_PASSWORD_HASH_PREFIX, LINK_PASSWORD_MASK_PREFIX } from '../../shared/utils/link-password'
-import { deleteStoredLinks, expectStoredHashedPassword, fetchWithAuth, getStoredLink, postJson } from '../utils'
+import { deleteStoredLinks, expectStoredHashedPassword, fetchWithAuth, getStoredLink, postJson, setLinkStoreD1Mode } from '../utils'
 
 const createdSlugs = new Set<string>()
+
+beforeEach(async () => {
+  await setLinkStoreD1Mode()
+})
 
 function trackSlug(slug: string) {
   createdSlugs.add(slug)

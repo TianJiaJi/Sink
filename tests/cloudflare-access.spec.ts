@@ -6,7 +6,7 @@ import {
   mapCloudflareAccessIdentity,
   verifyCloudflareAccessToken,
 } from '../server/utils/cloudflare-access'
-import { fetchWithAuth } from './utils'
+import { fetchWithAuth, setLinkStoreD1Mode } from './utils'
 
 const issuer = 'https://sink.cloudflareaccess.com'
 const audience = 'sink-audience'
@@ -234,6 +234,7 @@ describe('cloudflare Access CSRF protection', () => {
 
 describe('cloudflare Access request authentication', () => {
   it('does not apply Access CSRF restrictions to site-token writes', async () => {
+    await setLinkStoreD1Mode()
     const response = await fetchWithAuth('/api/link/create', {
       method: 'POST',
       body: '{}',

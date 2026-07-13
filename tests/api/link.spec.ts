@@ -1,8 +1,12 @@
 import { env } from 'cloudflare:workers'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import { deleteStoredLinks, expectMaskedPassword, expectStoredHashedPassword, fetch, fetchWithAuth, getStoredLink, postJson, putJson } from '../utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { deleteStoredLinks, expectMaskedPassword, expectStoredHashedPassword, fetch, fetchWithAuth, getStoredLink, postJson, putJson, setLinkStoreD1Mode } from '../utils'
 
 const createdSlugs = new Set<string>()
+
+beforeEach(async () => {
+  await setLinkStoreD1Mode()
+})
 
 function trackSlug(slug: string) {
   createdSlugs.add(slug)
@@ -262,34 +266,15 @@ describe('/api/link/query', { concurrent: false }, () => {
 describe('/api/link/list', { concurrent: false }, () => {
   it('returns the requested deterministic link', async () => {
     const payload = { ...createLinkPayload(), tags: [`tag-${crypto.randomUUID().slice(0, 8)}`] }
-    const markerKey = 'migration:kv-to-d1:v1'
-    const previousMarker = await env.KV.get(markerKey)
+    expect((await postJson('/api/link/create', payload)).status).toBe(201)
 
-    try {
-      await env.KV.put(markerKey, JSON.stringify({
-        version: 1,
-        completedAt: new Date().toISOString(),
-        scanned: 0,
-        inserted: 0,
-        skipped: 0,
-        expired: 0,
-      }))
-      expect((await postJson('/api/link/create', payload)).status).toBe(201)
+    const response = await fetchWithAuth(`/api/link/list?limit=1&sort=az&status=all&tag=${payload.tags[0]}`)
+    expect(response.status).toBe(200)
 
-      const response = await fetchWithAuth(`/api/link/list?limit=1&sort=az&status=all&tag=${payload.tags[0]}`)
-      expect(response.status).toBe(200)
-
-      const data = await response.json() as { links: { slug: string, url: string }[], list_complete: boolean }
-      expect(data.links).toHaveLength(1)
-      expect(data.links[0]).toMatchObject({ slug: payload.slug, url: payload.url })
-      expect(data.list_complete).toBe(true)
-    }
-    finally {
-      if (previousMarker)
-        await env.KV.put(markerKey, previousMarker)
-      else
-        await env.KV.delete(markerKey)
-    }
+    const data = await response.json() as { links: { slug: string, url: string }[], list_complete: boolean }
+    expect(data.links).toHaveLength(1)
+    expect(data.links[0]).toMatchObject({ slug: payload.slug, url: payload.url })
+    expect(data.list_complete).toBe(true)
   })
 
   it('returns masked passwords without exposing plaintext or hashes', async () => {

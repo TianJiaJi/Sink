@@ -37,3 +37,6 @@ skills
 !skills/sink
 
 opencode.json
+
+# Local deepwork session state
+.slim/deepwork/

@@ -1,8 +1,12 @@
 import type { LinkCheckResponse } from '../../shared/types/link-check'
-import { describe, expect, it, vi } from 'vitest'
-import { deleteStoredLinks, postJson } from '../utils'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { deleteStoredLinks, postJson, setLinkStoreD1Mode } from '../utils'
 
 const URL_NOT_ALLOWED = 'URL is not allowed for server-side checking'
+
+beforeEach(async () => {
+  await setLinkStoreD1Mode()
+})
 
 function uniqueSlug(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`
