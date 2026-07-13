@@ -33,4 +33,7 @@ public/world.json
 .claude
 .opencode
 .agents
+skills
+!skills/sink
+
 opencode.json

@@ -38,7 +38,7 @@ pnpm test --run -t 'creates new link'     # tests matching a name
 
 ## Architecture and data flow
 
-- `app/` is a client-only Nuxt 4 UI (`ssr: false`); `/` and `/dashboard/**` are prerendered, and `/dashboard` redirects to `/dashboard/links`. `server/` is the Nitro backend using the `cloudflare-module` preset outside CI.
+- `app/` is a client-only Nuxt 4 UI (`ssr: false`); `/` and `/dashboard/**` are prerendered, and `/dashboard` redirects to `/dashboard/links`. `server/` is the Nitro backend using the `cloudflare-module` preset outside Cloudflare Pages.
 - `shared/` owns schemas, cross-runtime utilities, and shared types. Prefer `#shared/...`; `app/types/index.ts` only re-exports selected shared types for UI use. Never import `app/**` from `server/**`; move cross-runtime code to `shared/**` instead.
 - Use `useAPI()` for authenticated internal APIs, mutations, polling, searches, and abortable user flows. Reserve Nuxt `useFetch` for read-only data where AsyncData caching, deduplication, or shared state provides a concrete benefit.
 - D1 is the authoritative link store. KV is a write-through read cache and the temporary source for pre-D1 links until the KV-to-D1 migration marker is set. Route link persistence through `server/utils/link-store.ts`; direct KV-only writes can lose authoritative data.
