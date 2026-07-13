@@ -46,7 +46,7 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
     if (!controller.signal.aborted)
       loading.value = false
   }
-}, { deep: true, immediate: true })
+}, { immediate: true })
 </script>
 
 <template>

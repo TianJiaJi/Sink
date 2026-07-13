@@ -1,7 +1,8 @@
 /// <reference path="../../worker-configuration.d.ts" />
 
 import type { Link } from '#shared/schemas/link'
-import { listAllAuthoritativeLinks } from './link-store'
+import { createBackupJsonStream, getSerializedLinkByteLength } from './backup-json-stream'
+import { iterateAllAuthoritativeLinks } from './link-store'
 
 export interface BackupData {
   version: string
@@ -16,29 +17,36 @@ export async function backupLinksToR2(env: Cloudflare.Env, isManual: boolean = f
     return
   }
 
-  const allLinks = await listAllAuthoritativeLinks(env, useRuntimeConfig().caseSensitive)
+  const caseSensitive = useRuntimeConfig().caseSensitive
+  let count = 0
+  let linksByteLength = 0
+  for await (const link of iterateAllAuthoritativeLinks(env, caseSensitive)) {
+    count++
+    linksByteLength += getSerializedLinkByteLength(link)
+  }
 
   const now = new Date()
-  const backupData: BackupData = {
+  const backupMetadata = {
     version: '1.0',
     exportedAt: now.toISOString(),
-    count: allLinks.length,
-    links: allLinks,
+    count,
+    linksByteLength,
   }
 
   const timestamp = now.toISOString().replace(/:/g, '-')
   const prefix = isManual ? 'manual-links-' : 'links-'
   const filename = `backups/${prefix}${timestamp}.json`
 
-  await env.R2.put(filename, JSON.stringify(backupData, null, 2), {
+  const stream = createBackupJsonStream(iterateAllAuthoritativeLinks(env, caseSensitive), backupMetadata)
+  await env.R2.put(filename, stream, {
     httpMetadata: {
       contentType: 'application/json',
     },
     customMetadata: {
-      count: String(allLinks.length),
-      exportedAt: backupData.exportedAt,
+      count: String(count),
+      exportedAt: backupMetadata.exportedAt,
     },
   })
 
-  console.info(`[backup] Backup completed: ${filename}, ${allLinks.length} links`)
+  console.info(`[backup] Backup completed: ${filename}, ${count} links`)
 }

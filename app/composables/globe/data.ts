@@ -1,6 +1,5 @@
 import type { AreaData, ColoData, CurrentLocation, GeoJSONData, LocationData } from '@/types'
-import { watchDeep } from '@vueuse/core'
-import { computed, inject, ref, shallowRef } from 'vue'
+import { computed, inject, ref, shallowRef, watch } from 'vue'
 import { useAPI } from '@/utils/api'
 import { REALTIME_PAUSED_KEY } from '@/utils/injection-keys'
 import { useDashboardRealtimeStore } from '../realtime'
@@ -172,7 +171,7 @@ export function useGlobeData() {
     }
   }
 
-  const stopDataWatch = watchDeep([() => realtimeStore.timeRange, () => realtimeStore.filters, isPaused], () => {
+  const stopDataWatch = watch([() => realtimeStore.timeRange, () => realtimeStore.filters, isPaused], () => {
     if (isPaused.value) {
       realtimeVersion++
       refreshController?.abort()

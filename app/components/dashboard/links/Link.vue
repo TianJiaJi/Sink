@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from 'vue'
-import type { CounterData } from '@/types'
 import type { DashboardLink } from '@/types/dashboard-links'
 import { CalendarPlus2, Copy, CopyCheck, Eraser, Flame, Hourglass, Link as LinkIcon, MousePointerClick, QrCode, ShieldAlert, SquareChevronDown, SquarePen, Users } from '@lucide/vue'
 import { useClipboard } from '@vueuse/core'
@@ -53,10 +52,10 @@ function handleDialogCloseAutoFocus(event: Event) {
   })
 }
 
-const countersMap = inject<Ref<Record<string, CounterData>> | undefined>('linksCountersMap', undefined)
+const countersMap = inject(LINKS_COUNTERS_MAP_KEY)
 const counters = computed(() => countersMap?.value?.[props.link.id])
-const counterErrorIds = inject<Ref<Set<string>> | undefined>('linksCounterErrorIds', undefined)
-const retryCounters = inject<((id: string) => void) | undefined>('retryLinkCounters', undefined)
+const counterErrorIds = inject(LINKS_COUNTER_ERROR_IDS_KEY)
+const retryCounters = inject(RETRY_LINK_COUNTERS_KEY)
 const countersError = computed(() => counterErrorIds?.value.has(props.link.id) ?? false)
 
 const requestUrl = useRequestURL()

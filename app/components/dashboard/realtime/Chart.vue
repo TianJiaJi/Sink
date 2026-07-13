@@ -56,7 +56,7 @@ watch([
     if (!controller.signal.aborted && !isPaused.value)
       loading.value = false
   }
-}, { deep: true, immediate: true })
+}, { immediate: true })
 </script>
 
 <template>

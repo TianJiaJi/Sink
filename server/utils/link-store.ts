@@ -83,10 +83,10 @@ function rowToLink(row: LinkRow): Link {
   return link
 }
 
-async function addTagsToLinks<T extends { slug: string, tags: string[] }>(event: H3Event, result: T[], slugs: string[]): Promise<T[]> {
+async function addTagsToLinksFromDatabase<T extends { slug: string, tags: string[] }>(db: ReturnType<typeof getDatabase>, result: T[], slugs: string[]): Promise<T[]> {
   const bySlug = new Map(result.map(link => [link.slug, link]))
   for (let offset = 0; offset < slugs.length; offset += 90) {
-    const rows = await getDatabase(event)
+    const rows = await db
       .select({ slug: linkTags.linkSlug, tag: linkTags.tagName })
       .from(linkTags)
       .where(inArray(linkTags.linkSlug, slugs.slice(offset, offset + 90)))
@@ -95,6 +95,10 @@ async function addTagsToLinks<T extends { slug: string, tags: string[] }>(event:
       bySlug.get(row.slug)?.tags.push(row.tag)
   }
   return result
+}
+
+async function addTagsToLinks<T extends { slug: string, tags: string[] }>(event: H3Event, result: T[], slugs: string[]): Promise<T[]> {
+  return await addTagsToLinksFromDatabase(getDatabase(event), result, slugs)
 }
 
 async function rowsToLinks(event: H3Event, rows: LinkRow[]): Promise<Link[]> {
@@ -511,7 +515,7 @@ function decodeKvCursor(cursor: string | undefined): string | undefined {
 
 async function listLegacyLinks(event: H3Event, options: ListLinksOptions): Promise<ListLinksResult> {
   const { KV } = event.context.cloudflare.env
-  const list = await KV.list({ prefix: 'link:', limit: options.limit, cursor: decodeKvCursor(options.cursor) })
+  const list = await KV.list({ prefix: 'link:', limit: Math.min(options.limit, 1000), cursor: decodeKvCursor(options.cursor) })
   const values = await Promise.all(list.keys.map(async key => (await getCachedLinkWithMetadata(event, key.name.slice(5))).link))
   let links = values.filter((link): link is Link => link !== null)
   if (options.status === 'expired')
@@ -578,7 +582,7 @@ export async function listLinks(event: H3Event, options: ListLinksOptions): Prom
   }
 }
 
-export async function listAllAuthoritativeLinks(env: Cloudflare.Env, caseSensitive: boolean): Promise<Link[]> {
+export async function* iterateAllAuthoritativeLinks(env: Cloudflare.Env, caseSensitive: boolean): AsyncIterable<Link> {
   const rawMarker = await env.KV.get(LINK_MIGRATION_MARKER_KEY)
   let migrationComplete = false
   if (rawMarker) {
@@ -590,29 +594,47 @@ export async function listAllAuthoritativeLinks(env: Cloudflare.Env, caseSensiti
     }
   }
 
+  const normalize = (slug: string) => caseSensitive ? slug : slug.toLowerCase()
+  const unavailableSlugs = new Set<string>()
   const db = drizzle(env.DB)
-  const rows = await db.select().from(links).orderBy(asc(links.slug))
-  const result = rows.map((row) => {
-    const link = rowToLink(row)
-    if (link.expiration === undefined && row.effectiveExpiresAt !== null)
-      link.expiration = row.effectiveExpiresAt
-    return link
-  })
-  const bySlug = new Map(result.map(link => [link.slug, link]))
+  let lastSlug: string | undefined
 
-  const tagRows = await db
-    .select({ slug: linkTags.linkSlug, tag: linkTags.tagName })
-    .from(linkTags)
-    .orderBy(asc(linkTags.tagName))
-  for (const row of tagRows)
-    bySlug.get(row.slug)?.tags.push(row.tag)
+  do {
+    const rows = await db
+      .select()
+      .from(links)
+      .where(lastSlug ? gt(links.slug, lastSlug) : undefined)
+      .orderBy(asc(links.slug))
+      .limit(100)
+    if (!rows.length)
+      break
+
+    const pageLinks = rows.map((row) => {
+      const link = rowToLink(row)
+      if (link.expiration === undefined && row.effectiveExpiresAt !== null)
+        link.expiration = row.effectiveExpiresAt
+      return link
+    })
+    await addTagsToLinksFromDatabase(db, pageLinks, pageLinks.map(link => link.slug))
+
+    for (const link of pageLinks) {
+      if (!migrationComplete)
+        unavailableSlugs.add(normalize(link.slug))
+      yield link
+    }
+
+    lastSlug = rows.at(-1)?.slug
+    if (rows.length < 100)
+      break
+  } while (lastSlug)
 
   if (migrationComplete)
-    return result
+    return
 
   const tombstoneRows = await db.select({ slug: linkTombstones.slug }).from(linkTombstones)
-  const normalize = (slug: string) => caseSensitive ? slug : slug.toLowerCase()
-  const unavailableSlugs = new Set([...bySlug.keys(), ...tombstoneRows.map(row => row.slug)].map(normalize))
+  for (const row of tombstoneRows)
+    unavailableSlugs.add(normalize(row.slug))
+
   let cursor: string | undefined
   do {
     const page = await env.KV.list({ prefix: 'link:', limit: 1000, cursor })
@@ -637,15 +659,12 @@ export async function listAllAuthoritativeLinks(env: Cloudflare.Env, caseSensiti
         const slug = normalize(link.slug)
         if (unavailableSlugs.has(slug))
           continue
-        result.push({ ...link, slug })
         unavailableSlugs.add(slug)
+        yield { ...link, slug }
       }
     }
     cursor = page.list_complete ? undefined : page.cursor
   } while (cursor)
-
-  result.sort((a, b) => a.slug.localeCompare(b.slug))
-  return result
 }
 
 interface SearchLinksOptions {

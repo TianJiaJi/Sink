@@ -83,7 +83,7 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, metricsRetryK
     if (!controller.signal.aborted)
       loading.value = false
   }
-}, { deep: true, immediate: true })
+}, { immediate: true })
 
 onMounted(() => {
   getWorldMapJSON()

@@ -9,7 +9,7 @@ defineRouteMeta({
         name: 'limit',
         in: 'query',
         required: false,
-        schema: { type: 'integer', default: 20, maximum: 1024 },
+        schema: { type: 'integer', default: 20, maximum: 1000 },
         description: 'Maximum number of links to return',
       },
       {
@@ -45,7 +45,7 @@ defineRouteMeta({
 })
 
 const ListQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(1024).default(20),
+  limit: z.coerce.number().int().min(1).max(1000).default(20),
   cursor: z.string().trim().max(1024).optional(),
   sort: z.enum(['az', 'za', 'newest', 'oldest']).default('newest'),
   tag: z.string().trim().toLowerCase().min(1).max(32).optional(),

@@ -163,7 +163,7 @@ watch([effectiveTimeRange, effectiveFilters, isPaused, retryKey], async (_values
     if (!controller.signal.aborted && !isPaused.value)
       loading.value = false
   }
-}, { deep: true, immediate: true })
+}, { immediate: true })
 
 type Data = ViewDataPoint
 </script>

@@ -41,26 +41,28 @@ function getPasswordSubmitValue(password: string): string | undefined {
   return password
 }
 
+const defaultValues: DashboardLinkFormData = {
+  url: props.link.url ?? '',
+  slug: props.link.slug ?? '',
+  comment: props.link.comment ?? '',
+  tags: props.link.tags ?? [],
+  expiration: props.link.expiration
+    ? unix2date(props.link.expiration)
+    : undefined,
+  google: props.link.google ?? '',
+  apple: props.link.apple ?? '',
+  title: props.link.title ?? '',
+  description: props.link.description ?? '',
+  image: props.link.image ?? '',
+  cloaking: props.link.cloaking ?? false,
+  redirectWithQuery: props.link.redirectWithQuery ?? false,
+  password: props.link.password ?? '',
+  unsafe: props.link.unsafe ?? false,
+  geo: props.link.geo ? Object.entries(props.link.geo).map(([country, url]) => ({ country, url })) : [],
+}
+
 const form = useForm({
-  defaultValues: {
-    url: props.link.url ?? '',
-    slug: props.link.slug ?? '',
-    comment: props.link.comment ?? '',
-    tags: props.link.tags ?? [],
-    expiration: props.link.expiration
-      ? unix2date(props.link.expiration)
-      : undefined,
-    google: props.link.google ?? '',
-    apple: props.link.apple ?? '',
-    title: props.link.title ?? '',
-    description: props.link.description ?? '',
-    image: props.link.image ?? '',
-    cloaking: props.link.cloaking ?? false,
-    redirectWithQuery: props.link.redirectWithQuery ?? false,
-    password: props.link.password ?? '',
-    unsafe: props.link.unsafe ?? false,
-    geo: props.link.geo ? Object.entries(props.link.geo).map(([country, url]) => ({ country, url })) : [],
-  } satisfies DashboardLinkFormData,
+  defaultValues,
   onSubmit: async ({ value }) => {
     try {
       const geoRecord: Record<string, string> = {}

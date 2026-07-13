@@ -83,7 +83,7 @@ export default defineNuxtConfig({
       },
     },
   },
-  compatibilityDate: 'latest',
+  compatibilityDate: '2026-07-13',
   nitro: {
     preset: import.meta.env.CF_PAGES !== '1' ? 'cloudflare-module' : undefined,
     experimental: {

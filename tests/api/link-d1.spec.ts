@@ -472,7 +472,7 @@ describe('d1 link integration', () => {
       oldest: [`${prefix}a`, `${prefix}b`, `${prefix}c`],
     }
     for (const [sort, order] of Object.entries(expected)) {
-      const response = await fetchWithAuth(`/api/link/list?limit=1024&sort=${sort}`)
+      const response = await fetchWithAuth(`/api/link/list?limit=1000&sort=${sort}`)
       const data = await response.json() as { links: Link[] }
       expect(data.links.filter(link => link.slug.startsWith(prefix)).map(link => link.slug)).toEqual(order)
     }

@@ -36,14 +36,8 @@ function eventId(event: WAEEvents): string {
 function events2logs(events: WAEEvents[]) {
   const occurrences = new Map<string, number>()
   return events.map((event) => {
-    const blobs = Array.from({ length: Object.keys(blobsMap).length }).fill(0).reduce<string[]>((_, _c, i) => {
-      _.push(event[`blob${i + 1}`] ?? '')
-      return _
-    }, [])
-    const doubles = Array.from({ length: Object.keys(doublesMap).length }).fill(0).reduce<number[]>((_, _c, i) => {
-      _.push(+(event[`double${i + 1}`] ?? 0))
-      return _
-    }, [])
+    const blobs = Array.from({ length: Object.keys(blobsMap).length }, (_, i) => event[`blob${i + 1}`] ?? '')
+    const doubles = Array.from({ length: Object.keys(doublesMap).length }, (_, i) => +(event[`double${i + 1}`] ?? 0))
     const baseId = eventId(event)
     const occurrence = occurrences.get(baseId) ?? 0
     occurrences.set(baseId, occurrence + 1)

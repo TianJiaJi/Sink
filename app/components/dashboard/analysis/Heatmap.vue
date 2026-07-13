@@ -169,7 +169,7 @@ watch([effectiveTimeRange, effectiveFilters, retryKey], async (_values, _oldValu
     if (!controller.signal.aborted)
       loading.value = false
   }
-}, { deep: true, immediate: true })
+}, { immediate: true })
 </script>
 
 <template>

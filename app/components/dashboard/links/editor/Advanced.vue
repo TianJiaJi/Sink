@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { DateValue } from '@internationalized/date'
+import type { DeepKeys, DeepValue, Updater } from '@tanstack/vue-form'
 import type { Component } from 'vue'
-import type { AnyFieldApi, LinkFormData } from '@/types'
+import type { AnyFieldApi } from '@/types'
+import type { DashboardLinkFormData } from '@/types/dashboard-links'
 import { today } from '@internationalized/date'
 import { CalendarIcon, Plus, Sparkles, Trash2 } from '@lucide/vue'
 import { toast } from 'vue-sonner'
@@ -11,8 +13,8 @@ import { cn } from '@/lib/utils'
 const props = defineProps<{
   form: {
     Field: Component
-    getFieldValue: (name: keyof LinkFormData) => LinkFormData[keyof LinkFormData]
-    setFieldValue: (name: keyof LinkFormData, value: any) => void
+    getFieldValue: <TField extends DeepKeys<DashboardLinkFormData>>(name: TField) => DeepValue<DashboardLinkFormData, TField>
+    setFieldValue: <TField extends DeepKeys<DashboardLinkFormData>>(name: TField, updater: Updater<DeepValue<DashboardLinkFormData, TField>>) => void
   }
   idPrefix: string
   validateOptionalUrl: (ctx: { value: string }) => string | undefined
@@ -27,7 +29,7 @@ const datePickerOpen = ref(false)
 const { t, locale } = useI18n()
 const accordionTriggerClass = 'hover:no-underline'
 
-type GeoRoute = LinkFormData['geo'][number]
+type GeoRoute = DashboardLinkFormData['geo'][number]
 
 function updateGeoRoute(routes: GeoRoute[], index: number | string, value: Partial<GeoRoute>) {
   const targetIndex = Number(index)

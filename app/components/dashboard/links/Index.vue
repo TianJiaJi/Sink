@@ -16,9 +16,9 @@ let requestGeneration = 0
 
 const countersMap = ref<Record<string, CounterData>>({})
 const counterErrorIds = ref<Set<string>>(new Set())
-provide('linksCountersMap', countersMap)
-provide('linksCounterErrorIds', counterErrorIds)
-provide('retryLinkCounters', (id: string) => void fetchCounters([id]))
+provide(LINKS_COUNTERS_MAP_KEY, countersMap)
+provide(LINKS_COUNTER_ERROR_IDS_KEY, counterErrorIds)
+provide(RETRY_LINK_COUNTERS_KEY, (id: string) => void fetchCounters([id]))
 
 const pendingIds = new Set<string>()
 const counterRequestVersions = new Map<string, number>()
@@ -70,7 +70,7 @@ async function fetchCounters(ids: string[]) {
   }
 }
 
-const scrollContainer = ref<HTMLElement | Window | null>(null)
+const scrollContainer = shallowRef<HTMLElement | null>(null)
 
 onMounted(() => {
   scrollContainer.value = document.querySelector('.overflow-y-auto') as HTMLElement | null
@@ -135,7 +135,7 @@ function resetAndLoad() {
 }
 
 useInfiniteScroll(
-  scrollContainer as unknown as Ref<HTMLElement | null>,
+  scrollContainer,
   getLinks,
   {
     distance: 150,

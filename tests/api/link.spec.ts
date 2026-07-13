@@ -311,8 +311,13 @@ describe('/api/link/list', { concurrent: false }, () => {
     expectMaskedPassword(link?.password, password)
   })
 
+  it('accepts the maximum limit', async () => {
+    const response = await fetchWithAuth('/api/link/list?limit=1000')
+    expect(response.status).toBe(200)
+  })
+
   it('returns 400 when limit exceeds maximum', async () => {
-    const response = await fetchWithAuth('/api/link/list?limit=2000')
+    const response = await fetchWithAuth('/api/link/list?limit=1001')
     expect(response.status).toBe(400)
   })
 })
