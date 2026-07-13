@@ -3,6 +3,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import {
   isCloudflareAccessConfigured,
   isCloudflareAccessRequestSafe,
+  mapCloudflareAccessIdentity,
   verifyCloudflareAccessToken,
 } from '../server/utils/cloudflare-access'
 import { fetchWithAuth } from './utils'
@@ -34,7 +35,9 @@ interface TokenOptions {
   exp?: number
   iss?: string
   key?: CryptoKey
+  omitAudience?: boolean
   omitExp?: boolean
+  omitIssuer?: boolean
   payload?: Record<string, unknown>
 }
 
@@ -47,10 +50,14 @@ async function createToken(options: TokenOptions = {}) {
     ...options.payload,
   })
     .setProtectedHeader({ alg: 'RS256', kid: keyId })
-    .setIssuer(options.iss || issuer)
-    .setAudience(options.aud || audience)
     .setIssuedAt(now)
     .setNotBefore(now)
+
+  if (!options.omitIssuer)
+    token = token.setIssuer(options.iss || issuer)
+
+  if (!options.omitAudience)
+    token = token.setAudience(options.aud || audience)
 
   if (!options.omitExp)
     token = token.setExpirationTime(options.exp ?? now + 300)
@@ -59,9 +66,10 @@ async function createToken(options: TokenOptions = {}) {
 }
 
 describe('cloudflare Access JWT validation', () => {
-  it('accepts a valid token', async () => {
+  it('accepts a valid user token', async () => {
     const token = await createToken()
     await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toEqual({
+      kind: 'user',
       userID: 'access-user-id',
       userEmail: 'alice@example.com',
     })
@@ -76,7 +84,46 @@ describe('cloudflare Access JWT validation', () => {
     ['non-string email', { email: 123 }],
     ['missing type', { type: undefined }],
     ['incorrect type', { type: 'service' }],
-  ])('rejects a token with %s', async (_name, payload) => {
+    ['mixed user and service claims', { common_name: 'service-client-id' }],
+  ])('rejects a user token with %s', async (_name, payload) => {
+    const token = await createToken({ payload })
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
+  })
+
+  it('accepts an official-shape service token', async () => {
+    const token = await createToken({
+      payload: {
+        sub: '',
+        email: undefined,
+        common_name: 'service-client-id',
+      },
+    })
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toEqual({
+      kind: 'service',
+    })
+  })
+
+  it('rejects a service token with an empty email', async () => {
+    const token = await createToken({
+      payload: {
+        sub: '',
+        email: '',
+        common_name: 'service-client-id',
+      },
+    })
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
+  })
+
+  it.each([
+    ['missing common name', { sub: '', email: undefined, common_name: undefined }],
+    ['blank common name', { sub: '', email: undefined, common_name: '' }],
+    ['non-string common name', { sub: '', email: undefined, common_name: 123 }],
+    ['non-empty subject', { sub: 'access-user-id', email: undefined, common_name: 'service-client-id' }],
+    ['email claim', { sub: '', email: 'alice@example.com', common_name: 'service-client-id' }],
+    ['incorrect type', { type: 'service', sub: '', email: undefined, common_name: 'service-client-id' }],
+    ['missing subject', { sub: undefined, email: undefined, common_name: 'service-client-id' }],
+    ['ambiguous blank claims', { sub: '', email: '', common_name: '' }],
+  ])('rejects a service token with %s', async (_name, payload) => {
     const token = await createToken({ payload })
     await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
   })
@@ -88,6 +135,16 @@ describe('cloudflare Access JWT validation', () => {
 
   it('rejects an invalid issuer', async () => {
     const token = await createToken({ iss: 'https://other.cloudflareaccess.com' })
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
+  })
+
+  it('rejects a token without an issuer', async () => {
+    const token = await createToken({ omitIssuer: true })
+    await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
+  })
+
+  it('rejects a token without an audience', async () => {
+    const token = await createToken({ omitAudience: true })
     await expect(verifyCloudflareAccessToken(token, { issuer, audience }, localJwks)).resolves.toBeNull()
   })
 
@@ -113,6 +170,16 @@ describe('cloudflare Access JWT validation', () => {
       throw new Error('JWKS unavailable')
     }
     await expect(verifyCloudflareAccessToken(token, { issuer, audience }, unavailableJwks)).resolves.toBeNull()
+  })
+})
+
+describe('cloudflare Access identity mapping', () => {
+  it('maps a service identity to root authentication', () => {
+    expect(mapCloudflareAccessIdentity({ kind: 'service' }, 'sink.example.com')).toEqual({
+      authMethod: 'access-service',
+      userID: 'root',
+      userEmail: 'root@sink.example.com',
+    })
   })
 })
 

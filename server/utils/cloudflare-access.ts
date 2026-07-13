@@ -7,10 +7,27 @@ interface CloudflareAccessConfig {
   issuer: string
 }
 
-export interface CloudflareAccessIdentity {
-  userID: string
-  userEmail: string
-}
+export type CloudflareAccessIdentity
+  = | {
+    kind: 'user'
+    userID: string
+    userEmail: string
+  }
+  | {
+    kind: 'service'
+  }
+
+export type CloudflareAccessAuth
+  = | {
+    authMethod: 'access-user'
+    userID: string
+    userEmail: string
+  }
+  | {
+    authMethod: 'access-service'
+    userID: 'root'
+    userEmail: string
+  }
 
 const jwksByTeamDomain = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
 
@@ -42,18 +59,53 @@ export async function verifyCloudflareAccessToken(
       algorithms: ['RS256'],
       audience: config.audience,
       issuer: config.issuer,
-      requiredClaims: ['exp', 'sub', 'email'],
+      requiredClaims: ['exp'],
     })
-    const userID = typeof payload.sub === 'string' ? payload.sub.trim() : ''
-    const userEmail = typeof payload.email === 'string' ? payload.email.trim() : ''
 
-    if (payload.type !== 'app' || !userID || !userEmail)
+    if (payload.type !== 'app')
       return null
 
-    return { userID, userEmail }
+    const userID = typeof payload.sub === 'string' ? payload.sub.trim() : ''
+    const userEmail = typeof payload.email === 'string' ? payload.email.trim() : ''
+    const commonName = typeof payload.common_name === 'string' ? payload.common_name.trim() : ''
+
+    if (userID && userEmail && payload.common_name === undefined) {
+      return {
+        kind: 'user',
+        userID,
+        userEmail,
+      }
+    }
+
+    if (payload.sub === '' && payload.email === undefined && commonName) {
+      return {
+        kind: 'service',
+      }
+    }
+
+    return null
   }
   catch {
     return null
+  }
+}
+
+export function mapCloudflareAccessIdentity(
+  identity: CloudflareAccessIdentity,
+  hostname: string,
+): CloudflareAccessAuth {
+  if (identity.kind === 'user') {
+    return {
+      authMethod: 'access-user',
+      userID: identity.userID,
+      userEmail: identity.userEmail,
+    }
+  }
+
+  return {
+    authMethod: 'access-service',
+    userID: 'root',
+    userEmail: `root@${hostname}`,
   }
 }
 

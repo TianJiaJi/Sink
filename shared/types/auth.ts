@@ -1,4 +1,4 @@
-export type AuthMethod = 'site-token' | 'cloudflare-access'
+export type AuthMethod = 'site-token' | 'access-user' | 'access-service'
 
 export interface VerifyResponse {
   name: string

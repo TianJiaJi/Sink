@@ -5,7 +5,7 @@ description: Protect the Sink dashboard with Cloudflare Access while preserving 
 
 # Cloudflare Access Authentication
 
-Sink can use Cloudflare Access as an alternative to the site token. An API request is accepted when it has either a valid `NUXT_SITE_TOKEN` bearer token or a valid Cloudflare Access application JWT. Sink verifies the JWT signature, issuer, audience, and expiration against the team's public keys; a header or cookie is never trusted by presence alone.
+Sink can use Cloudflare Access as an alternative to the site token. An API request is accepted when it has either a valid `NUXT_SITE_TOKEN` bearer token or a valid Cloudflare Access application JWT for a user or service token. Sink verifies the JWT signature, issuer, audience, and expiration against the team's public keys; a header or cookie is never trusted by presence alone.
 
 ## Compatibility-first setup
 
@@ -32,6 +32,8 @@ In compatibility-first mode, Sink validates the signed JWT locally instead of as
 
 Because Access uses a browser cookie, Sink rejects cross-site browser requests authenticated through Access and verifies `Origin` for state-changing methods. SiteToken requests are unchanged; non-browser clients should use `NUXT_SITE_TOKEN`.
 
+A verified Access service token is mapped to Sink's `root` identity. Only allow explicitly designated, trusted service tokens in the Access policy because each accepted service token receives full root access. Sink authenticates the signed application JWT and does not trust raw `CF-Access-Client-Id` or `CF-Access-Client-Secret` headers.
+
 Do not expose another deployment hostname with a weak SiteToken. Protecting the dashboard hostname does not protect other hostnames routed to the same Worker or Pages project.
 
 ## Logout
@@ -40,7 +42,7 @@ When the dashboard uses Access authentication, Sink redirects logout to `/cdn-cg
 
 ## Strict setup
 
-For stronger edge enforcement, protect both `/dashboard` and `/api`. Cloudflare then blocks requests before they reach Sink. A SiteToken-only client cannot use that hostname and must also present an Access service token or use a separate API hostname.
+For stronger edge enforcement, protect both `/dashboard` and `/api`. Cloudflare then blocks requests before they reach Sink. A client that passes Access with an allowed service token can use the signed application JWT that reaches the Worker; it does not also need a Sink SiteToken. A SiteToken-only client cannot use that hostname unless it also passes Access, so use a separate API hostname when Access is not available to the client.
 
 ## References
 

@@ -60,7 +60,7 @@ Authorization: Bearer YOUR_SITE_TOKEN
 | ------ | ---------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `GET`  | `/api/link/migration/status` | 检查 KV 到 D1 的迁移标记并返回标记内容。                                                              |
 | `POST` | `/api/link/migration/run`    | 将一页受限数据（最多 40 条 KV 记录）复制到 D1；携带响应中的不透明游标继续，直到 `completed` 为 true。 |
-| `GET`  | `/api/verify`                | 验证凭据，并报告 `site-token` 或 `cloudflare-access`。                                                |
+| `GET`  | `/api/verify`                | 验证凭据，并报告 `site-token`、`access-user` 或 `access-service`。                                    |
 | `GET`  | `/api/location`              | 返回 Cloudflare 请求元数据中的纬度和经度。                                                            |
 | `POST` | `/api/upload/image`          | 将 OpenGraph 图片上传到 R2。                                                                          |
 | `POST` | `/api/backup`                | 手动触发 KV 兼容性备份到 R2。                                                                         |

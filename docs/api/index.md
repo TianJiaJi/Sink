@@ -60,7 +60,7 @@ The value is `NUXT_SITE_TOKEN`. When [Cloudflare Access](/configuration/cloudfla
 | ------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `GET`  | `/api/link/migration/status` | Report whether the KV-to-D1 migration marker exists and return it.                                                       |
 | `POST` | `/api/link/migration/run`    | Copy one bounded page (up to 40 KV records) into D1. Continue with the opaque response cursor until `completed` is true. |
-| `GET`  | `/api/verify`                | Verify credentials and report `site-token` or `cloudflare-access`.                                                       |
+| `GET`  | `/api/verify`                | Verify credentials and report `site-token`, `access-user`, or `access-service`.                                          |
 | `GET`  | `/api/location`              | Return request latitude and longitude from Cloudflare request metadata.                                                  |
 | `POST` | `/api/upload/image`          | Upload an OpenGraph image to R2.                                                                                         |
 | `POST` | `/api/backup`                | Trigger a manual KV compatibility backup to R2.                                                                          |

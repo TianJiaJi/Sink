@@ -17,7 +17,11 @@ export default eventHandler((event) => {
   const userID: unknown = event.context.userID
   const userEmail: unknown = event.context.userEmail
   if (
-    (authMethod !== 'site-token' && authMethod !== 'cloudflare-access')
+    (
+      authMethod !== 'site-token'
+      && authMethod !== 'access-user'
+      && authMethod !== 'access-service'
+    )
     || typeof userID !== 'string'
     || !userID
     || typeof userEmail !== 'string'

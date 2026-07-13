@@ -15,9 +15,10 @@ export default eventHandler(async (event) => {
   const accessIdentity = await verifyCloudflareAccess(event)
   if (accessIdentity) {
     if (isCloudflareAccessRequestAllowed(event)) {
-      event.context.authMethod = 'cloudflare-access'
-      event.context.userID = accessIdentity.userID
-      event.context.userEmail = accessIdentity.userEmail
+      Object.assign(
+        event.context,
+        mapCloudflareAccessIdentity(accessIdentity, getRequestURL(event).hostname),
+      )
       return
     }
 
