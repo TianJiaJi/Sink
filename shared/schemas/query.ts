@@ -19,7 +19,7 @@ export const QuerySchema = z.object({
   browserType: z.string().optional(),
   device: z.string().optional(),
   deviceType: z.string().optional(),
-  limit: z.coerce.number().int().safe().default(listQueryLimit),
+  limit: z.coerce.number().int().safe().min(1).max(listQueryLimit).default(listQueryLimit),
 })
 
 export type Query = z.infer<typeof QuerySchema>

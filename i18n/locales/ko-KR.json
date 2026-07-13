@@ -47,7 +47,17 @@
       }
     },
     "header": {
-      "select_language": "언어 선택"
+      "select_language": "언어 선택",
+      "toggle_menu_aria_label": "메뉴 전환"
+    },
+    "links": {
+      "documentation": "문서",
+      "api_reference": "API 레퍼런스",
+      "documentation_aria_label": "Sink 문서 열기(새 탭에서 열림)",
+      "resources_aria_label": "리소스",
+      "skip_to_content": "주요 콘텐츠로 건너뛰기",
+      "home_aria_label": "홈",
+      "github_aria_label": "GitHub의 Sink"
     }
   },
   "nav": {
@@ -166,6 +176,21 @@
     "no_data": "데이터 없음",
     "none": "(없음)",
     "filter_placeholder": "링크 필터링...",
+    "realtime": {
+      "stats_error": "실시간 통계를 불러오지 못했습니다.",
+      "events_error": "실시간 이벤트를 불러오지 못했습니다.",
+      "globe_error": "지구본 데이터를 불러오지 못했습니다.",
+      "filter_label": "링크 필터링",
+      "filter_search_label": "링크 검색",
+      "links_error": "링크를 불러오지 못했습니다.",
+      "time_range_label": "시간 범위 선택",
+      "globe_label": "실시간 트래픽 지구본",
+      "globe_zoom_out": "축소",
+      "globe_reset": "초기화",
+      "globe_zoom_in": "확대",
+      "globe_instructions": "드래그하여 회전하세요. 포커스한 뒤 스크롤로 확대·축소하고, 방향키로 회전하며, +/−로 확대·축소하세요. Home은 초기화, Escape는 포커스 해제입니다.",
+      "globe_fallback": "대화형 지구본을 사용할 수 없습니다."
+    },
     "date_picker": {
       "today": "오늘",
       "last_24h": "지난 24시간",
@@ -205,6 +230,14 @@
     }
   },
   "links": {
+    "migration_gate": {
+      "loading": "링크 데이터 준비 중",
+      "scanned": "링크 {count}개 스캔됨",
+      "failed_title": "링크 마이그레이션 실패",
+      "failed_description": "KV에서 D1으로의 마이그레이션이 완료될 때까지 링크를 사용할 수 없습니다.",
+      "retry": "다시 시도",
+      "open_migration": "마이그레이션 도구 열기"
+    },
     "create": "링크 생성",
     "edit": "링크 편집",
     "delete_confirm_title": "정말 확실합니까?",
@@ -214,8 +247,11 @@
     "update_success": "링크가 성공적으로 업데이트되었습니다",
     "create_success": "링크가 성공적으로 생성되었습니다",
     "preview_mode_tip": "미리보기 모드 링크는 최대 5분간 유효합니다.",
-    "search_placeholder": "링크 검색...",
+    "search_placeholder": "링크 검색…",
+    "search_loading": "검색 중…",
+    "search_failed": "검색에 실패했습니다.",
     "no_results": "링크를 찾을 수 없습니다.",
+    "no_filtered_results": "현재 필터와 일치하는 링크가 없습니다.",
     "group_title": "링크",
     "copy_success": "복사되었습니다!",
     "created_at": "생성일",
@@ -225,12 +261,33 @@
     "load_failed": "링크를 불러오지 못했습니다,",
     "download_qr_code": "QR 코드 다운로드",
     "change_qr_color": "QR 코드 색상 변경",
+    "expired": "만료됨",
+    "filters": {
+      "aria_label": "링크 필터",
+      "status_label": "상태",
+      "active": "활성",
+      "expired": "만료됨",
+      "tag_label": "태그",
+      "all_tags": "모든 태그",
+      "tags_loading": "태그 불러오는 중…",
+      "tags_failed": "태그를 불러오지 못했습니다."
+    },
     "form": {
       "url": "URL",
       "slug": "슬러그",
       "comment": "설명",
+      "tags": "태그",
+      "tags_description": "태그는 최대 10개, 각 32자까지 입력할 수 있습니다.",
+      "tags_placeholder": "태그 추가",
+      "tag_remove": "{tag} 태그 삭제",
+      "tag_added": "{tag} 태그가 추가되었습니다.",
+      "tag_removed": "{tag} 태그가 삭제되었습니다.",
+      "tags_limit": "태그는 최대 10개까지 추가할 수 있습니다.",
+      "tag_too_long": "각 태그는 최대 32자까지 입력할 수 있습니다.",
       "expiration": "만료",
-      "expiration_description": "단축 링크는 만료되면 자동으로 삭제됩니다.",
+      "expiration_description": "만료되면 링크의 리디렉션이 중지되며 편집하여 다시 활성화할 수 있습니다.",
+      "clear_expiration": "만료일 지우기",
+      "expired_recovery": "이 링크는 만료되었습니다. 새 만료일을 미래로 설정하거나 만료일을 지우면 다시 활성화됩니다.",
       "pick_date": "날짜 선택",
       "device_redirect": "기기별 리디렉션",
       "google_play": "Google Play URL",
@@ -363,6 +420,24 @@
     "duration_ms": "{duration}ms"
   },
   "migrate": {
+    "d1": {
+      "title": "KV에서 D1으로 마이그레이션",
+      "description": "기존 D1 레코드를 유지하면서 Workers KV 링크를 D1으로 복사합니다.",
+      "status_title": "마이그레이션 상태",
+      "status_pending": "마이그레이션이 완료되지 않았습니다.",
+      "status_completed": "마이그레이션이 완료되었습니다.",
+      "completed_at": "완료: {date}",
+      "run_again": "다시 실행",
+      "running": "마이그레이션 중…",
+      "success": "마이그레이션이 완료되었습니다.",
+      "failed": "마이그레이션 실패",
+      "scanned": "스캔됨",
+      "inserted": "추가됨",
+      "skipped": "건너뜀",
+      "expired": "만료됨",
+      "failed_count": "실패",
+      "no_marker": "완료 마커를 찾을 수 없습니다."
+    },
     "access_export": {
       "title": "접속 데이터 내보내기",
       "description": "접속 통계를 CSV 파일로 다운로드합니다",
@@ -414,6 +489,48 @@
         "no_links": "파일에서 링크를 찾을 수 없습니다",
         "parse_error": "파일 구문 분석에 실패했습니다"
       }
+    }
+  },
+  "ux": {
+    "login": { "logging_in": "로그인 중…" },
+    "realtime": {
+      "pause": "일시 중지",
+      "resume": "계속",
+      "paused": "실시간 업데이트 일시 중지됨",
+      "running": "실시간 업데이트 중"
+    },
+    "analysis": {
+      "chart_summary": "총 {totalVisits}회 방문. 최고: {peakTime}에 {peakVisits}회.",
+      "chart_summary_with_visitors": "총 {totalVisits}회 방문, 방문자 {totalVisitors}명. 최고: {peakTime}에 {peakVisits}회 방문.",
+      "locations_summary": "{countryCount}개 지역에서 {totalVisits}회 방문했습니다."
+    },
+    "links": {
+      "unsafe": "안전하지 않은 링크",
+      "counts_retry": "{slug} 통계 다시 불러오기",
+      "visits_count": "방문 {count}회",
+      "visitors_count": "방문자 {count}명",
+      "referers_count": "유입 경로 {count}개",
+      "qr_text_alternative": "{url}의 QR 코드",
+      "generate_random_slug": "무작위 슬러그 생성",
+      "generate_ai_slug": "AI로 슬러그 생성",
+      "discard_title": "저장하지 않은 변경 사항을 버릴까요?",
+      "discard_description": "변경 사항이 사라집니다.",
+      "discard_action": "변경 사항 버리기",
+      "delete_title": "{slug} 링크를 삭제할까요?",
+      "delete_description": "링크가 영구 삭제되며 되돌릴 수 없습니다.",
+      "delete_action": "링크 삭제"
+    },
+    "check": {
+      "clear_title": "검사 결과를 지울까요?",
+      "clear_description": "이번 검사의 모든 결과가 삭제됩니다.",
+      "clear_action": "결과 지우기"
+    },
+    "import": {
+      "batch_failed": "이 가져오기 묶음에 실패했습니다.",
+      "links_found": "가져올 링크 {count}개",
+      "download_success": "가져온 링크 {count}개 다운로드",
+      "download_skipped": "건너뛴 링크 {count}개 다운로드",
+      "download_failed": "실패한 링크 {count}개 다운로드"
     }
   }
 }

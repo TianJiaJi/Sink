@@ -47,7 +47,17 @@
       }
     },
     "header": {
-      "select_language": "Chọn ngôn ngữ"
+      "select_language": "Chọn ngôn ngữ",
+      "toggle_menu_aria_label": "Mở hoặc đóng menu"
+    },
+    "links": {
+      "documentation": "Tài liệu",
+      "api_reference": "Tham chiếu API",
+      "documentation_aria_label": "Mở tài liệu Sink (mở trong thẻ mới)",
+      "resources_aria_label": "Tài nguyên",
+      "skip_to_content": "Chuyển đến nội dung chính",
+      "home_aria_label": "Trang chủ",
+      "github_aria_label": "Sink trên GitHub"
     }
   },
   "nav": {
@@ -166,6 +176,21 @@
     "no_data": "Không có dữ liệu",
     "none": "(Không có)",
     "filter_placeholder": "Lọc liên kết...",
+    "realtime": {
+      "stats_error": "Không thể tải số liệu thống kê theo thời gian thực.",
+      "events_error": "Không thể tải sự kiện theo thời gian thực.",
+      "globe_error": "Không thể tải dữ liệu quả địa cầu.",
+      "filter_label": "Lọc liên kết",
+      "filter_search_label": "Tìm kiếm liên kết",
+      "links_error": "Không thể tải liên kết.",
+      "time_range_label": "Chọn khoảng thời gian",
+      "globe_label": "Quả địa cầu lưu lượng theo thời gian thực",
+      "globe_zoom_out": "Thu nhỏ",
+      "globe_reset": "Đặt lại",
+      "globe_zoom_in": "Phóng to",
+      "globe_instructions": "Kéo để xoay. Khi được lấy nét, cuộn để thu phóng, dùng phím mũi tên để xoay, +/− để thu phóng, Home để đặt lại và Escape để thoát lấy nét.",
+      "globe_fallback": "Quả địa cầu tương tác hiện không khả dụng."
+    },
     "date_picker": {
       "today": "Hôm nay",
       "last_24h": "24 giờ qua",
@@ -205,6 +230,14 @@
     }
   },
   "links": {
+    "migration_gate": {
+      "loading": "Đang chuẩn bị liên kết",
+      "scanned": "Đã quét {count} liên kết",
+      "failed_title": "Di chuyển liên kết thất bại",
+      "failed_description": "Liên kết không khả dụng cho đến khi di chuyển từ KV sang D1 hoàn tất.",
+      "retry": "Thử lại",
+      "open_migration": "Mở công cụ di chuyển"
+    },
     "create": "Tạo liên kết",
     "edit": "Chỉnh sửa liên kết",
     "delete_confirm_title": "Bạn có chắc chắn không?",
@@ -214,8 +247,11 @@
     "update_success": "Cập nhật liên kết thành công",
     "create_success": "Tạo liên kết thành công",
     "preview_mode_tip": "Liên kết ở chế độ xem trước có hiệu lực trong 5 phút.",
-    "search_placeholder": "Tìm liên kết...",
+    "search_placeholder": "Tìm liên kết…",
+    "search_loading": "Đang tìm kiếm…",
+    "search_failed": "Tìm kiếm thất bại.",
     "no_results": "Không tìm thấy liên kết nào.",
+    "no_filtered_results": "Không có liên kết phù hợp với bộ lọc hiện tại.",
     "group_title": "Liên kết",
     "copy_success": "Sao chép thành công!",
     "created_at": "Ngày tạo",
@@ -225,12 +261,33 @@
     "load_failed": "Tải liên kết thất bại,",
     "download_qr_code": "Tải mã QR",
     "change_qr_color": "Thay đổi màu mã QR",
+    "expired": "Đã hết hạn",
+    "filters": {
+      "aria_label": "Bộ lọc liên kết",
+      "status_label": "Trạng thái",
+      "active": "Còn hiệu lực",
+      "expired": "Đã hết hạn",
+      "tag_label": "Thẻ",
+      "all_tags": "Tất cả thẻ",
+      "tags_loading": "Đang tải thẻ…",
+      "tags_failed": "Không thể tải thẻ."
+    },
     "form": {
       "url": "URL",
       "slug": "Slug",
       "comment": "Ghi chú",
+      "tags": "Thẻ",
+      "tags_description": "Tối đa 10 thẻ, mỗi thẻ 32 ký tự.",
+      "tags_placeholder": "Thêm thẻ",
+      "tag_remove": "Xóa thẻ {tag}",
+      "tag_added": "Đã thêm thẻ {tag}.",
+      "tag_removed": "Đã xóa thẻ {tag}.",
+      "tags_limit": "Chỉ có thể thêm tối đa 10 thẻ.",
+      "tag_too_long": "Mỗi thẻ tối đa 32 ký tự.",
       "expiration": "Hết hạn",
-      "expiration_description": "Liên kết rút gọn sẽ tự động bị xóa sau khi hết hạn.",
+      "expiration_description": "Sau khi hết hạn, liên kết sẽ ngừng chuyển hướng và có thể được khôi phục bằng cách chỉnh sửa.",
+      "clear_expiration": "Xóa hạn dùng",
+      "expired_recovery": "Liên kết này đã hết hạn. Đặt ngày mới trong tương lai hoặc xóa ngày hết hạn để khôi phục.",
       "pick_date": "Chọn ngày",
       "device_redirect": "Chuyển hướng theo thiết bị",
       "google_play": "URL Google Play",
@@ -363,6 +420,24 @@
     "duration_ms": "{duration} ms"
   },
   "migrate": {
+    "d1": {
+      "title": "Di chuyển KV sang D1",
+      "description": "Sao chép liên kết từ Workers KV sang D1 và giữ nguyên dữ liệu D1 hiện có.",
+      "status_title": "Trạng thái di chuyển",
+      "status_pending": "Quá trình di chuyển chưa hoàn tất.",
+      "status_completed": "Di chuyển đã hoàn tất.",
+      "completed_at": "Hoàn tất lúc {date}",
+      "run_again": "Chạy lại",
+      "running": "Đang di chuyển…",
+      "success": "Di chuyển hoàn tất thành công.",
+      "failed": "Di chuyển thất bại",
+      "scanned": "Đã quét",
+      "inserted": "Đã thêm",
+      "skipped": "Đã bỏ qua",
+      "expired": "Đã hết hạn",
+      "failed_count": "Thất bại",
+      "no_marker": "Không tìm thấy dấu hoàn tất."
+    },
     "access_export": {
       "title": "Export Access Data",
       "description": "Download access statistics as a CSV file",
@@ -414,6 +489,48 @@
         "no_links": "Không tìm thấy liên kết trong tệp",
         "parse_error": "Không thể phân tích tệp"
       }
+    }
+  },
+  "ux": {
+    "login": { "logging_in": "Đang đăng nhập…" },
+    "realtime": {
+      "pause": "Tạm dừng",
+      "resume": "Tiếp tục",
+      "paused": "Đã tạm dừng cập nhật trực tiếp",
+      "running": "Đang cập nhật trực tiếp"
+    },
+    "analysis": {
+      "chart_summary": "Tổng cộng {totalVisits} lượt truy cập. Cao nhất: {peakVisits} lúc {peakTime}.",
+      "chart_summary_with_visitors": "Tổng cộng {totalVisits} lượt truy cập và {totalVisitors} khách. Cao nhất: {peakVisits} lượt lúc {peakTime}.",
+      "locations_summary": "{totalVisits} lượt truy cập từ {countryCount} khu vực."
+    },
+    "links": {
+      "unsafe": "Liên kết không an toàn",
+      "counts_retry": "Thử lại số liệu của {slug}",
+      "visits_count": "{count} lượt truy cập",
+      "visitors_count": "{count} khách",
+      "referers_count": "{count} nguồn giới thiệu",
+      "qr_text_alternative": "Mã QR cho {url}",
+      "generate_random_slug": "Tạo slug ngẫu nhiên",
+      "generate_ai_slug": "Tạo slug bằng AI",
+      "discard_title": "Bỏ các thay đổi chưa lưu?",
+      "discard_description": "Các thay đổi sẽ bị mất.",
+      "discard_action": "Bỏ thay đổi",
+      "delete_title": "Xóa {slug}?",
+      "delete_description": "Liên kết sẽ bị xóa vĩnh viễn và không thể hoàn tác.",
+      "delete_action": "Xóa liên kết"
+    },
+    "check": {
+      "clear_title": "Xóa kết quả kiểm tra?",
+      "clear_description": "Tất cả kết quả của lần kiểm tra này sẽ bị xóa.",
+      "clear_action": "Xóa kết quả"
+    },
+    "import": {
+      "batch_failed": "Lô nhập này đã thất bại.",
+      "links_found": "{count} liên kết sẵn sàng nhập",
+      "download_success": "Tải {count} liên kết đã nhập",
+      "download_skipped": "Tải {count} liên kết đã bỏ qua",
+      "download_failed": "Tải {count} liên kết thất bại"
     }
   }
 }

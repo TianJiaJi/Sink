@@ -1,26 +1,38 @@
-# Deployment on Cloudflare Workers
+---
+title: Deploy Sink on Cloudflare Workers
+description: Deploy Sink to Cloudflare Workers with D1, KV, R2, Analytics Engine, runtime variables, and automated migrations.
+---
 
-1. [Fork](https://github.com/miantiao-me/Sink/fork) the repository to your GitHub account.
-2. Create a [KV namespace](https://developers.cloudflare.com/kv/) (under **Storage & Databases** -> **KV**), and copy the namespace ID.
-3. Update the `kv_namespaces` ID in `wrangler.jsonc` with your own namespace ID.
-4. (_Optional_) For OpenGraph image upload, create an [R2 bucket](https://developers.cloudflare.com/r2/) named `sink` (or run `wrangler r2 bucket create sink`). If you don't need this feature, comment out the `r2_buckets` section in `wrangler.jsonc`.
-5. Create a project in [Cloudflare Workers](https://developers.cloudflare.com/workers/).
-6. Select the `Sink` repository and use the following build and deploy commands:
-   - **Build command**: `pnpm run build` or `npm run build`
-   - **Deploy command**: `npx wrangler deploy`
+# Deploy Sink on Cloudflare Workers
 
-7. Save and deploy the project.
-8. After deployment, go to **Settings** -> **Variables and Secrets** -> **Add**, and configure the following environment variables:
-   - `NUXT_SITE_TOKEN`: Must be at least **8** characters long. This token grants access to your dashboard.
-   - `NUXT_CF_ACCOUNT_ID`: Find your [account ID](https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/).
-   - `NUXT_CF_API_TOKEN`: Create a [Cloudflare API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) with at least `Account.Account Analytics` permission. [See reference.](https://developers.cloudflare.com/analytics/analytics-engine/sql-api/#authentication)
-   - (_Optional_) `NUXT_WEBHOOK_URL`: The HTTPS endpoint that enables and receives click webhooks.
-   - (_Optional_) `NUXT_WEBHOOK_SECRET`: A `whsec_`-prefixed Base64 secret. Generate one with `printf 'whsec_%s\n' "$(openssl rand -base64 32)"` and store it as a secret in the dashboard, not in `wrangler.jsonc`. If omitted, delivery is unauthenticated and unsigned, which is not recommended over untrusted networks.
+1. [Fork the repository](https://github.com/miantiao-me/Sink/fork).
+2. Create a [KV namespace](https://developers.cloudflare.com/kv/) and copy its ID.
+3. Create D1 and copy its ID: `pnpm wrangler d1 create sink`.
+4. Create an [R2 bucket](https://developers.cloudflare.com/r2/) named `sink`, or run `pnpm wrangler r2 bucket create sink`. The deployment always includes `R2`; OpenGraph uploads and automatic compatibility backups depend on it.
+5. Create a [Cloudflare Workers](https://developers.cloudflare.com/workers/) project connected to the fork.
+6. Configure these commands:
+   - **Build command:** `pnpm build`
+   - **Deploy command:** `pnpm deploy:worker`
+7. Under **Workers Builds** → **Build variables and secrets**, configure:
+   - `DEPLOY_D1_DATABASE_ID` (**required**)
+   - `DEPLOY_KV_NAMESPACE_ID` (**required**, used for production and preview KV bindings)
+   - `DEPLOY_D1_DATABASE_NAME` (optional, default `sink`)
+   - `DEPLOY_R2_BUCKET_NAME` (optional, default `sink`; the bucket must exist)
+   - `DEPLOY_ANALYTICS_DATASET` (optional, default `sink`)
+   - `NUXT_API_CORS` (optional, build only)
+   - Each `NUXT_PUBLIC_*` value needed by the instance
 
-9. Enable Analytics Engine. In **Workers & Pages**, go to **Account details** in the right panel, locate **Analytics Engine**, and click **Set up** to enable the free tier. Name them `sink` and `ANALYTICS`, or else overwrite it with `NUXT_DATASET` and update your `wrangler.jsonc` accordingly
-10. Redeploy the project.
-11. To update your code, refer to the official GitHub documentation: [Syncing a fork branch from the web UI](https://docs.github.com/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-web-ui 'GitHub: Syncing a fork').
+`DEPLOY_*` values are deployment-only. Do not add them as Worker runtime variables or edit tracked `wrangler.jsonc`. The deploy command creates gitignored `wrangler.deploy.jsonc`, applies pending D1 migrations, and publishes the Worker.
 
-To optionally protect the dashboard with Cloudflare Zero Trust while keeping short links public, refer to [Cloudflare Access Authentication](../cloudflare-access.md).
+8. Save and deploy.
+9. Under the Worker's **Settings** → **Variables and Secrets**, configure runtime values:
+   - Repeat all `NUXT_PUBLIC_*` build values.
+   - Set a strong `NUXT_SITE_TOKEN`; use at least eight characters and avoid predictable values such as digit-only tokens.
+   - Set `NUXT_CF_ACCOUNT_ID` and an `NUXT_CF_API_TOKEN` with at least Account Analytics permission.
+   - Add other runtime `NUXT_*` values as needed, including `NUXT_DATASET`, Access, and webhook settings.
+10. Enable Analytics Engine under **Workers & Pages** → **Account details** and keep `NUXT_DATASET` aligned with `DEPLOY_ANALYTICS_DATASET`.
+11. Redeploy the project.
 
-Click webhook delivery is best effort and has no retries. See [Click Webhooks](../configuration.md#click-webhooks) for payload, signature, and privacy details.
+D1 is the authoritative link store. KV is a write-through read cache and a temporary legacy source before migration completion. For upgrades with existing KV links, use the [migration API](/api/#migration-and-utilities) after applying D1 migrations.
+
+For optional dashboard protection, see [Cloudflare Access](/configuration/cloudflare-access). For event delivery details, see [Click Webhooks](/configuration/webhooks). To update a fork, follow GitHub's [syncing a fork](https://docs.github.com/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork) guide.

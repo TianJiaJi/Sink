@@ -1,30 +1,42 @@
-# Deployment on Cloudflare Pages
+---
+title: Deploy Sink on Cloudflare Pages
+description: Deploy Sink to Cloudflare Pages and configure D1, KV, R2, Analytics Engine, compatibility flags, and migrations.
+---
 
-1. [Fork](https://github.com/miantiao-me/Sink/fork) the repository to your GitHub account.
-2. Create a project in [Cloudflare Pages](https://developers.cloudflare.com/pages/).
-3. Select the `Sink` repository and choose the `Nuxt.js` preset.
-4. Configure the following environment variables:
-   - `NUXT_SITE_TOKEN`: Must be at least **8** characters long. This token grants access to your dashboard.
-   - `NUXT_CF_ACCOUNT_ID`: Find your [account ID](https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/).
-   - `NUXT_CF_API_TOKEN`: Create a [Cloudflare API token](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) with at least `Account.Account Analytics` permission. [See reference.](https://developers.cloudflare.com/analytics/analytics-engine/sql-api/#authentication)
-   - (_Optional_) `NUXT_WEBHOOK_URL`: The HTTPS endpoint that enables and receives click webhooks.
-   - (_Optional_) `NUXT_WEBHOOK_SECRET`: A `whsec_`-prefixed Base64 secret. If omitted, delivery is unauthenticated and unsigned, which is not recommended over untrusted networks.
+# Deploy Sink on Cloudflare Pages
 
-5. Save and deploy the project.
-6. Cancel the deployment, then go to **Settings** -> **Bindings** -> **Add**:
-   - **KV Namespace**: Bind the variable name `KV` to a [KV namespace](https://developers.cloudflare.com/kv/) (create a new one under **Storage & Databases** -> **KV**).
-   - **Workers AI** (_Optional_): Bind the variable name `AI` to the Workers AI Catalog.
-   - **R2 Bucket** (_Optional, for OpenGraph image upload_): Create an R2 bucket under **Storage & Databases** -> **R2**, then bind the variable name `R2` to the bucket.
-   - **Analytics Engine**:
-     - In **Workers & Pages**, go to **Account details** in the right panel, locate `Analytics Engine`, and click `Set up` to enable the free tier.
-     - Return to **Settings** -> **Bindings** -> **Add** and select **Analytics engine**.
-     - Bind the variable name `ANALYTICS` to the `sink` dataset.
+1. [Fork the repository](https://github.com/miantiao-me/Sink/fork).
+2. Create a [Cloudflare Pages](https://developers.cloudflare.com/pages/) project from the fork and select the Nuxt.js preset.
+3. Configure variables by phase:
+   - **Build only:** `NUXT_API_CORS=true` when CORS is required.
+   - **Build and runtime:** every `NUXT_PUBLIC_*` value.
+   - **Runtime:** other mapped `NUXT_*` values, including `NUXT_SITE_TOKEN`, analytics credentials, Access, and webhook settings.
 
-7. Add Compatibility flags
-   - Go to **Settings** -> **Runtime** -> **Compatibility flags** and set the following flags `nodejs_compat`.
-8. Redeploy the project.
-9. To update code, refer to the official GitHub documentation [Syncing a fork branch from the web UI](https://docs.github.com/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork#syncing-a-fork-branch-from-the-web-ui 'GitHub: Syncing a fork').
+Use a strong `NUXT_SITE_TOKEN` with at least eight characters, and avoid predictable values such as digit-only tokens. The Analytics API token needs at least Account Analytics permission.
 
-To optionally protect the dashboard with Cloudflare Zero Trust while keeping short links public, refer to [Cloudflare Access Authentication](../cloudflare-access.md).
+4. Save the project, start deployment, then cancel it before the first complete release.
+5. Under **Settings** → **Bindings**, add:
+   - **KV Namespace:** bind `KV` to a namespace.
+   - **D1 Database:** create or select `sink`, bind it as `DB`, and copy the database ID.
+   - **Workers AI** (optional): bind the catalog as `AI`.
+   - **R2 Bucket:** bind an existing bucket as `R2`.
+   - **Analytics Engine:** enable the product for the account, then bind `ANALYTICS` to the `sink` dataset.
+6. From a Wrangler-authenticated local checkout, set deployment values in `.env` and apply the D1 schema:
 
-Click webhook delivery is best effort and has no retries. See [Click Webhooks](../configuration.md#click-webhooks) for payload, signature, and privacy details.
+```dotenv
+DEPLOY_D1_DATABASE_ID=your-d1-database-id
+DEPLOY_KV_NAMESPACE_ID=your-kv-namespace-id
+```
+
+```sh
+pnpm db:migrate:remote
+```
+
+The migration command uses these values to generate `wrangler.deploy.jsonc`, even though Pages bindings are dashboard-managed. Run it before every release containing new migrations. Optional deployment values default to `sink`: `DEPLOY_D1_DATABASE_NAME`, `DEPLOY_R2_BUCKET_NAME`, and `DEPLOY_ANALYTICS_DATASET`. Do not upload `DEPLOY_*` values as runtime variables or edit tracked `wrangler.jsonc`.
+
+7. Under **Settings** → **Runtime** → **Compatibility flags**, add `nodejs_compat`.
+8. Redeploy.
+
+D1 is the authoritative link store. KV is a write-through read cache and, until migration completion, a temporary source for legacy records. Upgraded instances should run the [KV-to-D1 migration API](/api/#migration-and-utilities).
+
+For optional dashboard protection, see [Cloudflare Access](/configuration/cloudflare-access). For event delivery details, see [Click Webhooks](/configuration/webhooks). To update a fork, follow GitHub's [syncing a fork](https://docs.github.com/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork) guide.

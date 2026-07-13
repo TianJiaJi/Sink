@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRight } from 'lucide-vue-next'
+import { ArrowRight } from '@lucide/vue'
 import { GitHubIcon, XIcon } from 'vue3-simple-icons'
 import heroUrl from '@/assets/images/hero.svg?url'
 
@@ -7,7 +7,7 @@ const { title, description, github, twitter } = useAppConfig()
 </script>
 
 <template>
-  <section>
+  <section class="bg-background text-foreground">
     <div
       class="
         py-16
@@ -33,8 +33,11 @@ const { title, description, github, twitter } = useAppConfig()
             rel="noopener"
             :title="$t('home.twitter.follow')"
             class="
-              mx-auto mb-8 inline-flex w-fit items-center gap-2 rounded-full
-              border p-1 pr-3
+              mx-auto mb-8 inline-flex min-h-11 w-fit items-center gap-2
+              rounded-full border bg-card p-1 pr-3 text-card-foreground
+              transition-colors
+              hover:bg-accent hover:text-accent-foreground
+              focus-visible:ring-2 focus-visible:ring-ring
               lg:mx-0
             "
           >
@@ -74,7 +77,10 @@ const { title, description, github, twitter } = useAppConfig()
             <Button
               as-child
               size="lg"
-              class="px-5 text-base"
+              class="
+                min-h-11 px-5 text-base
+                sm:min-h-10
+              "
             >
               <NuxtLink to="/dashboard">
                 <span class="text-nowrap">{{ $t('dashboard.title') }}</span>
@@ -84,11 +90,15 @@ const { title, description, github, twitter } = useAppConfig()
               as-child
               size="lg"
               variant="ghost"
-              class="px-5 text-base"
+              class="
+                min-h-11 px-5 text-base
+                sm:min-h-10
+              "
             >
               <a
                 :href="github"
                 target="_blank"
+                rel="noopener noreferrer"
                 :title="$t('layouts.footer.social.github')"
                 class="flex items-center gap-1.5"
               >
@@ -99,17 +109,15 @@ const { title, description, github, twitter } = useAppConfig()
           </div>
         </div>
 
-        <object
-          type="image/svg+xml"
-          :data="heroUrl"
+        <img
+          :src="heroUrl"
           class="
-            hidden aspect-square w-96 shrink-0
+            hidden aspect-square w-96 max-w-full shrink-0 bg-transparent
             md:block
             lg:w-[420px]
           "
-          aria-label="Link sharing illustration"
-          suppressHydrationWarning
-        />
+          alt="Link sharing illustration"
+        >
       </div>
     </div>
   </section>

@@ -1,116 +1,87 @@
-# FAQs
+---
+title: Sink FAQs
+description: Troubleshoot Sink bindings, authentication, analytics, redirects, link routing, import and export, cloaking, and safety features.
+---
 
-## 1. Why can't I create a link?
+# Frequently Asked Questions
 
-Please check the Cloudflare KV bindings, the KV environment variable name should be all uppercase letters.
+## Why can't I create a link?
 
-<details>
-  <summary><b>Screenshot</b></summary>
-  <img alt="KV Bindings setting in Cloudflare" src="/docs/images/faqs-kv.png"/>
-</details>
-
-## 2. Why can't I log in?
-
-Please check if `NUXT_SITE_TOKEN` is set to pure numbers, Sink does not support pure number Tokens, we consider this to be unsafe.
-
-## 3. Why can't I see the analytics data?
-
-Analytics data requires access to Cloudflare’s settings:
-
-1. Verify `NUXT_CF_ACCOUNT_ID` and `NUXT_CF_API_TOKEN` are configured correctly (ensure the Account ID matches the deployment zone ID).
-2. Check that the Worker analytics engine is enabled.
+Confirm that both D1 and KV are bound with the exact uppercase names `DB` and `KV`. D1 is the authoritative link store; KV is the write-through read cache and the temporary legacy source before migration completion.
 
 <details>
-  <summary><b>Screenshot</b></summary>
-  <img alt="Analytics engine Bindings setting in Cloudflare " src="/docs/images/faqs-Analytics_engine.png"/>
+  <summary><b>KV binding screenshot</b></summary>
+  <img alt="KV binding settings in Cloudflare" src="./images/faqs-kv.png">
 </details>
 
-## 4. I don't want the current homepage? Can it be redirected to my blog?
+## Why can't I log in?
 
-Of course. Please set the environment variable `NUXT_HOME_URL` to your blog or official website address.
+Check that the supplied token exactly matches `NUXT_SITE_TOKEN`. For production, use a strong value with at least eight characters and avoid predictable values such as digit-only tokens.
 
-## 5. Why can't I see statistics after deploying with NuxtHub?
+## Why can't I see analytics data?
 
-NuxtHub's ANALYTICS points to its dataset, you need to set the `NUXT_DATASET` environment variable to point to the same dataset.
+1. Verify `NUXT_CF_ACCOUNT_ID` and `NUXT_CF_API_TOKEN`. The account ID must belong to the deployment account and the token needs Account Analytics access.
+2. Enable Analytics Engine and bind `ANALYTICS` to the dataset named by `NUXT_DATASET` (default `sink`).
 
-## 6. Why are links always case-insensitive?
+<details>
+  <summary><b>Analytics Engine binding screenshot</b></summary>
+  <img alt="Analytics Engine binding settings in Cloudflare" src="./images/faqs-Analytics_engine.png">
+</details>
 
-This is a feature of Sink. By default, we automatically convert all links to lowercase to avoid case-sensitive issues and improve usability. This ensures users don’t encounter errors due to accidental capitalization differences.
+## Can the homepage redirect to my website?
 
-However, you can disable this feature by setting the `NUXT_CASE_SENSITIVE` environment variable to `true`.
+Yes. Set `NUXT_HOME_URL` to your blog or website URL.
 
-### What happens when `NUXT_CASE_SENSITIVE` is `true`?
+## Why are statistics missing after a NuxtHub deployment?
 
-Newly generated links will be case-sensitive, treating `MyLink` and `mylink` as distinct. Randomly generated slugs will include both uppercase and lowercase characters, offering a larger pool of unique combinations (but not user-friendly that why we default to non-case-sensitive).
+NuxtHub's `ANALYTICS` binding can point to its own dataset. Set `NUXT_DATASET` to that same dataset name so Sink queries the dataset receiving events.
 
-## 7. Why does the Metric list only show the top 500 data entries?
+## Why are links case-insensitive?
 
-To improve query performance, we have limited the amount of data. If you need to query more data, you can adjust it through `NUXT_LIST_QUERY_LIMIT`.
+Sink normalizes slugs to lowercase by default to avoid accidental capitalization differences. Set `NUXT_CASE_SENSITIVE=true` to preserve case. New random slugs can then contain uppercase and lowercase characters, and `MyLink` and `mylink` become distinct.
 
-## 8. I don't want to count bot or crawler traffic
+## Why does the metric list show only 500 entries?
 
-Set `NUXT_DISABLE_BOT_ACCESS_LOG` to `true`.
+The default `NUXT_LIST_QUERY_LIMIT` is 500 to bound analytics query cost. Increase it if your deployment can support larger queries.
 
-## 9. What is Link Cloaking?
+## How do I exclude bots and crawlers?
 
-Link cloaking keeps your short link in the browser address bar instead of redirecting the top-level page to the target URL. The destination page loads inside a full-screen iframe.
+Set `NUXT_DISABLE_BOT_ACCESS_LOG=true`. Excluded bot clicks are also omitted from click webhooks.
 
-It is a simple iframe-based feature. It does not hide the destination URL from page source, browser developer tools, network logs, or users who inspect the page.
+## What is link cloaking?
 
-### How to enable it
+Cloaking keeps the short link in the address bar and loads the HTTPS destination in a full-screen iframe. Enable **Link Cloaking** in link settings.
 
-Toggle **Enable Link Cloaking** in the **Link Settings** section when creating or editing a link.
+It does not hide the destination from source, developer tools, network logs, or inspection. Sites using `X-Frame-Options: DENY` or restrictive `Content-Security-Policy: frame-ancestors` will not load. OAuth and payment flows may also reject iframe use. Device-specific redirects take precedence. If you control the destination, allow your short-link origin, for example:
 
-### Limitations
-
-- **Sites that block iframes**: Websites with `X-Frame-Options: DENY` or `Content-Security-Policy: frame-ancestors 'none'` will not load inside the iframe. Most major sites (Google, GitHub, Twitter, etc.) block iframe embedding.
-- **HTTPS required**: The destination URL must use HTTPS. Mixed content (HTTPS short link → HTTP destination) will be blocked by browsers.
-- **Limited interaction**: Some features like OAuth login flows and certain payment forms may not work correctly inside the iframe. Sink allows user-activated top-level navigation to improve checkout and external redirect compatibility, but it cannot make every embedded site work.
-- **No target URL hiding**: Sink does not proxy cloaked links or rewrite destination pages. This keeps cloaking simple and predictable, but the target URL can still be inspected by visitors.
-- **Device redirects take priority**: If both cloaking and device redirects (iOS/Android) are configured, device redirects will take precedence on matching devices.
-
-### If the destination site blocks iframes
-
-If you control the destination site, you can whitelist your short link domain by adding this response header:
-
-```
-Content-Security-Policy: frame-ancestors 'self' your-short-domain.com
+```http
+Content-Security-Policy: frame-ancestors 'self' https://your-short-domain.example
 ```
 
-## 10. What is Redirect with Query Parameters?
+## How does query forwarding work?
 
-When enabled, query parameters from the short link URL are appended to the destination URL. For example, visiting `https://s.ink/my-link?ref=twitter` would redirect to `https://example.com/page?ref=twitter`.
+With `redirectWithQuery`, parameters from a request such as `https://s.example/link?ref=social` are appended to the destination. Set `NUXT_REDIRECT_WITH_QUERY=true` for the global default, then override it per link with **Redirect with Query Parameters**.
 
-### Per-link vs Global
+## How do import and export work?
 
-- **Global setting**: Set `NUXT_REDIRECT_WITH_QUERY=true` to enable for all links by default.
-- **Per-link override**: Toggle **Redirect with Query Parameters** in the **Link Settings** section when creating or editing a link. This overrides the global setting for that specific link.
+- **Export:** Fetches cursor-paginated JSON pages, defaulting to 50 links per page.
+- **Import:** Accepts bounded batches, defaulting to 25 links per request.
+- **Storage:** D1 performs authoritative duplicate detection and writes. Successful writes update KV as a best-effort cache operation. The batch sizes are compatibility and request-cost limits, not a claim that every link consumes two KV operations.
+- **Expiration:** Imports with expiration timestamps in the past are rejected.
+- **Duplicates:** Existing active slugs are skipped and preserved.
+- **Validation:** The complete request is schema-validated before import processing.
+- **Passwords:** Export preserves password hashes in Sink's portable storage format, and those hashes can be imported unchanged. Values masked by the dashboard cannot be imported as plaintext passwords.
 
-If a link has no per-link setting, it falls back to the global configuration.
+Legacy KV records are migrated separately through `/api/link/migration/run`; import/export is not the KV-to-D1 migration mechanism.
 
-## 11. How does the Import/Export feature work?
+## How do protected and unsafe links work?
 
-Import and Export are designed to work within Cloudflare Workers' KV operation limits (50 per request by default).
+Password-protected browser visitors receive a password form. Programmatic clients can send `x-link-password`. Unsafe links display a warning and programmatic clients can send `x-link-confirm: true` after approval. Set `NUXT_SAFE_BROWSING_DOH` to a DoH endpoint for automatic unsafe-domain checks during create and edit.
 
-- **Export**: Downloads links in batches, automatically paginating until complete.
-- **Import**: Uploads links in batches (half of `NUXT_PUBLIC_KV_BATCH_LIMIT`, default 25) since each link requires 2 KV operations (check existence + write).
-- **Expired links**: Imported as-is to support migration scenarios.
-- **Duplicate slugs**: Skipped during import (existing links are preserved).
-- **Validation**: All links are validated against the schema before import starts.
-- **Passwords**: Exported password values are masked. Masked passwords are preserved during import and cannot be submitted as new plaintext passwords.
+## How does geo-routing work?
 
-## 12. How do password-protected and unsafe links work?
+Set country-specific destinations with two-letter codes, such as `{ "US": "https://example.com/us" }`. Sink uses Cloudflare's `request.cf.country`; device-specific Apple or Android destinations take precedence.
 
-- **Password protection**: Visitors see a password form before redirecting. Programmatic clients can send the `x-link-password` header when requesting the short link.
-- **Unsafe warning**: Links marked as unsafe show a warning page before redirecting. Programmatic clients can send `x-link-confirm: true` after confirming the destination.
-- **Automatic unsafe detection**: Set `NUXT_SAFE_BROWSING_DOH` to a DoH endpoint to mark suspicious destinations automatically during create or edit.
+## How can I export analytics?
 
-## 13. How does geo-routing work?
-
-Geo-routing redirects visitors to country-specific URLs based on Cloudflare's `request.cf.country` value. Configure a two-letter country code map such as `{ "US": "https://example.com/us" }` in the link settings or API `geo` field.
-
-Device routing takes precedence when an Apple or Android device-specific URL matches the visitor.
-
-## 14. How can I export analytics data?
-
-Use the dashboard's access export feature or call `GET /api/stats/export` with the same filter parameters used by analytics views, such as `startAt`, `endAt`, `slug`, `country`, `browser`, or `device`. The API returns a CSV file with `slug`, `url`, `viewer`, `views`, and `referer` columns.
+Use the dashboard or authenticated `GET /api/stats/export`. It returns CSV with `slug`, `url`, `viewer`, `views`, and `referer`. Supply the same filters used by analytics views, such as `startAt`, `endAt`, `slug`, `country`, `browser`, or `device`.

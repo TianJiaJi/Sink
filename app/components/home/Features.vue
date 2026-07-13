@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AreaChart, FileJson, Globe, Hourglass, Languages, Link, Paintbrush, QrCode, ServerOff, Share2, Smartphone, Sparkles } from 'lucide-vue-next'
+import { AreaChart, FileJson, Globe, Hourglass, Languages, Link, Paintbrush, QrCode, ServerOff, Share2, Smartphone, Sparkles } from '@lucide/vue'
 
 const { t } = useI18n()
 const features = computed(() => [
@@ -69,8 +69,8 @@ const features = computed(() => [
 <template>
   <section
     class="
-      py-12
-      md:py-20
+      bg-background py-16 text-foreground
+      md:py-24
     "
   >
     <div
@@ -99,24 +99,27 @@ const features = computed(() => [
           lg:grid-cols-3
         "
       >
-        <div
+        <Card
           v-for="item in features"
           :key="item.title"
-          class="space-y-3 rounded-xl border p-6"
+          class="h-full rounded-2xl"
         >
-          <div class="flex items-center gap-2">
-            <component
-              :is="item.icon"
-              class="size-4"
-            />
-            <h3 class="text-sm font-medium">
-              {{ item.title }}
-            </h3>
-          </div>
-          <p class="text-sm text-muted-foreground">
-            {{ item.description }}
-          </p>
-        </div>
+          <CardContent class="space-y-3">
+            <div class="flex items-center gap-2">
+              <component
+                :is="item.icon"
+                class="size-4"
+                aria-hidden="true"
+              />
+              <h3 class="text-sm font-medium">
+                {{ item.title }}
+              </h3>
+            </div>
+            <p class="text-sm text-muted-foreground">
+              {{ item.description }}
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   </section>

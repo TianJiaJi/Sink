@@ -4,13 +4,12 @@ import { currentLocales } from './i18n/i18n'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  extends: ['./layers/dashboard'],
+  ssr: false,
   modules: [
     '@nuxtjs/color-mode',
     '@nuxtjs/i18n',
     '@nuxt/eslint',
     '@pinia/nuxt',
-    '@vueuse/motion/nuxt',
     'shadcn-nuxt',
   ],
   devtools: { enabled: true },
@@ -51,11 +50,20 @@ export default defineNuxtConfig({
     '/': {
       prerender: true,
     },
+    '/dashboard/**': {
+      prerender: true,
+    },
+    '/dashboard': {
+      redirect: '/dashboard/links',
+    },
     '/api/**': {
       cors: process.env.NUXT_API_CORS === 'true',
     },
+    '/_docs/**': {
+      headers: { 'X-Robots-Tag': 'noindex, follow' },
+    },
     '/sphere.bin': {
-      headers: { 'Cache-Control': 'public, max-age=2592000, immutable' },
+      headers: { 'Cache-Control': 'public, max-age=0, must-revalidate' },
     },
     '/*.json': {
       headers: { 'Cache-Control': 'public, max-age=2592000, immutable' },
@@ -85,7 +93,7 @@ export default defineNuxtConfig({
       production: 'runtime',
       meta: {
         title: 'Sink API',
-        description: 'A Simple / Speedy / Secure Link Shortener with Analytics, 100% run on Cloudflare.',
+        description: 'A Simple / Speedy / Secure Link Shortener with Analytics, 100% run on Cloudflare.\n\n[Return to this Sink instance](/) · [Read the documentation](https://docs.sink.cool)',
       },
       route: '/_docs/openapi.json',
       ui: {
@@ -104,6 +112,33 @@ export default defineNuxtConfig({
     ],
     worker: {
       format: 'es',
+    },
+    optimizeDeps: {
+      include: [
+        '@internationalized/date',
+        '@lucide/vue',
+        '@number-flow/vue',
+        '@tanstack/vue-form',
+        '@unovis/vue',
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+        '@vueuse/core',
+        'class-variance-authority',
+        'clsx',
+        'd3-geo',
+        'd3-scale',
+        'nanoid',
+        'qr-code-styling', // CJS
+        'reka-ui',
+        'reka-ui/date',
+        'tailwind-merge',
+        'twgl.js',
+        'vaul-vue',
+        'virtua/vue',
+        'vue-sonner',
+        'vue3-simple-icons',
+        'zod',
+      ],
     },
   },
   eslint: {

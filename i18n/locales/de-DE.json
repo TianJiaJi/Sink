@@ -47,7 +47,17 @@
       }
     },
     "header": {
-      "select_language": "Sprache auswählen"
+      "select_language": "Sprache auswählen",
+      "toggle_menu_aria_label": "Menü ein- oder ausblenden"
+    },
+    "links": {
+      "documentation": "Dokumentation",
+      "api_reference": "API-Referenz",
+      "documentation_aria_label": "Sink-Dokumentation öffnen (wird in einem neuen Tab geöffnet)",
+      "resources_aria_label": "Ressourcen",
+      "skip_to_content": "Zum Hauptinhalt springen",
+      "home_aria_label": "Startseite",
+      "github_aria_label": "Sink auf GitHub"
     }
   },
   "nav": {
@@ -166,6 +176,21 @@
     "no_data": "Keine Daten",
     "none": "(Keine)",
     "filter_placeholder": "Links filtern...",
+    "realtime": {
+      "stats_error": "Echtzeitstatistiken konnten nicht geladen werden.",
+      "events_error": "Echtzeitereignisse konnten nicht geladen werden.",
+      "globe_error": "Globusdaten konnten nicht geladen werden.",
+      "filter_label": "Links filtern",
+      "filter_search_label": "Links durchsuchen",
+      "links_error": "Links konnten nicht geladen werden.",
+      "time_range_label": "Zeitraum auswählen",
+      "globe_label": "Globus mit Echtzeitdatenverkehr",
+      "globe_zoom_out": "Verkleinern",
+      "globe_reset": "Zurücksetzen",
+      "globe_zoom_in": "Vergrößern",
+      "globe_instructions": "Ziehen zum Drehen. Bei Fokus: Mausrad zum Zoomen, Pfeiltasten zum Drehen, +/− zum Zoomen, Home zum Zurücksetzen und Escape zum Verlassen des Fokus.",
+      "globe_fallback": "Der interaktive Globus ist nicht verfügbar."
+    },
     "date_picker": {
       "today": "Heute",
       "last_24h": "Letzte 24 Stunden",
@@ -205,6 +230,14 @@
     }
   },
   "links": {
+    "migration_gate": {
+      "loading": "Links werden vorbereitet",
+      "scanned": "{count} Links geprüft",
+      "failed_title": "Link-Migration fehlgeschlagen",
+      "failed_description": "Ihre Links sind bis zum Abschluss der KV-zu-D1-Migration nicht verfügbar.",
+      "retry": "Erneut versuchen",
+      "open_migration": "Migration öffnen"
+    },
     "create": "Link erstellen",
     "edit": "Link bearbeiten",
     "delete_confirm_title": "Bist du dir absolut sicher?",
@@ -214,8 +247,11 @@
     "update_success": "Link erfolgreich aktualisiert",
     "create_success": "Link erfolgreich erstellt",
     "preview_mode_tip": "Der Link im Vorschaumodus ist bis zu 5 Minuten gültig.",
-    "search_placeholder": "Links suchen...",
+    "search_placeholder": "Links suchen…",
+    "search_loading": "Suche läuft…",
+    "search_failed": "Suche fehlgeschlagen.",
     "no_results": "Keine Links gefunden.",
+    "no_filtered_results": "Keine Links entsprechen den aktuellen Filtern.",
     "group_title": "Links",
     "copy_success": "Erfolgreich kopiert!",
     "created_at": "Erstellt am",
@@ -225,12 +261,33 @@
     "load_failed": "Laden der Links fehlgeschlagen,",
     "download_qr_code": "QR-Code herunterladen",
     "change_qr_color": "QR-Code-Farbe ändern",
+    "expired": "Abgelaufen",
+    "filters": {
+      "aria_label": "Linkfilter",
+      "status_label": "Status",
+      "active": "Aktiv",
+      "expired": "Abgelaufen",
+      "tag_label": "Tag",
+      "all_tags": "Alle Tags",
+      "tags_loading": "Tags werden geladen…",
+      "tags_failed": "Tags konnten nicht geladen werden."
+    },
     "form": {
       "url": "URL",
       "slug": "Slug",
       "comment": "Kommentar",
+      "tags": "Tags",
+      "tags_description": "Bis zu 10 Tags mit jeweils 32 Zeichen.",
+      "tags_placeholder": "Tag hinzufügen",
+      "tag_remove": "Tag {tag} entfernen",
+      "tag_added": "Tag {tag} hinzugefügt.",
+      "tag_removed": "Tag {tag} entfernt.",
+      "tags_limit": "Du kannst bis zu 10 Tags hinzufügen.",
+      "tag_too_long": "Ein Tag darf höchstens 32 Zeichen lang sein.",
       "expiration": "Ablaufdatum",
-      "expiration_description": "Der Kurzlink wird nach Ablauf automatisch gelöscht.",
+      "expiration_description": "Nach Ablauf leitet der Link nicht mehr weiter und kann durch Bearbeiten wiederhergestellt werden.",
+      "clear_expiration": "Ablaufdatum entfernen",
+      "expired_recovery": "Dieser Link ist abgelaufen. Lege ein neues zukünftiges Ablaufdatum fest oder entferne es, um den Link wiederherzustellen.",
       "pick_date": "Datum auswählen",
       "device_redirect": "Geräteweiterleitung",
       "google_play": "Google Play URL",
@@ -363,6 +420,24 @@
     "duration_ms": "{duration} ms"
   },
   "migrate": {
+    "d1": {
+      "title": "KV-zu-D1-Migration",
+      "description": "Link-Datensätze von Workers KV nach D1 kopieren. Vorhandene D1-Datensätze bleiben erhalten.",
+      "status_title": "Migrationsstatus",
+      "status_pending": "Die Migration ist noch nicht abgeschlossen.",
+      "status_completed": "Migration abgeschlossen.",
+      "completed_at": "Abgeschlossen am {date}",
+      "run_again": "Erneut ausführen",
+      "running": "Migration läuft…",
+      "success": "Migration erfolgreich abgeschlossen.",
+      "failed": "Migration fehlgeschlagen",
+      "scanned": "Geprüft",
+      "inserted": "Eingefügt",
+      "skipped": "Übersprungen",
+      "expired": "Abgelaufen",
+      "failed_count": "Fehlgeschlagen",
+      "no_marker": "Keine Abschlussmarkierung gefunden."
+    },
     "access_export": {
       "title": "Export Access Data",
       "description": "Download access statistics as a CSV file",
@@ -414,6 +489,48 @@
         "no_links": "Keine Links in der Datei gefunden",
         "parse_error": "Datei konnte nicht analysiert werden"
       }
+    }
+  },
+  "ux": {
+    "login": { "logging_in": "Anmeldung läuft…" },
+    "realtime": {
+      "pause": "Pausieren",
+      "resume": "Fortsetzen",
+      "paused": "Live-Updates pausiert",
+      "running": "Live-Updates aktiv"
+    },
+    "analysis": {
+      "chart_summary": "Insgesamt {totalVisits} Besuche. Höchstwert: {peakVisits} um {peakTime}.",
+      "chart_summary_with_visitors": "Insgesamt {totalVisits} Besuche und {totalVisitors} Besucher. Höchstwert: {peakVisits} Besuche um {peakTime}.",
+      "locations_summary": "{totalVisits} Besuche aus {countryCount} Regionen."
+    },
+    "links": {
+      "unsafe": "Unsicherer Link",
+      "counts_retry": "Statistik für {slug} erneut laden",
+      "visits_count": "{count} Besuche",
+      "visitors_count": "{count} Besucher",
+      "referers_count": "{count} Verweise",
+      "qr_text_alternative": "QR-Code für {url}",
+      "generate_random_slug": "Zufälligen Slug erzeugen",
+      "generate_ai_slug": "Slug mit KI erzeugen",
+      "discard_title": "Ungespeicherte Änderungen verwerfen?",
+      "discard_description": "Deine Änderungen gehen verloren.",
+      "discard_action": "Änderungen verwerfen",
+      "delete_title": "{slug} löschen?",
+      "delete_description": "Der Link wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+      "delete_action": "Link löschen"
+    },
+    "check": {
+      "clear_title": "Prüfergebnisse löschen?",
+      "clear_description": "Alle Ergebnisse dieser Prüfung werden entfernt.",
+      "clear_action": "Ergebnisse löschen"
+    },
+    "import": {
+      "batch_failed": "Dieser Importblock ist fehlgeschlagen.",
+      "links_found": "{count} Links bereit zum Import",
+      "download_success": "{count} importierte Links herunterladen",
+      "download_skipped": "{count} übersprungene Links herunterladen",
+      "download_failed": "{count} fehlgeschlagene Links herunterladen"
     }
   }
 }

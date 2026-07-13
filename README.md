@@ -2,9 +2,11 @@
 
 **A Simple / Speedy / Secure Link Shortener with Analytics, 100% run on Cloudflare.**
 
-<a href="https://trendshift.io/repositories/10421" target="_blank">
+[Website](https://sink.cool) · [Documentation](https://docs.sink.cool) · [API Reference](https://sink.cool/_docs/scalar)
+
+<a href="https://trendshift.io/repositories/20331" target="_blank">
   <img
-    src="https://trendshift.io/api/badge/repositories/10421"
+    src="https://trendshift.io/api/badge/repositories/20331"
     alt="miantiao-me/Sink | Trendshift"
     width="250"
     height="55"
@@ -78,7 +80,7 @@ Site Token: SinkCool
 ## 🧱 Technologies Used
 
 - **Framework**: [Nuxt](https://nuxt.com/)
-- **Database**: [Cloudflare Workers KV](https://developers.cloudflare.com/kv/)
+- **Database**: [Cloudflare D1](https://developers.cloudflare.com/d1/) with [Workers KV](https://developers.cloudflare.com/kv/) caching
 - **Analytics Engine**: [Cloudflare Workers Analytics Engine](https://developers.cloudflare.com/analytics/)
 - **UI Components**: [shadcn-vue](https://www.shadcn-vue.com/)
 - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
@@ -93,7 +95,7 @@ We welcome your contributions and PRs.
 - [x] Raycast Extension - [Raycast-Sink](https://github.com/foru17/raycast-sink)
 - [x] Apple Shortcuts - [Sink Shortcuts](https://s.search1api.com/sink001)
 - [x] iOS App - [Sink](https://apps.apple.com/app/id6745417598)
-- [ ] Enhanced Link Management (with Cloudflare D1)
+- [x] Enhanced Link Management (with Cloudflare D1)
 - [ ] Analytics Enhancements (Support for merging filter conditions)
 - [x] Dashboard Performance Optimization (Infinite loading)
 - [x] API, migration, backup, and redirect tests
@@ -102,15 +104,15 @@ We welcome your contributions and PRs.
 
 > Video tutorial: [Watch here](https://www.youtube.com/watch?v=MkU23U2VE9E)
 
-We currently support deployment to [Cloudflare Workers](./docs/deployment/workers.md) (recommended) and [Cloudflare Pages](./docs/deployment/pages.md).
+We currently support deployment to [Cloudflare Workers](https://docs.sink.cool/deployment/workers) (recommended) and [Cloudflare Pages](https://docs.sink.cool/deployment/pages).
 
 ## ⚒️ Configuration
 
-[Configuration Docs](./docs/configuration.md)
+[Configuration Docs](https://docs.sink.cool/configuration/)
 
 ## 🔌 API
 
-[API Docs](./docs/api.md)
+[API Docs](https://docs.sink.cool/api/) · [Live Scalar Reference](https://sink.cool/_docs/scalar)
 
 ## 🤖 AI Skills
 
@@ -148,7 +150,7 @@ We currently do not support native MCP Server, but we have OpenAPI documentation
 
 ## 🙋🏻 FAQs
 
-[FAQs](./docs/faqs.md)
+[FAQs](https://docs.sink.cool/faqs)
 
 ## 💖 Credits
 

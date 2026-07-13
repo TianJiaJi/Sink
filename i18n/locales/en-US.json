@@ -47,7 +47,17 @@
       }
     },
     "header": {
-      "select_language": "Select Language"
+      "select_language": "Select Language",
+      "toggle_menu_aria_label": "Toggle menu"
+    },
+    "links": {
+      "documentation": "Documentation",
+      "api_reference": "API Reference",
+      "documentation_aria_label": "Open Sink documentation (opens in a new tab)",
+      "resources_aria_label": "Resources",
+      "skip_to_content": "Skip to content",
+      "home_aria_label": "Home",
+      "github_aria_label": "Sink on GitHub"
     }
   },
   "nav": {
@@ -166,6 +176,21 @@
     "no_data": "No Data",
     "none": "(None)",
     "filter_placeholder": "Filter links...",
+    "realtime": {
+      "stats_error": "Failed to load real-time statistics.",
+      "events_error": "Failed to load real-time events.",
+      "globe_error": "Failed to load globe data.",
+      "filter_label": "Filter links",
+      "filter_search_label": "Search links",
+      "links_error": "Failed to load links.",
+      "time_range_label": "Select a time range",
+      "globe_label": "Real-time traffic globe",
+      "globe_zoom_out": "Zoom out",
+      "globe_reset": "Reset",
+      "globe_zoom_in": "Zoom in",
+      "globe_instructions": "Drag to rotate. When focused, scroll to zoom, use the arrow keys to rotate, +/− to zoom, Home to reset, and Escape to exit focus.",
+      "globe_fallback": "The interactive globe is unavailable."
+    },
     "date_picker": {
       "today": "Today",
       "last_24h": "Last 24 hours",
@@ -205,6 +230,14 @@
     }
   },
   "links": {
+    "migration_gate": {
+      "loading": "Preparing your links",
+      "scanned": "{count} links scanned",
+      "failed_title": "Link migration failed",
+      "failed_description": "Your links are unavailable until the KV to D1 migration completes.",
+      "retry": "Try again",
+      "open_migration": "Open migration tools"
+    },
     "create": "Create Link",
     "edit": "Edit Link",
     "delete_confirm_title": "Are you absolutely sure?",
@@ -214,8 +247,11 @@
     "update_success": "Link updated successfully",
     "create_success": "Link created successfully",
     "preview_mode_tip": "The preview mode link is valid for up to 5 minutes.",
-    "search_placeholder": "Search links...",
+    "search_placeholder": "Search links…",
+    "search_loading": "Searching…",
+    "search_failed": "Search failed.",
     "no_results": "No links found.",
+    "no_filtered_results": "No links match the current filters.",
     "group_title": "Links",
     "copy_success": "Copy successful!",
     "created_at": "Created At",
@@ -225,12 +261,33 @@
     "load_failed": "Loading links failed,",
     "download_qr_code": "Download QR Code",
     "change_qr_color": "Change QR code color",
+    "expired": "Expired",
+    "filters": {
+      "aria_label": "Link filters",
+      "status_label": "Status",
+      "active": "Active",
+      "expired": "Expired",
+      "tag_label": "Tag",
+      "all_tags": "All tags",
+      "tags_loading": "Loading tags…",
+      "tags_failed": "Failed to load tags."
+    },
     "form": {
       "url": "URL",
       "slug": "Slug",
       "comment": "Comment",
+      "tags": "Tags",
+      "tags_description": "Up to 10 tags, 32 characters each.",
+      "tags_placeholder": "Add a tag",
+      "tag_remove": "Remove tag {tag}",
+      "tag_added": "Tag {tag} added.",
+      "tag_removed": "Tag {tag} removed.",
+      "tags_limit": "You can add up to 10 tags.",
+      "tag_too_long": "Tags can be up to 32 characters.",
       "expiration": "Expiration",
-      "expiration_description": "The short link is automatically deleted after it expires.",
+      "expiration_description": "The link stops redirecting after it expires and can be restored by editing it.",
+      "clear_expiration": "Clear expiration",
+      "expired_recovery": "This link has expired. Set a new future expiration date or clear it to restore the link.",
       "pick_date": "Pick a date",
       "device_redirect": "Device Redirect",
       "google_play": "Google Play URL",
@@ -363,6 +420,24 @@
     "duration_ms": "{duration} ms"
   },
   "migrate": {
+    "d1": {
+      "title": "KV to D1 Migration",
+      "description": "Copy link records from Workers KV to D1. Existing D1 records are preserved.",
+      "status_title": "Migration status",
+      "status_pending": "Migration has not completed.",
+      "status_completed": "Migration completed.",
+      "completed_at": "Completed {date}",
+      "run_again": "Run again",
+      "running": "Migrating…",
+      "success": "Migration completed successfully.",
+      "failed": "Migration failed",
+      "scanned": "Scanned",
+      "inserted": "Inserted",
+      "skipped": "Skipped",
+      "expired": "Expired",
+      "failed_count": "Failed",
+      "no_marker": "No completion marker found."
+    },
     "access_export": {
       "title": "Export Access Data",
       "description": "Download access statistics as a CSV file",
@@ -414,6 +489,48 @@
         "no_links": "No links found in file",
         "parse_error": "Failed to parse file"
       }
+    }
+  },
+  "ux": {
+    "login": { "logging_in": "Signing in…" },
+    "realtime": {
+      "pause": "Pause",
+      "resume": "Resume",
+      "paused": "Live updates paused",
+      "running": "Live updates running"
+    },
+    "analysis": {
+      "chart_summary": "{totalVisits} visits total. Peak: {peakVisits} at {peakTime}.",
+      "chart_summary_with_visitors": "{totalVisits} visits and {totalVisitors} visitors total. Peak: {peakVisits} visits at {peakTime}.",
+      "locations_summary": "{totalVisits} visits across {countryCount} locations."
+    },
+    "links": {
+      "unsafe": "Unsafe link",
+      "counts_retry": "Retry statistics for {slug}",
+      "visits_count": "{count} visits",
+      "visitors_count": "{count} visitors",
+      "referers_count": "{count} referers",
+      "qr_text_alternative": "QR code for {url}",
+      "generate_random_slug": "Generate random slug",
+      "generate_ai_slug": "Generate AI slug",
+      "discard_title": "Discard unsaved changes?",
+      "discard_description": "Your changes will be lost.",
+      "discard_action": "Discard changes",
+      "delete_title": "Delete {slug}?",
+      "delete_description": "This permanently deletes the link and cannot be undone.",
+      "delete_action": "Delete link"
+    },
+    "check": {
+      "clear_title": "Clear check results?",
+      "clear_description": "This removes all results from this check.",
+      "clear_action": "Clear results"
+    },
+    "import": {
+      "batch_failed": "This import batch failed.",
+      "links_found": "{count} links ready to import",
+      "download_success": "Download {count} imported links",
+      "download_skipped": "Download {count} skipped links",
+      "download_failed": "Download {count} failed links"
     }
   }
 }

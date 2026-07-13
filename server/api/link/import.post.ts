@@ -41,6 +41,7 @@ defineRouteMeta({
                     password: { type: 'string', description: 'Password protection for the link' },
                     unsafe: { type: 'boolean', description: 'Mark link as unsafe, showing a warning page before redirect' },
                     geo: { type: 'object', additionalProperties: { type: 'string' }, description: 'Geo-routing rules (country code to URL)' },
+                    tags: { type: 'array', items: { type: 'string' }, description: 'Up to 10 normalized link tags, each 1-32 characters' },
                   },
                 },
               },
@@ -90,28 +91,24 @@ export default eventHandler(async (event) => {
 
     try {
       const slug = normalizeSlug(event, linkData.slug)
-      const existingLink = await getLink(event, slug)
-
-      if (existingLink) {
-        result.skippedItems.push({ index: i, slug, url: linkData.url })
-        result.skipped++
-        continue
-      }
-
       const now = Math.floor(Date.now() / 1000)
       const link = {
         ...linkData,
         id: linkData.id || nanoid(10)(),
         slug,
-        createdAt: linkData.createdAt || now,
-        updatedAt: linkData.updatedAt || now,
+        createdAt: linkData.createdAt ?? now,
+        updatedAt: linkData.updatedAt ?? now,
       }
 
       if (link.password) {
         link.password = await normalizeLinkPasswordForStorage(link.password)
       }
 
-      await putLink(event, link)
+      if (!await createLink(event, link)) {
+        result.skippedItems.push({ index: i, slug, url: linkData.url })
+        result.skipped++
+        continue
+      }
       result.successItems.push({ index: i, slug, url: linkData.url })
       result.success++
     }

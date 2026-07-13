@@ -47,7 +47,17 @@
       }
     },
     "header": {
-      "select_language": "Choisir la langue"
+      "select_language": "Choisir la langue",
+      "toggle_menu_aria_label": "Afficher ou masquer le menu"
+    },
+    "links": {
+      "documentation": "Documentation",
+      "api_reference": "Référence API",
+      "documentation_aria_label": "Ouvrir la documentation de Sink (nouvel onglet)",
+      "resources_aria_label": "Ressources",
+      "skip_to_content": "Aller au contenu principal",
+      "home_aria_label": "Accueil",
+      "github_aria_label": "Sink sur GitHub"
     }
   },
   "nav": {
@@ -166,6 +176,21 @@
     "no_data": "Aucune donnée",
     "none": "(Aucun)",
     "filter_placeholder": "Filtrer les liens...",
+    "realtime": {
+      "stats_error": "Impossible de charger les statistiques en temps réel.",
+      "events_error": "Impossible de charger les événements en temps réel.",
+      "globe_error": "Impossible de charger les données du globe.",
+      "filter_label": "Filtrer les liens",
+      "filter_search_label": "Rechercher des liens",
+      "links_error": "Impossible de charger les liens.",
+      "time_range_label": "Sélectionner une période",
+      "globe_label": "Globe du trafic en temps réel",
+      "globe_zoom_out": "Dézoomer",
+      "globe_reset": "Réinitialiser",
+      "globe_zoom_in": "Zoomer",
+      "globe_instructions": "Faites glisser pour pivoter. Avec le focus, utilisez la molette pour zoomer, les flèches pour pivoter, +/− pour zoomer, Home pour réinitialiser et Échap pour quitter le focus.",
+      "globe_fallback": "Le globe interactif est indisponible."
+    },
     "date_picker": {
       "today": "Aujourd'hui",
       "last_24h": "Dernières 24 heures",
@@ -205,6 +230,14 @@
     }
   },
   "links": {
+    "migration_gate": {
+      "loading": "Préparation de vos liens",
+      "scanned": "{count} liens analysés",
+      "failed_title": "Échec de la migration des liens",
+      "failed_description": "Vos liens sont indisponibles jusqu’à la fin de la migration de KV vers D1.",
+      "retry": "Réessayer",
+      "open_migration": "Ouvrir les outils de migration"
+    },
     "create": "Créer un lien",
     "edit": "Modifier le lien",
     "delete_confirm_title": "Êtes-vous absolument sûr ?",
@@ -214,8 +247,11 @@
     "update_success": "Lien mis à jour avec succès",
     "create_success": "Lien créé avec succès",
     "preview_mode_tip": "Le lien en mode aperçu est valide jusqu'à 5 minutes.",
-    "search_placeholder": "Rechercher des liens...",
+    "search_placeholder": "Rechercher des liens…",
+    "search_loading": "Recherche…",
+    "search_failed": "Échec de la recherche.",
     "no_results": "Aucun lien trouvé.",
+    "no_filtered_results": "Aucun lien ne correspond aux filtres actuels.",
     "group_title": "Liens",
     "copy_success": "Copie réussie !",
     "created_at": "Créé le",
@@ -225,12 +261,33 @@
     "load_failed": "Échec du chargement des liens,",
     "download_qr_code": "Télécharger le code QR",
     "change_qr_color": "Changer la couleur du code QR",
+    "expired": "Expiré",
+    "filters": {
+      "aria_label": "Filtres de liens",
+      "status_label": "Statut",
+      "active": "Actifs",
+      "expired": "Expirés",
+      "tag_label": "Tag",
+      "all_tags": "Tous les tags",
+      "tags_loading": "Chargement des tags…",
+      "tags_failed": "Échec du chargement des tags."
+    },
     "form": {
       "url": "URL",
       "slug": "Slug",
       "comment": "Commentaire",
+      "tags": "Tags",
+      "tags_description": "Jusqu’à 10 tags de 32 caractères chacun.",
+      "tags_placeholder": "Ajouter un tag",
+      "tag_remove": "Supprimer le tag {tag}",
+      "tag_added": "Tag {tag} ajouté.",
+      "tag_removed": "Tag {tag} supprimé.",
+      "tags_limit": "Vous pouvez ajouter jusqu’à 10 tags.",
+      "tag_too_long": "Un tag ne peut pas dépasser 32 caractères.",
       "expiration": "Expiration",
-      "expiration_description": "Le lien court est automatiquement supprimé après son expiration.",
+      "expiration_description": "Après expiration, le lien ne redirige plus et peut être réactivé en le modifiant.",
+      "clear_expiration": "Effacer l’expiration",
+      "expired_recovery": "Ce lien a expiré. Définissez une nouvelle date d’expiration future ou effacez-la pour réactiver le lien.",
       "pick_date": "Choisir une date",
       "device_redirect": "Redirection par appareil",
       "google_play": "URL Google Play",
@@ -363,6 +420,24 @@
     "duration_ms": "{duration} ms"
   },
   "migrate": {
+    "d1": {
+      "title": "Migration de KV vers D1",
+      "description": "Copiez les liens de Workers KV vers D1 sans remplacer les enregistrements existants.",
+      "status_title": "État de la migration",
+      "status_pending": "La migration n’est pas terminée.",
+      "status_completed": "Migration terminée.",
+      "completed_at": "Terminée le {date}",
+      "run_again": "Relancer",
+      "running": "Migration…",
+      "success": "Migration terminée avec succès.",
+      "failed": "Échec de la migration",
+      "scanned": "Analysés",
+      "inserted": "Insérés",
+      "skipped": "Ignorés",
+      "expired": "Expirés",
+      "failed_count": "Échecs",
+      "no_marker": "Aucun marqueur de fin trouvé."
+    },
     "access_export": {
       "title": "Export Access Data",
       "description": "Download access statistics as a CSV file",
@@ -414,6 +489,48 @@
         "no_links": "Aucun lien trouvé dans le fichier",
         "parse_error": "Échec de l'analyse du fichier"
       }
+    }
+  },
+  "ux": {
+    "login": { "logging_in": "Connexion…" },
+    "realtime": {
+      "pause": "Pause",
+      "resume": "Reprendre",
+      "paused": "Mises à jour en direct en pause",
+      "running": "Mises à jour en direct actives"
+    },
+    "analysis": {
+      "chart_summary": "{totalVisits} visites au total. Pic : {peakVisits} à {peakTime}.",
+      "chart_summary_with_visitors": "{totalVisits} visites et {totalVisitors} visiteurs au total. Pic : {peakVisits} visites à {peakTime}.",
+      "locations_summary": "{totalVisits} visites dans {countryCount} zones."
+    },
+    "links": {
+      "unsafe": "Lien non sécurisé",
+      "counts_retry": "Réessayer les statistiques de {slug}",
+      "visits_count": "{count} visites",
+      "visitors_count": "{count} visiteurs",
+      "referers_count": "{count} référents",
+      "qr_text_alternative": "Code QR pour {url}",
+      "generate_random_slug": "Générer un slug aléatoire",
+      "generate_ai_slug": "Générer un slug avec l’IA",
+      "discard_title": "Ignorer les modifications non enregistrées ?",
+      "discard_description": "Vos modifications seront perdues.",
+      "discard_action": "Ignorer les modifications",
+      "delete_title": "Supprimer {slug} ?",
+      "delete_description": "Ce lien sera supprimé définitivement. Cette action est irréversible.",
+      "delete_action": "Supprimer le lien"
+    },
+    "check": {
+      "clear_title": "Effacer les résultats ?",
+      "clear_description": "Tous les résultats de cette vérification seront supprimés.",
+      "clear_action": "Effacer les résultats"
+    },
+    "import": {
+      "batch_failed": "Ce lot d’importation a échoué.",
+      "links_found": "{count} liens prêts à importer",
+      "download_success": "Télécharger {count} liens importés",
+      "download_skipped": "Télécharger {count} liens ignorés",
+      "download_failed": "Télécharger {count} liens en échec"
     }
   }
 }

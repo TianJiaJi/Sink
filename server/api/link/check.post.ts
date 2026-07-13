@@ -1,8 +1,8 @@
-import type { LinkCheckResult } from '#shared/types/link-check'
 import type { H3Event } from 'h3'
+import type { LinkCheckResult } from '#shared/types/link-check'
+import { ofetch } from 'ofetch'
 import { LinkCheckRequestSchema } from '#shared/schemas/link-check'
 import { toErrorMessage } from '#shared/utils/error'
-import { ofetch } from 'ofetch'
 
 defineRouteMeta({
   openAPI: {
@@ -60,7 +60,7 @@ async function checkLink(
   const startedAt = Date.now()
   const checkedAt = new Date().toISOString()
   const slug = normalizeSlug(event, target.slug)
-  const storedLink = await getLink(event, slug)
+  const storedLink = await getAuthoritativeLink(event, slug)
 
   if (!storedLink) {
     return {
@@ -129,7 +129,10 @@ function isCheckableUrl(url: string): boolean {
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:')
       return false
 
-    const hostname = parsed.hostname.toLowerCase()
+    const rawHostname = parsed.hostname.toLowerCase()
+    const hostname = rawHostname.startsWith('[') && rawHostname.endsWith(']')
+      ? rawHostname.slice(1, -1)
+      : rawHostname
     if (hostname === 'localhost' || hostname.endsWith('.localhost'))
       return false
 
@@ -177,11 +180,25 @@ function isBlockedIpv4(hostname: string): boolean {
 }
 
 function isBlockedIpv6(hostname: string): boolean {
-  return hostname === '::'
+  const firstSegment = Number.parseInt(hostname.split(':', 1)[0] || '0', 16)
+  if (hostname === '::'
     || hostname === '::1'
-    || hostname.startsWith('fc')
-    || hostname.startsWith('fd')
-    || hostname.startsWith('fe80:')
+    || (firstSegment >= 0xFC00 && firstSegment <= 0xFDFF)
+    || (firstSegment >= 0xFE80 && firstSegment <= 0xFEBF)
+    || (firstSegment >= 0xFF00 && firstSegment <= 0xFFFF)) {
+    return true
+  }
+
+  const mappedMatch = hostname.match(/^::ffff:(?:(\d+\.\d+\.\d+\.\d+)|([\da-f]{1,4}):([\da-f]{1,4}))$/i)
+  if (!mappedMatch)
+    return false
+
+  if (mappedMatch[1])
+    return isBlockedIpv4(mappedMatch[1])
+
+  const high = Number.parseInt(mappedMatch[2]!, 16)
+  const low = Number.parseInt(mappedMatch[3]!, 16)
+  return isBlockedIpv4(`${high >> 8}.${high & 0xFF}.${low >> 8}.${low & 0xFF}`)
 }
 
 export default eventHandler(async (event) => {
