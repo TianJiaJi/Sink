@@ -96,80 +96,10 @@ function copyLink() {
           sm:flex-row sm:items-start
         "
       >
-        <TooltipProvider v-if="noteText">
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <NuxtLink
-                class="
-                  group flex w-full min-w-0 flex-1 cursor-pointer items-center
-                  gap-3 rounded-md outline-none
-                  after:absolute after:inset-0 after:z-10 after:rounded-2xl
-                  focus-visible:after:ring-3 focus-visible:after:ring-ring/50
-                "
-                :to="getDashboardLinkDetailLocation(link.slug)"
-              >
-                <Avatar>
-                  <AvatarImage
-                    :src="linkIcon"
-                    :alt="link.slug"
-                    loading="lazy"
-                  />
-                  <AvatarFallback>
-                    <img
-                      src="/icon.png"
-                      :alt="link.slug"
-                      loading="lazy"
-                    >
-                  </AvatarFallback>
-                </Avatar>
-
-                <div class="min-w-0 flex-1 overflow-hidden">
-                  <div class="flex min-w-0 items-center">
-                    <div
-                      class="
-                        min-w-0 truncate leading-5 font-bold
-                        group-hover:underline group-hover:underline-offset-4
-                      "
-                    >
-                      {{ host }}/{{ link.slug }}
-                    </div>
-                    <Badge
-                      v-if="link.unsafe" variant="destructive" class="
-                        ml-1 shrink-0
-                      "
-                    >
-                      <ShieldAlert aria-hidden="true" class="size-3" />
-                      <span>{{ $t('ux.links.unsafe') }}</span>
-                    </Badge>
-                    <Badge
-                      v-if="isExpired"
-                      variant="destructive"
-                      class="ml-1 shrink-0"
-                    >
-                      {{ $t('links.expired') }}
-                    </Badge>
-                  </div>
-
-                  <p v-if="summaryText" class="truncate text-sm">
-                    {{ summaryText }}
-                  </p>
-                </div>
-              </NuxtLink>
-            </TooltipTrigger>
-            <TooltipContent class="max-w-[90svw] break-all">
-              <p>{{ noteText }}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <NuxtLink
-          v-else
+        <div
           class="
             group flex w-full min-w-0 flex-1 cursor-pointer items-center gap-3
-            rounded-md outline-none
-            after:absolute after:inset-0 after:z-10 after:rounded-2xl
-            focus-visible:after:ring-3 focus-visible:after:ring-ring/50
           "
-          :to="getDashboardLinkDetailLocation(link.slug)"
         >
           <Avatar>
             <AvatarImage
@@ -188,20 +118,61 @@ function copyLink() {
 
           <div class="min-w-0 flex-1 overflow-hidden">
             <div class="flex min-w-0 items-center">
-              <div
+              <TooltipProvider v-if="noteText">
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <NuxtLink
+                      class="
+                        min-w-0 truncate rounded-md leading-5 font-bold
+                        outline-none
+                        group-hover:underline group-hover:underline-offset-4
+                        after:absolute after:inset-0 after:z-10
+                        after:rounded-2xl
+                        focus-visible:after:ring-3
+                        focus-visible:after:ring-ring/50
+                      "
+                      :to="getDashboardLinkDetailLocation(link.slug)"
+                    >
+                      {{ host }}/{{ link.slug }}
+                    </NuxtLink>
+                  </TooltipTrigger>
+                  <TooltipContent class="max-w-[90svw] break-all">
+                    <p>{{ noteText }}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <NuxtLink
+                v-else
                 class="
-                  min-w-0 truncate leading-5 font-bold
+                  min-w-0 truncate rounded-md leading-5 font-bold outline-none
                   group-hover:underline group-hover:underline-offset-4
+                  after:absolute after:inset-0 after:z-10 after:rounded-2xl
+                  focus-visible:after:ring-3 focus-visible:after:ring-ring/50
                 "
+                :to="getDashboardLinkDetailLocation(link.slug)"
               >
                 {{ host }}/{{ link.slug }}
-              </div>
-              <Badge
-                v-if="link.unsafe" variant="destructive" class="ml-1 shrink-0"
-              >
-                <ShieldAlert aria-hidden="true" class="size-3" />
-                <span>{{ $t('ux.links.unsafe') }}</span>
-              </Badge>
+              </NuxtLink>
+              <TooltipProvider v-if="link.unsafe">
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <NuxtLink
+                      :to="getDashboardLinkDetailLocation(link.slug)"
+                      :aria-label="$t('ux.links.unsafe')"
+                      class="
+                        relative z-20 ml-1 inline-flex shrink-0 rounded-sm
+                        text-destructive outline-none
+                        focus-visible:ring-2 focus-visible:ring-ring/50
+                      "
+                    >
+                      <ShieldAlert aria-hidden="true" class="size-4" />
+                    </NuxtLink>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{{ $t('ux.links.unsafe') }}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Badge
                 v-if="isExpired"
                 variant="destructive"
@@ -215,7 +186,7 @@ function copyLink() {
               {{ summaryText }}
             </p>
           </div>
-        </NuxtLink>
+        </div>
 
         <div
           class="
