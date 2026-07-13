@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ImportData } from '#shared/schemas/import'
-import { AlertCircle, CheckCircle, Download, SkipForward, Upload, XCircle } from 'lucide-vue-next'
+import { AlertCircle, CheckCircle, Download, SkipForward, Upload, XCircle } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { ImportDataSchema } from '#shared/schemas/import'
 import { createExportFilename } from '#shared/utils/export-file'
@@ -143,7 +143,7 @@ async function handleImport() {
           index: batchStart + idx,
           slug: link.slug,
           url: link.url,
-          reason: error instanceof Error ? error.message : 'Batch import failed',
+          reason: error instanceof Error ? error.message : t('ux.import.batch_failed'),
         })
       })
     }
@@ -219,7 +219,7 @@ function reset() {
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>{{ $t('migrate.import.title') }}</CardTitle>
+      <CardTitle><h2>{{ $t('migrate.import.title') }}</h2></CardTitle>
       <CardDescription>{{ $t('migrate.import.description') }}</CardDescription>
     </CardHeader>
     <CardContent class="space-y-4">
@@ -276,7 +276,7 @@ function reset() {
                 {{ selectedFile?.name }}
               </p>
               <p class="text-sm text-muted-foreground">
-                {{ parsedData.links.length }} {{ $t('migrate.import.links_found') }}
+                {{ $t('ux.import.links_found', { count: parsedData.links.length }) }}
               </p>
             </div>
             <Button
@@ -365,7 +365,7 @@ function reset() {
             @click="downloadSuccessItems"
           >
             <Download aria-hidden="true" class="mr-2 size-4" />
-            {{ $t('migrate.import.download_success') }}
+            {{ $t('ux.import.download_success', { count: importResult.success }) }}
           </Button>
           <Button
             v-if="importResult.skipped > 0"
@@ -377,7 +377,7 @@ function reset() {
             @click="downloadSkippedItems"
           >
             <Download aria-hidden="true" class="mr-2 size-4" />
-            {{ $t('migrate.import.download_skipped') }}
+            {{ $t('ux.import.download_skipped', { count: importResult.skipped }) }}
           </Button>
           <Button
             v-if="importResult.failed > 0"
@@ -389,7 +389,7 @@ function reset() {
             @click="downloadFailedItems"
           >
             <Download aria-hidden="true" class="mr-2 size-4" />
-            {{ $t('migrate.import.download_failed') }}
+            {{ $t('ux.import.download_failed', { count: importResult.failed }) }}
           </Button>
         </div>
       </div>

@@ -10,7 +10,6 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     '@nuxt/eslint',
     '@pinia/nuxt',
-    '@vueuse/motion/nuxt',
     'shadcn-nuxt',
   ],
   devtools: { enabled: true },
@@ -127,7 +126,6 @@ export default defineNuxtConfig({
         'clsx',
         'd3-geo',
         'd3-scale',
-        'lucide-vue-next',
         'nanoid',
         'qr-code-styling', // CJS
         'reka-ui',

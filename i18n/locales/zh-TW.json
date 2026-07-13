@@ -490,5 +490,47 @@
         "parse_error": "檔案解析失敗"
       }
     }
+  },
+  "ux": {
+    "login": { "logging_in": "正在登入…" },
+    "realtime": {
+      "pause": "暫停",
+      "resume": "繼續",
+      "paused": "即時更新已暫停",
+      "running": "即時更新中"
+    },
+    "analysis": {
+      "chart_summary": "共 {totalVisits} 次造訪，峰值為 {peakTime} 的 {peakVisits} 次。",
+      "chart_summary_with_visitors": "共 {totalVisits} 次造訪、{totalVisitors} 位訪客，峰值為 {peakTime} 的 {peakVisits} 次造訪。",
+      "locations_summary": "{countryCount} 個地區共 {totalVisits} 次造訪。"
+    },
+    "links": {
+      "unsafe": "不安全連結",
+      "counts_retry": "重新載入 {slug} 的統計資料",
+      "visits_count": "{count} 次造訪",
+      "visitors_count": "{count} 位訪客",
+      "referers_count": "{count} 個來源",
+      "qr_text_alternative": "{url} 的 QR Code",
+      "generate_random_slug": "產生隨機短連結代碼",
+      "generate_ai_slug": "使用 AI 產生短連結代碼",
+      "discard_title": "捨棄未儲存的變更？",
+      "discard_description": "這些變更將會遺失。",
+      "discard_action": "捨棄變更",
+      "delete_title": "刪除 {slug}？",
+      "delete_description": "此操作將永久刪除連結，且無法復原。",
+      "delete_action": "刪除連結"
+    },
+    "check": {
+      "clear_title": "清除檢查結果？",
+      "clear_description": "這將清除此輪檢查的全部結果。",
+      "clear_action": "清除結果"
+    },
+    "import": {
+      "batch_failed": "此批連結匯入失敗。",
+      "links_found": "{count} 個連結可匯入",
+      "download_success": "下載 {count} 個已匯入連結",
+      "download_skipped": "下載 {count} 個已跳過連結",
+      "download_failed": "下載 {count} 個失敗連結"
+    }
   }
 }

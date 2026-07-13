@@ -3,7 +3,7 @@ import type { DateValue } from '@internationalized/date'
 import type { Component } from 'vue'
 import type { AnyFieldApi, LinkFormData } from '@/types'
 import { today } from '@internationalized/date'
-import { CalendarIcon, Plus, Sparkles, Trash2 } from 'lucide-vue-next'
+import { CalendarIcon, Plus, Sparkles, Trash2 } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { isMaskedLinkPassword, LINK_PASSWORD_MASK_PREFIX } from '#shared/utils/link-password'
 import { cn } from '@/lib/utils'
@@ -21,6 +21,7 @@ const props = defineProps<{
   formatErrors: (errors: unknown[]) => string[]
   currentSlug: string
 }>()
+const openSections = defineModel<string[]>('openSections', { default: () => [] })
 
 const datePickerOpen = ref(false)
 const { t, locale } = useI18n()
@@ -43,25 +44,6 @@ function formatPasswordDisplay(password: string) {
     ? password.replace(LINK_PASSWORD_MASK_PREFIX, '')
     : password
 }
-
-// Compute default open items based on existing values
-const defaultOpenItems = computed(() => {
-  const items: string[] = []
-  if (props.form.getFieldValue('title') || props.form.getFieldValue('description') || props.form.getFieldValue('image')) {
-    items.push('og')
-  }
-  if (props.form.getFieldValue('google') || props.form.getFieldValue('apple')) {
-    items.push('device')
-  }
-  if (props.form.getFieldValue('expiration') || props.form.getFieldValue('cloaking') || props.form.getFieldValue('redirectWithQuery') || props.form.getFieldValue('password') || props.form.getFieldValue('unsafe')) {
-    items.push('link_settings')
-  }
-  const geoVal = props.form.getFieldValue('geo')
-  if (Array.isArray(geoVal) && geoVal.length > 0) {
-    items.push('geo')
-  }
-  return items
-})
 
 const aiOgPending = ref(false)
 async function aiOg() {
@@ -97,7 +79,7 @@ async function aiOg() {
 </script>
 
 <template>
-  <Accordion type="multiple" :default-value="defaultOpenItems" class="w-full">
+  <Accordion v-model="openSections" type="multiple" class="w-full">
     <AccordionItem value="link_settings">
       <AccordionTrigger :class="accordionTriggerClass">
         {{ $t('links.form.link_settings') }}
@@ -294,7 +276,7 @@ async function aiOg() {
           <props.form.Field
             v-slot="{ field }"
             name="google"
-            :validators="{ onBlur: validateOptionalUrl }"
+            :validators="{ onBlur: validateOptionalUrl, onSubmit: validateOptionalUrl }"
           >
             <DashboardLinksEditorFieldInput
               :field="field"
@@ -311,7 +293,7 @@ async function aiOg() {
           <props.form.Field
             v-slot="{ field }"
             name="apple"
-            :validators="{ onBlur: validateOptionalUrl }"
+            :validators="{ onBlur: validateOptionalUrl, onSubmit: validateOptionalUrl }"
           >
             <DashboardLinksEditorFieldInput
               :field="field"

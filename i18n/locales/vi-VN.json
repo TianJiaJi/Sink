@@ -490,5 +490,47 @@
         "parse_error": "Không thể phân tích tệp"
       }
     }
+  },
+  "ux": {
+    "login": { "logging_in": "Đang đăng nhập…" },
+    "realtime": {
+      "pause": "Tạm dừng",
+      "resume": "Tiếp tục",
+      "paused": "Đã tạm dừng cập nhật trực tiếp",
+      "running": "Đang cập nhật trực tiếp"
+    },
+    "analysis": {
+      "chart_summary": "Tổng cộng {totalVisits} lượt truy cập. Cao nhất: {peakVisits} lúc {peakTime}.",
+      "chart_summary_with_visitors": "Tổng cộng {totalVisits} lượt truy cập và {totalVisitors} khách. Cao nhất: {peakVisits} lượt lúc {peakTime}.",
+      "locations_summary": "{totalVisits} lượt truy cập từ {countryCount} khu vực."
+    },
+    "links": {
+      "unsafe": "Liên kết không an toàn",
+      "counts_retry": "Thử lại số liệu của {slug}",
+      "visits_count": "{count} lượt truy cập",
+      "visitors_count": "{count} khách",
+      "referers_count": "{count} nguồn giới thiệu",
+      "qr_text_alternative": "Mã QR cho {url}",
+      "generate_random_slug": "Tạo slug ngẫu nhiên",
+      "generate_ai_slug": "Tạo slug bằng AI",
+      "discard_title": "Bỏ các thay đổi chưa lưu?",
+      "discard_description": "Các thay đổi sẽ bị mất.",
+      "discard_action": "Bỏ thay đổi",
+      "delete_title": "Xóa {slug}?",
+      "delete_description": "Liên kết sẽ bị xóa vĩnh viễn và không thể hoàn tác.",
+      "delete_action": "Xóa liên kết"
+    },
+    "check": {
+      "clear_title": "Xóa kết quả kiểm tra?",
+      "clear_description": "Tất cả kết quả của lần kiểm tra này sẽ bị xóa.",
+      "clear_action": "Xóa kết quả"
+    },
+    "import": {
+      "batch_failed": "Lô nhập này đã thất bại.",
+      "links_found": "{count} liên kết sẵn sàng nhập",
+      "download_success": "Tải {count} liên kết đã nhập",
+      "download_skipped": "Tải {count} liên kết đã bỏ qua",
+      "download_failed": "Tải {count} liên kết thất bại"
+    }
   }
 }

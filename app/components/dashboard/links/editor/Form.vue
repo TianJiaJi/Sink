@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { DashboardLink, DashboardLinkFormData } from '@/types/dashboard-links'
+import { ExternalLink, Shuffle, Sparkles } from '@lucide/vue'
 import { useForm } from '@tanstack/vue-form'
 import { useDebounceFn } from '@vueuse/core'
-import { ExternalLink, Shuffle, Sparkles } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { z } from 'zod'
-import { LinkSchema, nanoid } from '#shared/schemas/link'
+import { nanoid, SlugSchema, UrlSchema } from '#shared/schemas/link'
 import { isMaskedLinkPassword } from '#shared/utils/link-password'
 
 const props = defineProps<{
@@ -16,6 +16,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'success': [link: DashboardLink]
+  'update:dirty': [value: boolean]
   'update:submitting': [value: boolean]
 }>()
 
@@ -23,8 +24,8 @@ const { t } = useI18n()
 const linksSearchStore = useDashboardLinksSearchStore()
 const requestUrl = useRequestURL()
 
-const urlValidator = LinkSchema.shape.url
-const slugValidator = LinkSchema.shape.slug
+const urlValidator = UrlSchema
+const slugValidator = SlugSchema
 const commentValidator = z.string().max(500).optional()
 const optionalUrlValidator = z.string().trim().url().max(2048).optional().or(z.literal(''))
 
@@ -108,9 +109,11 @@ const form = useForm({
   },
 })
 const isSubmitting = form.useStore(state => state.isSubmitting)
+const isDirty = form.useStore(state => !state.isDefaultValue)
 const tagsInput = useTemplateRef<{ commit: () => boolean }>('tagsInput')
 
 watch(isSubmitting, value => emit('update:submitting', value), { immediate: true })
+watch(isDirty, value => emit('update:dirty', value), { immediate: true })
 
 const validateUrl = makeZodValidator(urlValidator)
 const validateSlug = makeZodValidator(slugValidator)
@@ -118,7 +121,7 @@ const validateComment = makeZodValidator(commentValidator)
 const validateOptionalUrl = makeZodValidator(optionalUrlValidator)
 
 const utmBuilderOpen = ref(false)
-const { isInvalid, getAriaInvalid } = useFieldHelpers()
+const advancedSections = ref<string[]>([])
 
 function formatErrors(errors: unknown[]): string[] {
   return errors
@@ -134,6 +137,13 @@ function formatErrors(errors: unknown[]): string[] {
 
 function randomSlug() {
   form.setFieldValue('slug', generateSlug())
+}
+
+function initializeRandomSlug() {
+  form.reset({
+    ...form.state.values,
+    slug: generateSlug(),
+  })
 }
 
 const aiSlugPending = ref(false)
@@ -205,14 +215,41 @@ async function applyUtmUrl(url: string) {
   await form.validateField('url', 'blur')
 }
 
-function submitForm() {
+function getInitialAdvancedSections() {
+  const sections: string[] = []
+  if (props.link.title || props.link.description || props.link.image)
+    sections.push('og')
+  if (props.link.google || props.link.apple)
+    sections.push('device')
+  if (props.link.expiration || props.link.cloaking || props.link.redirectWithQuery || props.link.password || props.link.unsafe)
+    sections.push('link_settings')
+  if (props.link.geo && Object.keys(props.link.geo).length)
+    sections.push('geo')
+  return sections
+}
+
+advancedSections.value = getInitialAdvancedSections()
+
+async function submitForm() {
   if (tagsInput.value?.commit() === false)
     return
 
-  form.handleSubmit()
+  await form.handleSubmit()
+
+  const fieldOrder = ['url', 'slug', 'comment', 'google', 'apple'] as const
+  const firstInvalidField = fieldOrder.find(name => Boolean(form.getFieldMeta(name)?.errors.length))
+  if ((firstInvalidField === 'google' || firstInvalidField === 'apple') && !advancedSections.value.includes('device'))
+    advancedSections.value = [...advancedSections.value, 'device']
+
+  await nextTick()
+  const firstError = firstInvalidField
+    ? document.getElementById(`${props.formId}-${firstInvalidField}`)
+    : null
+  firstError?.scrollIntoView({ block: 'center' })
+  firstError?.focus({ preventScroll: true })
 }
 
-defineExpose({ randomSlug })
+defineExpose({ initializeRandomSlug })
 </script>
 
 <template>
@@ -317,7 +354,7 @@ defineExpose({ randomSlug })
                     size-11
                     sm:size-9
                   "
-                  aria-label="Generate random slug"
+                  :aria-label="$t('ux.links.generate_random_slug')"
                   @click="randomSlug"
                 >
                   <Shuffle class="size-4" />
@@ -330,7 +367,7 @@ defineExpose({ randomSlug })
                     size-11
                     sm:size-9
                   "
-                  aria-label="Generate AI slug"
+                  :aria-label="$t('ux.links.generate_ai_slug')"
                   :disabled="aiSlugPending"
                   @click="aiSlug"
                 >
@@ -384,6 +421,7 @@ defineExpose({ randomSlug })
       </FieldGroup>
 
       <DashboardLinksEditorAdvanced
+        v-model:open-sections="advancedSections"
         :form="form"
         :id-prefix="formId"
         :validate-optional-url="validateOptionalUrl"

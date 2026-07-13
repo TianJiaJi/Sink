@@ -8,7 +8,7 @@ import {
   Smartphone,
   Tablet,
   Terminal,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
 
 import {
   AcerIcon,

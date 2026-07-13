@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { ExternalLink, Menu, Star } from '@lucide/vue'
 import NumberFlow from '@number-flow/vue'
-import { ExternalLink, Menu, Star } from 'lucide-vue-next'
 import { GitHubIcon, TelegramIcon, XIcon } from 'vue3-simple-icons'
 import {
   NavigationMenu,

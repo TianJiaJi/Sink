@@ -413,6 +413,39 @@ describe('d1 link integration', () => {
     expect(retry.at(-1)?.completed).toBe(true)
   })
 
+  it('serves and force-migrates legacy KV links missing stored fields', async () => {
+    const publicSlug = trackSlug(`legacy-public-${crypto.randomUUID()}`)
+    const migrationSlug = trackSlug(`legacy-force-${crypto.randomUUID()}`)
+    await env.KV.put(`link:${publicSlug}`, JSON.stringify({ url: 'https://example.com/public', tags: [] }))
+    await env.KV.put(`link:${migrationSlug}`, JSON.stringify({ id: '  ', url: 'https://example.com/force', createdAt: '', updatedAt: null, tags: [] }))
+
+    const redirect = await fetch(`/${publicSlug}`, { redirect: 'manual' })
+    expect(redirect.status).toBe(301)
+    expect(redirect.headers.get('Location')).toBe('https://example.com/public')
+    expect(await getD1Link(publicSlug)).toMatchObject({ slug: publicSlug, url: 'https://example.com/public' })
+
+    const pages = await runMigration(true)
+    expect(pages.reduce((sum, page) => sum + page.failed, 0)).toBe(0)
+    expect(await getD1Link(publicSlug)).toMatchObject({ slug: publicSlug, url: 'https://example.com/public' })
+    const migrated = await getD1Link(migrationSlug)
+    expect(migrated).toMatchObject({ slug: migrationSlug, url: 'https://example.com/force' })
+    expect(migrated?.id).not.toBe('')
+    expect(migrated?.created_at).toEqual(expect.any(Number))
+    expect(migrated?.updated_at).toEqual(expect.any(Number))
+  })
+
+  it('keeps malformed legacy KV data when compatibility parsing fails', async () => {
+    const slug = trackSlug(`malformed-legacy-${crypto.randomUUID()}`)
+    await env.KV.put(`link:${slug}`, JSON.stringify({ url: 'not-a-url', tags: [] }))
+
+    expect((await fetch(`/${slug}`, { redirect: 'manual' })).status).toBe(404)
+    expect(await env.KV.get(`link:${slug}`)).not.toBeNull()
+    const response = await postJson('/api/link/migration/run', { force: true })
+    const result = await response.json() as LinkMigrationRunResult
+    expect(result.failed).toBeGreaterThanOrEqual(1)
+    expect(await env.KV.get(MARKER_KEY)).toBeNull()
+  })
+
   it('does not accept malformed migration markers as completed', async () => {
     for (const value of ['not-json', JSON.stringify({ version: 1, completedAt: 'wrong' })]) {
       await env.KV.put(MARKER_KEY, value)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { AlertCircle, CheckCircle2, Database, Loader, RefreshCw } from 'lucide-vue-next'
+import { AlertCircle, CheckCircle2, Database, Loader, RefreshCw } from '@lucide/vue'
 
 const migration = useLinkMigration()
 const manualRunStarted = shallowRef(false)
@@ -33,7 +33,7 @@ function runAgain() {
           "
         />
         <div class="space-y-1">
-          <CardTitle>{{ $t('migrate.d1.title') }}</CardTitle>
+          <CardTitle><h2>{{ $t('migrate.d1.title') }}</h2></CardTitle>
           <CardDescription>{{ $t('migrate.d1.description') }}</CardDescription>
         </div>
       </div>

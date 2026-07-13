@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Download } from 'lucide-vue-next'
+import { Download } from '@lucide/vue'
 import QRCodeStyling from 'qr-code-styling'
 
 const props = withDefaults(defineProps<{
@@ -59,6 +59,8 @@ onMounted(() => {
     <div
       ref="qrCodeEl"
       :data-text="data"
+      role="img"
+      :aria-label="$t('ux.links.qr_text_alternative', { url: data })"
       class="rounded-lg border border-border bg-white p-1 shadow-sm"
     />
     <div class="flex items-center gap-4">

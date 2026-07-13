@@ -490,5 +490,47 @@
         "parse_error": "파일 구문 분석에 실패했습니다"
       }
     }
+  },
+  "ux": {
+    "login": { "logging_in": "로그인 중…" },
+    "realtime": {
+      "pause": "일시 중지",
+      "resume": "계속",
+      "paused": "실시간 업데이트 일시 중지됨",
+      "running": "실시간 업데이트 중"
+    },
+    "analysis": {
+      "chart_summary": "총 {totalVisits}회 방문. 최고: {peakTime}에 {peakVisits}회.",
+      "chart_summary_with_visitors": "총 {totalVisits}회 방문, 방문자 {totalVisitors}명. 최고: {peakTime}에 {peakVisits}회 방문.",
+      "locations_summary": "{countryCount}개 지역에서 {totalVisits}회 방문했습니다."
+    },
+    "links": {
+      "unsafe": "안전하지 않은 링크",
+      "counts_retry": "{slug} 통계 다시 불러오기",
+      "visits_count": "방문 {count}회",
+      "visitors_count": "방문자 {count}명",
+      "referers_count": "유입 경로 {count}개",
+      "qr_text_alternative": "{url}의 QR 코드",
+      "generate_random_slug": "무작위 슬러그 생성",
+      "generate_ai_slug": "AI로 슬러그 생성",
+      "discard_title": "저장하지 않은 변경 사항을 버릴까요?",
+      "discard_description": "변경 사항이 사라집니다.",
+      "discard_action": "변경 사항 버리기",
+      "delete_title": "{slug} 링크를 삭제할까요?",
+      "delete_description": "링크가 영구 삭제되며 되돌릴 수 없습니다.",
+      "delete_action": "링크 삭제"
+    },
+    "check": {
+      "clear_title": "검사 결과를 지울까요?",
+      "clear_description": "이번 검사의 모든 결과가 삭제됩니다.",
+      "clear_action": "결과 지우기"
+    },
+    "import": {
+      "batch_failed": "이 가져오기 묶음에 실패했습니다.",
+      "links_found": "가져올 링크 {count}개",
+      "download_success": "가져온 링크 {count}개 다운로드",
+      "download_skipped": "건너뛴 링크 {count}개 다운로드",
+      "download_failed": "실패한 링크 {count}개 다운로드"
+    }
   }
 }

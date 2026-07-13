@@ -2,7 +2,7 @@
 import { useMediaQuery } from '@vueuse/core'
 import { parseQuery, parseURL, withQuery } from 'ufo'
 import { toast } from 'vue-sonner'
-import { LinkSchema } from '#shared/schemas/link'
+import { UrlSchema } from '#shared/schemas/link'
 
 interface UtmFormValues {
   source: string
@@ -26,7 +26,7 @@ const open = defineModel<boolean>('open', { default: false })
 const { t } = useI18n()
 const isDesktop = useMediaQuery('(min-width: 640px)')
 
-const urlValidator = LinkSchema.shape.url
+const urlValidator = UrlSchema
 const utmValues = reactive<UtmFormValues>(createEmptyUtmValues())
 
 const validatedUrl = computed(() => {

@@ -490,5 +490,47 @@
         "parse_error": "Échec de l'analyse du fichier"
       }
     }
+  },
+  "ux": {
+    "login": { "logging_in": "Connexion…" },
+    "realtime": {
+      "pause": "Pause",
+      "resume": "Reprendre",
+      "paused": "Mises à jour en direct en pause",
+      "running": "Mises à jour en direct actives"
+    },
+    "analysis": {
+      "chart_summary": "{totalVisits} visites au total. Pic : {peakVisits} à {peakTime}.",
+      "chart_summary_with_visitors": "{totalVisits} visites et {totalVisitors} visiteurs au total. Pic : {peakVisits} visites à {peakTime}.",
+      "locations_summary": "{totalVisits} visites dans {countryCount} zones."
+    },
+    "links": {
+      "unsafe": "Lien non sécurisé",
+      "counts_retry": "Réessayer les statistiques de {slug}",
+      "visits_count": "{count} visites",
+      "visitors_count": "{count} visiteurs",
+      "referers_count": "{count} référents",
+      "qr_text_alternative": "Code QR pour {url}",
+      "generate_random_slug": "Générer un slug aléatoire",
+      "generate_ai_slug": "Générer un slug avec l’IA",
+      "discard_title": "Ignorer les modifications non enregistrées ?",
+      "discard_description": "Vos modifications seront perdues.",
+      "discard_action": "Ignorer les modifications",
+      "delete_title": "Supprimer {slug} ?",
+      "delete_description": "Ce lien sera supprimé définitivement. Cette action est irréversible.",
+      "delete_action": "Supprimer le lien"
+    },
+    "check": {
+      "clear_title": "Effacer les résultats ?",
+      "clear_description": "Tous les résultats de cette vérification seront supprimés.",
+      "clear_action": "Effacer les résultats"
+    },
+    "import": {
+      "batch_failed": "Ce lot d’importation a échoué.",
+      "links_found": "{count} liens prêts à importer",
+      "download_success": "Télécharger {count} liens importés",
+      "download_skipped": "Télécharger {count} liens ignorés",
+      "download_failed": "Télécharger {count} liens en échec"
+    }
   }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CounterData } from '@/types'
+import { Flame, MousePointerClick, Users } from '@lucide/vue'
 import NumberFlow from '@number-flow/vue'
-import { Flame, MousePointerClick, Users } from 'lucide-vue-next'
 
 const defaultData: CounterData = Object.freeze({
   visits: 0,
@@ -80,7 +80,7 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
         class="flex flex-row items-center justify-between space-y-0 pb-2"
       >
         <CardTitle class="text-sm font-medium">
-          {{ $t('dashboard.visits') }}
+          <h2>{{ $t('dashboard.visits') }}</h2>
         </CardTitle>
         <MousePointerClick
           aria-hidden="true" class="size-4 text-muted-foreground"
@@ -96,7 +96,7 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
         class="flex flex-row items-center justify-between space-y-0 pb-2"
       >
         <CardTitle class="text-sm font-medium">
-          {{ $t('dashboard.visitors') }}
+          <h2>{{ $t('dashboard.visitors') }}</h2>
         </CardTitle>
         <Users aria-hidden="true" class="size-4 text-muted-foreground" />
       </CardHeader>
@@ -110,7 +110,7 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
         class="flex flex-row items-center justify-between space-y-0 pb-2"
       >
         <CardTitle class="text-sm font-medium">
-          {{ $t('dashboard.referers') }}
+          <h2>{{ $t('dashboard.referers') }}</h2>
         </CardTitle>
         <Flame aria-hidden="true" class="size-4 text-muted-foreground" />
       </CardHeader>

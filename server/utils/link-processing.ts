@@ -1,5 +1,5 @@
 import type { H3Event } from 'h3'
-import type { Link } from '#shared/schemas/link'
+import type { EditLink, Link } from '#shared/schemas/link'
 
 const editableOptionalLinkFields = [
   'comment',
@@ -47,7 +47,7 @@ export function buildLinkResponse(event: H3Event, link: Link): LinkResponse {
   }
 }
 
-export function mergeEditableLink(existingLink: Link, link: Link): Link {
+export function mergeEditableLink(existingLink: Link, link: EditLink): Link {
   const { password: _password, ...linkWithoutPassword } = link
   const newLink = {
     ...existingLink,
@@ -74,7 +74,7 @@ export async function applyEditableLinkPassword(newLink: Link, password?: string
   }
 }
 
-function cleanupOptionalLinkFields(newLink: Link, link: Link): void {
+function cleanupOptionalLinkFields(newLink: Link, link: EditLink): void {
   for (const field of editableOptionalLinkFields) {
     if (link[field] === undefined)
       delete newLink[field]

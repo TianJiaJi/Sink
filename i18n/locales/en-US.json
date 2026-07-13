@@ -490,5 +490,47 @@
         "parse_error": "Failed to parse file"
       }
     }
+  },
+  "ux": {
+    "login": { "logging_in": "Signing in…" },
+    "realtime": {
+      "pause": "Pause",
+      "resume": "Resume",
+      "paused": "Live updates paused",
+      "running": "Live updates running"
+    },
+    "analysis": {
+      "chart_summary": "{totalVisits} visits total. Peak: {peakVisits} at {peakTime}.",
+      "chart_summary_with_visitors": "{totalVisits} visits and {totalVisitors} visitors total. Peak: {peakVisits} visits at {peakTime}.",
+      "locations_summary": "{totalVisits} visits across {countryCount} locations."
+    },
+    "links": {
+      "unsafe": "Unsafe link",
+      "counts_retry": "Retry statistics for {slug}",
+      "visits_count": "{count} visits",
+      "visitors_count": "{count} visitors",
+      "referers_count": "{count} referers",
+      "qr_text_alternative": "QR code for {url}",
+      "generate_random_slug": "Generate random slug",
+      "generate_ai_slug": "Generate AI slug",
+      "discard_title": "Discard unsaved changes?",
+      "discard_description": "Your changes will be lost.",
+      "discard_action": "Discard changes",
+      "delete_title": "Delete {slug}?",
+      "delete_description": "This permanently deletes the link and cannot be undone.",
+      "delete_action": "Delete link"
+    },
+    "check": {
+      "clear_title": "Clear check results?",
+      "clear_description": "This removes all results from this check.",
+      "clear_action": "Clear results"
+    },
+    "import": {
+      "batch_failed": "This import batch failed.",
+      "links_found": "{count} links ready to import",
+      "download_success": "Download {count} imported links",
+      "download_skipped": "Download {count} skipped links",
+      "download_failed": "Download {count} failed links"
+    }
   }
 }

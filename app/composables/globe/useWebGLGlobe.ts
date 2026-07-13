@@ -15,8 +15,6 @@ import {
 } from './shaders'
 import { createCountryTexture } from './texture'
 
-export type { ArcData, RippleData, WebGLGlobeContext }
-
 const m4 = twgl.m4
 
 function deleteBufferInfo(gl: WebGLRenderingContext, bufferInfo: twgl.BufferInfo) {
@@ -88,6 +86,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   let cleanupReducedMotionWatch: (() => void) | null = null
   let disposed = true
   let lifecycleVersion = 0
+  let resumeAutoRotate = true
 
   // Inertia (shared between interaction and render loop)
   const inertia: InertiaState = { velocityX: 0, velocityY: 0, isActive: false }
@@ -222,9 +221,19 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
       reducedMotion: ctx.reducedMotion,
     }, inertia)
 
-    cleanupReducedMotionWatch = watch(ctx.reducedMotion, (reduced) => {
-      if (reduced)
+    cleanupReducedMotionWatch = watch([ctx.reducedMotion, ctx.paused], ([reduced, paused], previous) => {
+      if (paused) {
+        suspendMotion()
+      }
+      else if (reduced) {
         stopMotion()
+      }
+      else if (previous?.[1]) {
+        if (resumeAutoRotate)
+          startAutoRotate()
+        else
+          startRenderLoop()
+      }
     }, { immediate: true })
 
     isReady.value = true
@@ -302,7 +311,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     )
 
     // Guard: gl may have been destroyed during async texture creation
-    if (disposed || gl !== glContext || !isReady.value || textureLifecycle !== lifecycleVersion) {
+    if (disposed || ctx.paused.value || gl !== glContext || !isReady.value || textureLifecycle !== lifecycleVersion) {
       if (newTexture)
         glContext.deleteTexture(newTexture)
       return
@@ -334,6 +343,10 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     textureUpdateRunning = true
     try {
       for (;;) {
+        if (ctx.paused.value) {
+          textureUpdateDirty = false
+          break
+        }
         if (!textureUpdateDirty || disposed || flushLifecycle !== lifecycleVersion)
           break
         textureUpdateDirty = false
@@ -357,13 +370,13 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
       else
         resolvePending?.()
 
-      if (textureUpdateDirty && !disposed && !textureUpdateTimer)
+      if (textureUpdateDirty && !ctx.paused.value && !disposed && !textureUpdateTimer)
         textureUpdateTimer = setTimeout(() => void flushCountryTextureUpdates(), 50)
     }
   }
 
   function updateCountryTexture(): Promise<void> {
-    if (!gl || !isReady.value || disposed)
+    if (!gl || !isReady.value || disposed || ctx.paused.value)
       return Promise.resolve()
 
     textureUpdateDirty = true
@@ -387,7 +400,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   // ============================================================================
 
   function startAutoRotate() {
-    if (ctx.reducedMotion.value)
+    if (ctx.reducedMotion.value || ctx.paused.value)
       return
     isAutoRotating.value = true
     startRenderLoop()
@@ -402,7 +415,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   // ============================================================================
 
   function drawArc(arcData: ArcData, duration: number = 2000) {
-    if (!gl || disposed || !isReady.value || ctx.reducedMotion.value)
+    if (!gl || disposed || !isReady.value || ctx.reducedMotion.value || ctx.paused.value)
       return
 
     const color = arcData.color ? parseColor(arcData.color) : [1.0, 0.6, 0.2] as [number, number, number]
@@ -439,7 +452,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   }
 
   function drawRipple(rippleData: RippleData) {
-    if (!gl || disposed || !isReady.value || ctx.reducedMotion.value)
+    if (!gl || disposed || !isReady.value || ctx.reducedMotion.value || ctx.paused.value)
       return
     const color = rippleData.color ? parseColor(rippleData.color) : [1.0, 0.6, 0.2] as [number, number, number]
 
@@ -458,7 +471,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   // ============================================================================
 
   function render() {
-    if (!gl || !earthProgram || !earthBufferInfo || !countryTexture)
+    if (ctx.paused.value || !gl || !earthProgram || !earthBufferInfo || !countryTexture)
       return
 
     const w = ctx.width.value
@@ -623,13 +636,13 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   }
 
   function startRenderLoop() {
-    if (animationFrameId !== null || disposed || !isReady.value)
+    if (animationFrameId !== null || disposed || ctx.paused.value || !isReady.value)
       return
 
     lastFrameTime = performance.now()
     function loop() {
       animationFrameId = null
-      if (disposed || !isReady.value) {
+      if (disposed || ctx.paused.value || !isReady.value) {
         return
       }
       render()
@@ -641,9 +654,9 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
   }
 
   function needsContinuousRender() {
-    return (!ctx.reducedMotion.value && (isAutoRotating.value || introSpinActive || inertia.isActive))
+    return !ctx.paused.value && ((!ctx.reducedMotion.value && (isAutoRotating.value || introSpinActive || inertia.isActive))
       || activeArcs.length > 0
-      || activeRipples.length > 0
+      || activeRipples.length > 0)
   }
 
   function stopRenderLoop() {
@@ -661,7 +674,7 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     const targetLat = Math.max(-85, Math.min(85, lat))
     const targetLng = lng
 
-    if (animate && !ctx.reducedMotion.value) {
+    if (animate && !ctx.reducedMotion.value && !ctx.paused.value) {
       introSpinActive = true
       introSpinStartTime = performance.now()
       introStartLng = targetLng + 360
@@ -703,6 +716,23 @@ export function useWebGLGlobe(ctx: WebGLGlobeContext) {
     activeArcs = []
     activeRipples = []
     startRenderLoop()
+  }
+
+  function suspendMotion() {
+    resumeAutoRotate = isAutoRotating.value || introSpinActive
+    introSpinActive = false
+    isAutoRotating.value = false
+    inertia.isActive = false
+    inertia.velocityX = 0
+    inertia.velocityY = 0
+    if (gl) {
+      for (const arc of activeArcs)
+        deleteBufferInfo(gl, arc.bufferInfo)
+    }
+    activeArcs = []
+    activeRipples = []
+    textureUpdateDirty = false
+    stopRenderLoop()
   }
 
   function destroy() {

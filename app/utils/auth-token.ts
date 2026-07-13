@@ -20,11 +20,3 @@ export function removeAuthToken() {
 
   localStorage.removeItem(TOKEN_KEY)
 }
-
-export function useAuthToken() {
-  return {
-    getToken: getAuthToken,
-    setToken: setAuthToken,
-    removeToken: removeAuthToken,
-  }
-}

@@ -1,9 +1,5 @@
-import type { z } from 'zod'
-import { EditLinkPasswordSchema, LinkSchema } from '#shared/schemas/link'
-
-const EditLinkSchema = LinkSchema.extend({
-  password: EditLinkPasswordSchema,
-})
+import type { Link } from '#shared/schemas/link'
+import { EditLinkSchema } from '#shared/schemas/link'
 
 defineRouteMeta({
   openAPI: {
@@ -51,7 +47,7 @@ export default eventHandler(async (event) => {
   const link = await readValidatedBody(event, EditLinkSchema.parse)
   link.slug = normalizeSlug(event, link.slug)
 
-  const existingLink: z.infer<typeof LinkSchema> | null = await getAnyAuthoritativeLink(event, link.slug)
+  const existingLink: Link | null = await getAnyAuthoritativeLink(event, link.slug)
   if (!existingLink) {
     throw createError({
       status: 404,

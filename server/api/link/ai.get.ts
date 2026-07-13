@@ -1,8 +1,7 @@
 import type { H3Event } from 'h3'
 import type { AiChatResponse } from '../../utils/ai'
-import { destr } from 'destr'
 import { z } from 'zod'
-import { stripCodeFence } from '../../utils/ai'
+import { parseAiResponse } from '../../utils/ai'
 
 defineRouteMeta({
   openAPI: {
@@ -93,18 +92,7 @@ export default eventHandler(async (event) => {
     return { slug: fallbackSlug(event, url) }
   }
 
-  const content = response.response ?? response.choices?.[0]?.message?.content ?? ''
-
-  if (content.trim() === '') {
-    return { slug: fallbackSlug(event, url) }
-  }
-
-  const parsed = destr(stripCodeFence(content))
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-    return { slug: fallbackSlug(event, url) }
-  }
-
-  const result = parsed as Record<string, unknown>
+  const result = parseAiResponse(response)
   const slug = String(result.slug ?? '').trim()
   if (!slug) {
     return { slug: fallbackSlug(event, url) }

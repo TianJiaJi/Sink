@@ -96,15 +96,15 @@ export default eventHandler(async (event) => {
         ...linkData,
         id: linkData.id || nanoid(10)(),
         slug,
-        createdAt: linkData.createdAt || now,
-        updatedAt: linkData.updatedAt || now,
+        createdAt: linkData.createdAt ?? now,
+        updatedAt: linkData.updatedAt ?? now,
       }
 
       if (link.password) {
         link.password = await normalizeLinkPasswordForStorage(link.password)
       }
 
-      if (!await importLink(event, link)) {
+      if (!await createLink(event, link)) {
         result.skippedItems.push({ index: i, slug, url: linkData.url })
         result.skipped++
         continue

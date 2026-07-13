@@ -3,12 +3,15 @@
 ## Non-obvious constraints
 
 - Write all documentation and code comments in English.
-- Use Node.js 22 and pnpm 11.11.0 (`package.json` is authoritative). This is a single-package app; `pnpm-workspace.yaml` only controls dependency build policy.
+- Use Node.js 22 and pnpm 11.11.0 (`package.json` is authoritative). The root package is the Nuxt app; `docs/` is the `@sink/docs` VitePress workspace package.
 - Do not hand-edit `app/components/ui/**`; it is managed by shadcn-vue and excluded from ESLint.
 - Read `DESIGN.md` before UI work. The authoritative design sources are `app/assets/css/tailwind.css` and `app/components/ui/**`; `DESIGN.md` is a derived summary.
 - Do not invent undocumented design tokens.
 - After changing design tokens or `DESIGN.md`, run `npx @google/design.md lint DESIGN.md` and resolve all errors.
 - Nuxt and server utilities are auto-imported. Follow nearby code before adding explicit imports for framework globals.
+- Use `@lucide/vue` for Lucide icons; do not add `lucide-vue-next`.
+- Application forms must live in dedicated `*Form.vue` components and should prefer `@tanstack/vue-form`. Generated components under `app/components/ui/form/**` may use `vee-validate` internally.
+- Business dialogs must live in dedicated `*Dialog.vue` or `*Modal.vue` components; do not inline `Dialog`, `AlertDialog`, or `ResponsiveModal` implementations in unrelated components.
 
 ## Setup and commands
 
@@ -17,6 +20,9 @@ pnpm install                              # also runs build:map, nuxt prepare, a
 pnpm dev                                  # Nuxt dev server on port 7465
 pnpm build                                # production build with an 8 GB Node heap
 pnpm preview                              # requires existing .output build artifacts
+pnpm dev:docs                             # VitePress docs dev server
+pnpm build:docs                           # production docs build
+pnpm preview:docs                         # preview the docs build
 pnpm lint                                 # check only
 pnpm lint:fix                             # modifies files
 pnpm types:check
@@ -32,12 +38,14 @@ pnpm test --run -t 'creates new link'     # tests matching a name
 
 ## Architecture and data flow
 
-- `app/` is a client-only Nuxt 4 UI (`ssr: false`); `/` and `/dashboard/**` are prerendered. `server/` is the Nitro backend using the `cloudflare-module` preset outside CI.
-- `shared/` owns schemas, cross-runtime utilities, and shared types. Prefer `#shared/...`; `app/types/index.ts` only re-exports selected shared types for UI use.
+- `app/` is a client-only Nuxt 4 UI (`ssr: false`); `/` and `/dashboard/**` are prerendered, and `/dashboard` redirects to `/dashboard/links`. `server/` is the Nitro backend using the `cloudflare-module` preset outside CI.
+- `shared/` owns schemas, cross-runtime utilities, and shared types. Prefer `#shared/...`; `app/types/index.ts` only re-exports selected shared types for UI use. Never import `app/**` from `server/**`; move cross-runtime code to `shared/**` instead.
+- Use `useAPI()` for authenticated internal APIs, mutations, polling, searches, and abortable user flows. Reserve Nuxt `useFetch` for read-only data where AsyncData caching, deduplication, or shared state provides a concrete benefit.
 - D1 is the authoritative link store. KV is a write-through read cache and the temporary source for pre-D1 links until the KV-to-D1 migration marker is set. Route link persistence through `server/utils/link-store.ts`; direct KV-only writes can lose authoritative data.
+- Link validation has separate create, edit, import, stored, and legacy-KV contracts in `shared/schemas/link.ts`. Do not merge them or remove legacy KV parsing without explicit confirmation that every deployed instance has completed KV-to-D1 migration.
 - `server/middleware/1.redirect.ts` intentionally runs before `2.auth.ts`: public short-link resolution happens first, while every `/api/**` request is authenticated by site token or allowed Cloudflare Access identity.
 - Cloudflare bindings are declared in `wrangler.jsonc`: `DB`, `KV`, `ANALYTICS`, `AI`, `R2`, and `ASSETS`. Regenerate `worker-configuration.d.ts` with `pnpm gen:types` after changing bindings.
-- The realtime dashboard is intentionally pseudo-live: it polls analytics every 10 seconds, then replays the initial and newly discovered access events through a bounded client-side queue at roughly one event per second. It is not an SSE or WebSocket stream.
+- The realtime dashboard is intentionally pseudo-live: it polls analytics every 10 seconds, then replays the initial and newly discovered access events through a bounded client-side queue at roughly one event per second. Pausing stops polling, queue replay, and WebGL motion; it is not an SSE or WebSocket stream.
 
 ## Database and deployment
 
@@ -53,6 +61,7 @@ pnpm db:migrate:remote   # mutates the configured remote D1 database
 ## Testing quirks
 
 - Vitest uses `@cloudflare/vitest-pool-workers`, `wrangler.jsonc`, one Worker, `isolate: false`, and `maxWorkers: 1`. Storage is shared across the run.
+- Worker tests execute `.output/server/index.mjs` from `wrangler.jsonc`. Run `pnpm build` after server changes before the final test run, or tests may exercise stale output.
 - Use unique slugs and cleanup helpers from `tests/utils.ts`; do not make state-sharing suites concurrent.
 - `tests/setup.ts` applies all D1 migrations before tests. Update migrations, not ad hoc test setup, when schema changes.
 

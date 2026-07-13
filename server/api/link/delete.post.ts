@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { LinkSchema } from '#shared/schemas/link'
+import { SlugSchema } from '#shared/schemas/link'
 
 defineRouteMeta({
   openAPI: {
@@ -23,7 +23,7 @@ defineRouteMeta({
 })
 
 const DeleteSchema = z.object({
-  slug: LinkSchema.shape.slug.removeDefault().min(1),
+  slug: SlugSchema.min(1),
 })
 
 export default eventHandler(async (event) => {

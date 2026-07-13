@@ -1,5 +1,5 @@
 import type { LinkMigrationMarker, LinkMigrationRunResult } from '#shared/schemas/link-migration'
-import { StoredLinkSchema } from '#shared/schemas/link'
+import { parseLegacyKvLink } from '#shared/schemas/link'
 import { LinkMigrationRunSchema } from '#shared/schemas/link-migration'
 
 const MIGRATION_CURSOR_PREFIX = 'migration:v1:'
@@ -154,7 +154,7 @@ export default eventHandler(async (event): Promise<LinkMigrationRunResult> => {
   for (const key of page.keys) {
     try {
       const stored = await KV.getWithMetadata(key.name, { type: 'json' })
-      const parsed = StoredLinkSchema.safeParse(stored.value)
+      const parsed = parseLegacyKvLink(stored.value, key.name.slice(5))
       if (!parsed.success)
         throw new Error(parsed.error.issues.map(issue => issue.message).join('; '))
 

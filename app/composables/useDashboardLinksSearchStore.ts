@@ -1,5 +1,6 @@
 import type { LinkUpdateType } from '@/types'
 import type { DashboardLink, DashboardLinkSearchItem } from '@/types/dashboard-links'
+import { parseURL, stringifyParsedURL } from 'ufo'
 import { readonly, ref, shallowRef } from 'vue'
 import { defineStore } from '#imports'
 import { useAPI } from '@/utils/api'
@@ -22,8 +23,7 @@ export const useDashboardLinksSearchStore = defineStore('dashboard-links-search'
 
   function isValidUrl(url: string): boolean {
     try {
-      const parsedUrl = new URL(url)
-      return Boolean(parsedUrl.protocol)
+      return Boolean(new URL(url).protocol)
     }
     catch {
       return false
@@ -35,12 +35,7 @@ export const useDashboardLinksSearchStore = defineStore('dashboard-links-search'
     if (!trimmedUrl || !isValidUrl(trimmedUrl))
       return undefined
 
-    const hashIndex = trimmedUrl.indexOf('#')
-    const queryIndex = trimmedUrl.indexOf('?')
-    if (queryIndex === -1 || (hashIndex !== -1 && hashIndex < queryIndex))
-      return trimmedUrl
-
-    return `${trimmedUrl.slice(0, queryIndex)}${hashIndex === -1 ? '' : trimmedUrl.slice(hashIndex)}`
+    return stringifyParsedURL({ ...parseURL(trimmedUrl), search: '' })
   }
 
   async function searchLinks(searchQuery: string): Promise<DashboardLinkSearchItem[]> {

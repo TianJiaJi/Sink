@@ -2,8 +2,6 @@ import type { CountryColorTiers, GlobeColors, HeatmapColorTiers } from './types'
 import { computed } from 'vue'
 import { useColorMode } from '#imports'
 
-export type { CountryColorTiers, GlobeColors, HeatmapColorTiers }
-
 export function useGlobeColors() {
   const colorMode = useColorMode()
   const isDark = computed(() => colorMode.value === 'dark')

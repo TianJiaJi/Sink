@@ -490,5 +490,47 @@
         "parse_error": "Falha ao analisar o arquivo"
       }
     }
+  },
+  "ux": {
+    "login": { "logging_in": "Entrando…" },
+    "realtime": {
+      "pause": "Pausar",
+      "resume": "Continuar",
+      "paused": "Atualizações ao vivo pausadas",
+      "running": "Atualizações ao vivo ativas"
+    },
+    "analysis": {
+      "chart_summary": "{totalVisits} visitas no total. Pico: {peakVisits} às {peakTime}.",
+      "chart_summary_with_visitors": "{totalVisits} visitas e {totalVisitors} visitantes no total. Pico: {peakVisits} visitas às {peakTime}.",
+      "locations_summary": "{totalVisits} visitas em {countryCount} regiões."
+    },
+    "links": {
+      "unsafe": "Link não seguro",
+      "counts_retry": "Tentar novamente as estatísticas de {slug}",
+      "visits_count": "{count} visitas",
+      "visitors_count": "{count} visitantes",
+      "referers_count": "{count} referências",
+      "qr_text_alternative": "Código QR para {url}",
+      "generate_random_slug": "Gerar slug aleatório",
+      "generate_ai_slug": "Gerar slug com IA",
+      "discard_title": "Descartar alterações não salvas?",
+      "discard_description": "Suas alterações serão perdidas.",
+      "discard_action": "Descartar alterações",
+      "delete_title": "Excluir {slug}?",
+      "delete_description": "O link será excluído permanentemente. Esta ação não pode ser desfeita.",
+      "delete_action": "Excluir link"
+    },
+    "check": {
+      "clear_title": "Limpar resultados?",
+      "clear_description": "Todos os resultados desta verificação serão removidos.",
+      "clear_action": "Limpar resultados"
+    },
+    "import": {
+      "batch_failed": "Este lote de importação falhou.",
+      "links_found": "{count} links prontos para importar",
+      "download_success": "Baixar {count} links importados",
+      "download_skipped": "Baixar {count} links ignorados",
+      "download_failed": "Baixar {count} links com falha"
+    }
   }
 }

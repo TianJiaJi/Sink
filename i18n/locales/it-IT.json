@@ -490,5 +490,47 @@
         "parse_error": "Analisi del file fallita"
       }
     }
+  },
+  "ux": {
+    "login": { "logging_in": "Accesso…" },
+    "realtime": {
+      "pause": "Pausa",
+      "resume": "Riprendi",
+      "paused": "Aggiornamenti live in pausa",
+      "running": "Aggiornamenti live attivi"
+    },
+    "analysis": {
+      "chart_summary": "{totalVisits} visite totali. Picco: {peakVisits} alle {peakTime}.",
+      "chart_summary_with_visitors": "{totalVisits} visite e {totalVisitors} visitatori totali. Picco: {peakVisits} visite alle {peakTime}.",
+      "locations_summary": "{totalVisits} visite in {countryCount} aree."
+    },
+    "links": {
+      "unsafe": "Link non sicuro",
+      "counts_retry": "Riprova le statistiche di {slug}",
+      "visits_count": "{count} visite",
+      "visitors_count": "{count} visitatori",
+      "referers_count": "{count} referrer",
+      "qr_text_alternative": "Codice QR per {url}",
+      "generate_random_slug": "Genera slug casuale",
+      "generate_ai_slug": "Genera slug con IA",
+      "discard_title": "Scartare le modifiche non salvate?",
+      "discard_description": "Le modifiche andranno perse.",
+      "discard_action": "Scarta modifiche",
+      "delete_title": "Eliminare {slug}?",
+      "delete_description": "Il link verrà eliminato definitivamente. L’azione non può essere annullata.",
+      "delete_action": "Elimina link"
+    },
+    "check": {
+      "clear_title": "Cancellare i risultati?",
+      "clear_description": "Rimuove tutti i risultati di questo controllo.",
+      "clear_action": "Cancella risultati"
+    },
+    "import": {
+      "batch_failed": "Questo batch di importazione non è riuscito.",
+      "links_found": "{count} link pronti per l’importazione",
+      "download_success": "Scarica {count} link importati",
+      "download_skipped": "Scarica {count} link saltati",
+      "download_failed": "Scarica {count} link non riusciti"
+    }
   }
 }

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { MetricItem } from '@/types'
-import { Maximize } from 'lucide-vue-next'
 
 const props = defineProps<{
   type: string
@@ -118,20 +117,11 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
         />
       </CardContent>
       <CardFooter class="py-2">
-        <ResponsiveModal :title="name" content-class="md:max-w-(--breakpoint-md)">
-          <template #trigger>
-            <Button variant="link" class="w-full">
-              <Maximize aria-hidden="true" class="mr-2 size-4" />
-              {{ $t('dashboard.details') }}
-            </Button>
-          </template>
-
-          <DashboardAnalysisMetricsList
-            class="overflow-y-auto"
-            :metrics="metrics"
-            :type="type"
-          />
-        </ResponsiveModal>
+        <DashboardAnalysisMetricsMetricDetailsDialog
+          :title="name"
+          :metrics="metrics"
+          :type="type"
+        />
       </CardFooter>
     </template>
     <CardContent

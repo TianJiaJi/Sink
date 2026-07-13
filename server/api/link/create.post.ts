@@ -1,4 +1,4 @@
-import { LinkSchema } from '#shared/schemas/link'
+import { CreateLinkSchema } from '#shared/schemas/link'
 
 defineRouteMeta({
   openAPI: {
@@ -47,7 +47,7 @@ defineRouteMeta({
 })
 
 export default eventHandler(async (event) => {
-  const link = await readValidatedBody(event, LinkSchema.parse)
+  const link = await readValidatedBody(event, CreateLinkSchema.parse)
 
   await prepareIncomingLink(event, link)
 

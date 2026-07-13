@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Link } from '@/types'
-import { Download, Loader } from 'lucide-vue-next'
+import { Download, Loader } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 import { createExportFilename } from '#shared/utils/export-file'
 
@@ -68,7 +68,7 @@ async function handleExport() {
 <template>
   <Card class="h-fit">
     <CardHeader>
-      <CardTitle>{{ $t('migrate.export.title') }}</CardTitle>
+      <CardTitle><h2>{{ $t('migrate.export.title') }}</h2></CardTitle>
       <CardDescription>{{ $t('migrate.export.description') }}</CardDescription>
     </CardHeader>
     <CardContent>
@@ -78,6 +78,7 @@ async function handleExport() {
           lg:min-h-9
         "
         :disabled="isExporting"
+        :aria-busy="isExporting"
         @click="handleExport"
       >
         <Loader

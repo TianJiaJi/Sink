@@ -3,6 +3,10 @@ import type { LogEvent } from '@/types'
 import { useDocumentVisibility, useIntervalFn } from '@vueuse/core'
 import { appendPendingEvents, selectReplayEvents } from '@/utils/realtime-log-queue'
 
+const emit = defineEmits<{
+  errorChange: [value: boolean]
+}>()
+
 const INITIAL_REPLAY_LIMIT = 20
 const MAX_VISIBLE_LOGS = 100
 const MAX_PENDING_LOGS = 100
@@ -13,6 +17,7 @@ const trafficEventBus = useTrafficEventBus()
 
 const realtimeStore = useDashboardRealtimeStore()
 const visibility = useDocumentVisibility()
+const isPaused = inject(REALTIME_PAUSED_KEY, shallowRef(false))
 const logs = shallowRef<LogEvent[]>([])
 const loading = shallowRef(false)
 const error = shallowRef(false)
@@ -30,7 +35,7 @@ let disposed = false
 const { pause, resume } = useIntervalFn(() => playNext(), REPLAY_INTERVAL, { immediate: false })
 
 function playNext() {
-  if (visibility.value !== 'visible') {
+  if (visibility.value !== 'visible' || isPaused.value) {
     pause()
     return
   }
@@ -50,7 +55,7 @@ function playNext() {
 
 function enqueueEvents(events: LogEvent[]) {
   pendingLogs = appendPendingEvents(pendingLogs, events, MAX_PENDING_LOGS)
-  if (!pendingLogs.length || visibility.value !== 'visible')
+  if (!pendingLogs.length || visibility.value !== 'visible' || isPaused.value)
     return
 
   if (!logs.value.length)
@@ -93,7 +98,7 @@ watch([
 })
 
 watch(visibility, (state) => {
-  if (state === 'hidden') {
+  if (state === 'hidden' || isPaused.value) {
     pause()
     return
   }
@@ -103,7 +108,23 @@ watch(visibility, (state) => {
   }
 })
 
+watch(isPaused, (paused) => {
+  if (paused) {
+    pause()
+    fetchVersion++
+    fetchController?.abort()
+    loading.value = false
+    return
+  }
+
+  if (visibility.value === 'visible' && pendingLogs.length)
+    resume()
+})
+
 async function fetchLogs() {
+  if (isPaused.value)
+    return
+
   if (fetchRunning) {
     fetchQueued = true
     return
@@ -116,7 +137,7 @@ async function fetchLogs() {
   fetchRunning = true
   try {
     for (;;) {
-      if (disposed)
+      if (disposed || isPaused.value)
         break
       fetchQueued = false
       const version = fetchVersion
@@ -171,8 +192,11 @@ watch([
   () => realtimeStore.timeRange.startAt,
   () => realtimeStore.timeRange.endAt,
   () => realtimeStore.filters,
+  isPaused,
   retryKey,
 ], () => void fetchLogs(), { deep: true, immediate: true })
+
+watch(error, value => emit('errorChange', value), { immediate: true })
 
 onBeforeUnmount(() => {
   disposed = true
@@ -212,22 +236,33 @@ onBeforeUnmount(() => {
     >
       {{ $t('dashboard.no_data') }}
     </div>
-    <SparkUiAnimatedList
-      v-else
-      class="h-full"
-      role="log"
-      aria-live="polite"
-      aria-relevant="additions"
-    >
-      <SparkUiNotification
-        v-for="item in logs"
-        :key="item.id"
-        :name="item.slug"
-        :description="[item.os, item.browser].filter(Boolean).join(' ')"
-        :icon="getFlag(item.country || '')"
-        :time="item.timestamp"
-        class="w-full"
-      />
-    </SparkUiAnimatedList>
+    <div v-else class="flex h-full min-h-0 flex-col">
+      <div
+        v-if="error"
+        class="flex items-center justify-center text-sm text-destructive"
+        role="alert"
+      >
+        {{ $t('dashboard.realtime.events_error') }}
+        <Button type="button" variant="link" class="text-destructive" @click="retryKey++">
+          {{ $t('common.try_again') }}
+        </Button>
+      </div>
+      <SparkUiAnimatedList
+        class="min-h-0 flex-1"
+        role="log"
+        :aria-live="isPaused ? 'off' : 'polite'"
+        aria-relevant="additions"
+      >
+        <SparkUiNotification
+          v-for="item in logs"
+          :key="item.id"
+          :name="item.slug"
+          :description="[item.os, item.browser].filter(Boolean).join(' ')"
+          :icon="getFlag(item.country || '')"
+          :time="item.timestamp"
+          class="w-full"
+        />
+      </SparkUiAnimatedList>
+    </div>
   </section>
 </template>

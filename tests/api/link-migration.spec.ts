@@ -90,6 +90,17 @@ describe('/api/link/import', { concurrent: false }, () => {
     expect(data.successItems).toEqual([{ index: 0, ...importPayload.links[0] }])
   })
 
+  it('generates an id when an imported id is empty', async () => {
+    const payload = { ...createLinkPayload(), id: '   ' }
+    const response = await postJson('/api/link/import', { version: '1.0', links: [payload] })
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({ success: 1, failed: 0 })
+
+    const stored = await getStoredLink(payload.slug)
+    expect(stored?.id).toEqual(expect.any(String))
+    expect(stored?.id).not.toBe('')
+  })
+
   it('skips existing links during import', async () => {
     const payload = createLinkPayload()
     expect((await postJson('/api/link/create', payload)).status).toBe(201)
@@ -179,6 +190,14 @@ describe('/api/link/import', { concurrent: false }, () => {
     const response = await postJson('/api/link/import', {
       version: '1.0',
       links: [{ url: 'not-a-valid-url', slug: 'test-slug' }],
+    })
+    expect(response.status).toBe(400)
+  })
+
+  it('returns 400 when an imported link is missing its slug', async () => {
+    const response = await postJson('/api/link/import', {
+      version: '1.0',
+      links: [{ url: 'https://example.com' }],
     })
     expect(response.status).toBe(400)
   })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, ChevronsUpDown } from 'lucide-vue-next'
+import { Check, ChevronsUpDown } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 
 const props = withDefaults(defineProps<{

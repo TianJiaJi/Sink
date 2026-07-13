@@ -19,7 +19,8 @@ const props = withDefaults(defineProps<{
   chartType: 'area',
 })
 
-const { t } = useI18n()
+const { locale, t } = useI18n()
+const isPaused = inject(REALTIME_PAUSED_KEY, shallowRef(false))
 
 const views = shallowRef<ViewDataPoint[]>([])
 const loading = shallowRef(false)
@@ -48,6 +49,27 @@ const chartConfig = computed<ChartConfig>(() => {
 const categories = computed(() =>
   props.mode === 'full' ? ['visits', 'visitors'] : ['visits'],
 )
+const summaryId = `trend-summary-${useId()}`
+const totalVisits = computed(() => views.value.reduce((sum, item) => sum + item.visits, 0))
+const totalVisitors = computed(() => views.value.reduce((sum, item) => sum + item.visitors, 0))
+const peak = computed(() => views.value.reduce<ViewDataPoint | undefined>(
+  (current, item) => !current || item.visits > current.visits ? item : current,
+  undefined,
+))
+const chartSummary = computed(() => {
+  if (!peak.value)
+    return t('dashboard.no_data')
+
+  const key = props.mode === 'full'
+    ? 'ux.analysis.chart_summary_with_visitors'
+    : 'ux.analysis.chart_summary'
+  return t(key, {
+    totalVisits: formatNumber(totalVisits.value),
+    totalVisitors: formatNumber(totalVisitors.value),
+    peakVisits: formatNumber(peak.value.visits),
+    peakTime: formatPeakTime(peak.value.time),
+  })
+})
 
 const id = inject(LINK_ID_KEY, computed(() => undefined))
 const analysisStore = useDashboardAnalysisStore()
@@ -85,7 +107,24 @@ function parseTimeString(time: string): number {
   return new Date(time).getTime()
 }
 
-watch([effectiveTimeRange, effectiveFilters, retryKey], async (_values, _oldValues, onCleanup) => {
+function formatPeakTime(time: string): string {
+  const timestamp = parseTimeString(time)
+  if (!Number.isFinite(timestamp))
+    return time
+
+  const { startAt, endAt } = effectiveTimeRange.value
+  const unit = getUnit(startAt, endAt)
+  return new Intl.DateTimeFormat(locale.value, unit === 'day'
+    ? { dateStyle: 'medium' }
+    : { dateStyle: 'short', timeStyle: 'short' }).format(timestamp)
+}
+
+watch([effectiveTimeRange, effectiveFilters, isPaused, retryKey], async (_values, _oldValues, onCleanup) => {
+  if (isPaused.value) {
+    loading.value = false
+    return
+  }
+
   const { startAt, endAt } = effectiveTimeRange.value
   if (!startAt || !endAt)
     return
@@ -107,7 +146,7 @@ watch([effectiveTimeRange, effectiveFilters, retryKey], async (_values, _oldValu
         endAt,
       },
     })
-    if (controller.signal.aborted)
+    if (controller.signal.aborted || isPaused.value)
       return
     views.value = (result.data || []).map(item => ({
       ...item,
@@ -117,11 +156,11 @@ watch([effectiveTimeRange, effectiveFilters, retryKey], async (_values, _oldValu
     hasLoaded.value = true
   }
   catch {
-    if (!controller.signal.aborted)
+    if (!controller.signal.aborted && !isPaused.value)
       error.value = true
   }
   finally {
-    if (!controller.signal.aborted)
+    if (!controller.signal.aborted && !isPaused.value)
       loading.value = false
   }
 }, { deep: true, immediate: true })
@@ -165,7 +204,14 @@ type Data = ViewDataPoint
     >
       {{ $t('dashboard.no_data') }}
     </div>
-    <ChartContainer v-else :config="chartConfig" class="aspect-4/1 w-full">
+    <ChartContainer
+      v-else
+      :config="chartConfig"
+      class="aspect-4/1 w-full"
+      role="img"
+      :aria-label="$t('dashboard.visits')"
+      :aria-describedby="summaryId"
+    >
       <VisXYContainer :data="views" :margin="{ left: 0, right: 0 }">
         <template v-if="isAreaMode">
           <template v-for="cat in categories" :key="cat">
@@ -212,5 +258,8 @@ type Data = ViewDataPoint
         />
       </VisXYContainer>
     </ChartContainer>
+    <p v-if="hasLoaded && views.length" :id="summaryId" class="sr-only">
+      {{ chartSummary }}
+    </p>
   </Card>
 </template>

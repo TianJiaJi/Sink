@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowUpDown } from 'lucide-vue-next'
+import { ArrowUpDown } from '@lucide/vue'
 
 const linksStore = useDashboardLinksStore()
 </script>

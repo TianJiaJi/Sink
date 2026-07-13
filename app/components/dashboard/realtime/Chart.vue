@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { CounterData } from '@/types'
+import { MousePointerClick } from '@lucide/vue'
 import NumberFlow from '@number-flow/vue'
-import { MousePointerClick } from 'lucide-vue-next'
 
 provide(LINK_ID_KEY, computed(() => undefined))
 
 const realtimeStore = useDashboardRealtimeStore()
+const isPaused = inject(REALTIME_PAUSED_KEY, shallowRef(false))
 const stats = ref<CounterData>({ visits: 0, visitors: 0, referers: 0 })
 const loading = shallowRef(false)
 const error = shallowRef(false)
@@ -16,8 +17,14 @@ watch([
   () => realtimeStore.timeRange.startAt,
   () => realtimeStore.timeRange.endAt,
   () => realtimeStore.filters,
+  isPaused,
   retryKey,
 ], async (_values, _oldValues, onCleanup) => {
+  if (isPaused.value) {
+    loading.value = false
+    return
+  }
+
   if (realtimeStore.timeRange.startAt === 0) {
     return
   }
@@ -36,17 +43,17 @@ watch([
         endAt: realtimeStore.timeRange.endAt,
       },
     })
-    if (controller.signal.aborted)
+    if (controller.signal.aborted || isPaused.value)
       return
     hasData.value = Boolean(result.data?.length)
     stats.value = result.data?.[0] || { visits: 0, visitors: 0, referers: 0 }
   }
   catch {
-    if (!controller.signal.aborted)
+    if (!controller.signal.aborted && !isPaused.value)
       error.value = true
   }
   finally {
-    if (!controller.signal.aborted)
+    if (!controller.signal.aborted && !isPaused.value)
       loading.value = false
   }
 }, { deep: true, immediate: true })

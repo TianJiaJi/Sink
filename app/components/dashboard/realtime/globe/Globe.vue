@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { RotateCcw, ZoomIn, ZoomOut } from '@lucide/vue'
 import { useDevicePixelRatio, useElementSize, useEventListener, usePreferredReducedMotion } from '@vueuse/core'
-import { RotateCcw, ZoomIn, ZoomOut } from 'lucide-vue-next'
 import { useGlobeColors, useGlobeData, useWebGLGlobe } from '@/composables/globe'
 
 const { t } = useI18n()
@@ -12,6 +12,7 @@ const { width, height } = useElementSize(containerRef)
 const { pixelRatio } = useDevicePixelRatio()
 const preferredMotion = usePreferredReducedMotion()
 const reducedMotion = computed(() => preferredMotion.value === 'reduce')
+const isPaused = inject(REALTIME_PAUSED_KEY, shallowRef(false))
 const instructionsId = useId()
 const isLoading = shallowRef(true)
 const hasError = shallowRef(false)
@@ -40,6 +41,7 @@ const globe = useWebGLGlobe({
   countryColorTiers,
   heatmapColorTiers,
   reducedMotion,
+  paused: isPaused,
 })
 
 const trafficEvent = useTrafficEvent({
@@ -61,6 +63,8 @@ function handleTextureError(error: unknown) {
 }
 
 const stopTextureWatch = watch([globeData.countryStats, countryColorTiers, heatmapColorTiers, colors, globeData.countries, globeData.locations], () => {
+  if (isPaused.value)
+    return
   void globe.updateCountryTexture().catch(handleTextureError)
 })
 
@@ -80,7 +84,7 @@ const stopResizeWatch = watch([width, height, pixelRatio], ([nextWidth, nextHeig
     resizeTimer = null
     if (!disposed) {
       globe.updateCanvasSize()
-      if (textureResizePending)
+      if (textureResizePending && !isPaused.value)
         void globe.updateCountryTexture().catch(handleTextureError)
     }
     textureResizePending = false

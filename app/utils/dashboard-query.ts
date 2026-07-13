@@ -58,6 +58,12 @@ export interface DashboardSlugFilters {
   slug?: string
 }
 
+export function toSlugFilters(value: string | string[]): DashboardSlugFilters {
+  const values = Array.isArray(value) ? value : [value]
+  const slugs = [...new Set(values.flatMap(item => item.split(',')).map(slug => slug.trim()).filter(Boolean))]
+  return slugs.length ? { slug: slugs.join(',') } : {}
+}
+
 const DEFAULT_ANALYSIS_PRESET: AnalysisDatePreset = 'last-7d'
 const DEFAULT_REALTIME_WINDOW: RealtimeWindow = 'last-1h'
 const DEFAULT_LINK_STATUS: DashboardLinkStatusQuery = 'active'

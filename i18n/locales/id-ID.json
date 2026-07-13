@@ -490,5 +490,47 @@
         "parse_error": "Gagal mengurai file"
       }
     }
+  },
+  "ux": {
+    "login": { "logging_in": "Masuk…" },
+    "realtime": {
+      "pause": "Jeda",
+      "resume": "Lanjutkan",
+      "paused": "Pembaruan langsung dijeda",
+      "running": "Pembaruan langsung aktif"
+    },
+    "analysis": {
+      "chart_summary": "Total {totalVisits} kunjungan. Puncak: {peakVisits} pada {peakTime}.",
+      "chart_summary_with_visitors": "Total {totalVisits} kunjungan dan {totalVisitors} pengunjung. Puncak: {peakVisits} kunjungan pada {peakTime}.",
+      "locations_summary": "{totalVisits} kunjungan dari {countryCount} wilayah."
+    },
+    "links": {
+      "unsafe": "Tautan tidak aman",
+      "counts_retry": "Coba lagi statistik {slug}",
+      "visits_count": "{count} kunjungan",
+      "visitors_count": "{count} pengunjung",
+      "referers_count": "{count} perujuk",
+      "qr_text_alternative": "Kode QR untuk {url}",
+      "generate_random_slug": "Buat slug acak",
+      "generate_ai_slug": "Buat slug dengan AI",
+      "discard_title": "Buang perubahan yang belum disimpan?",
+      "discard_description": "Perubahan Anda akan hilang.",
+      "discard_action": "Buang perubahan",
+      "delete_title": "Hapus {slug}?",
+      "delete_description": "Tautan akan dihapus permanen dan tidak dapat dipulihkan.",
+      "delete_action": "Hapus tautan"
+    },
+    "check": {
+      "clear_title": "Hapus hasil pemeriksaan?",
+      "clear_description": "Semua hasil pemeriksaan ini akan dihapus.",
+      "clear_action": "Hapus hasil"
+    },
+    "import": {
+      "batch_failed": "Batch impor ini gagal.",
+      "links_found": "{count} tautan siap diimpor",
+      "download_success": "Unduh {count} tautan yang diimpor",
+      "download_skipped": "Unduh {count} tautan yang dilewati",
+      "download_failed": "Unduh {count} tautan yang gagal"
+    }
   }
 }

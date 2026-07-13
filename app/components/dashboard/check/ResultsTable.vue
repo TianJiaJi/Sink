@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { LinkCheckResult } from '@/types'
-import { CircleCheck, CircleX, ExternalLink, WifiOff } from 'lucide-vue-next'
+import { CircleCheck, CircleX, ExternalLink, WifiOff } from '@lucide/vue'
 
 defineProps<{
   results: LinkCheckResult[]

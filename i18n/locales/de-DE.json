@@ -490,5 +490,47 @@
         "parse_error": "Datei konnte nicht analysiert werden"
       }
     }
+  },
+  "ux": {
+    "login": { "logging_in": "Anmeldung läuft…" },
+    "realtime": {
+      "pause": "Pausieren",
+      "resume": "Fortsetzen",
+      "paused": "Live-Updates pausiert",
+      "running": "Live-Updates aktiv"
+    },
+    "analysis": {
+      "chart_summary": "Insgesamt {totalVisits} Besuche. Höchstwert: {peakVisits} um {peakTime}.",
+      "chart_summary_with_visitors": "Insgesamt {totalVisits} Besuche und {totalVisitors} Besucher. Höchstwert: {peakVisits} Besuche um {peakTime}.",
+      "locations_summary": "{totalVisits} Besuche aus {countryCount} Regionen."
+    },
+    "links": {
+      "unsafe": "Unsicherer Link",
+      "counts_retry": "Statistik für {slug} erneut laden",
+      "visits_count": "{count} Besuche",
+      "visitors_count": "{count} Besucher",
+      "referers_count": "{count} Verweise",
+      "qr_text_alternative": "QR-Code für {url}",
+      "generate_random_slug": "Zufälligen Slug erzeugen",
+      "generate_ai_slug": "Slug mit KI erzeugen",
+      "discard_title": "Ungespeicherte Änderungen verwerfen?",
+      "discard_description": "Deine Änderungen gehen verloren.",
+      "discard_action": "Änderungen verwerfen",
+      "delete_title": "{slug} löschen?",
+      "delete_description": "Der Link wird dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+      "delete_action": "Link löschen"
+    },
+    "check": {
+      "clear_title": "Prüfergebnisse löschen?",
+      "clear_description": "Alle Ergebnisse dieser Prüfung werden entfernt.",
+      "clear_action": "Ergebnisse löschen"
+    },
+    "import": {
+      "batch_failed": "Dieser Importblock ist fehlgeschlagen.",
+      "links_found": "{count} Links bereit zum Import",
+      "download_success": "{count} importierte Links herunterladen",
+      "download_skipped": "{count} übersprungene Links herunterladen",
+      "download_failed": "{count} fehlgeschlagene Links herunterladen"
+    }
   }
 }

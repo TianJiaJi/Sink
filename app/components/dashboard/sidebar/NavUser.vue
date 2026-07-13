@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronsUpDown, LogOut } from 'lucide-vue-next'
+import { ChevronsUpDown, LogOut } from '@lucide/vue'
 import { useSidebar } from '@/components/ui/sidebar'
 
 interface User {
@@ -9,8 +9,20 @@ interface User {
 }
 
 const { isMobile } = useSidebar()
-const { getToken, removeToken } = useAuthToken()
-const { authMethod, accessEnabled, clearAuthSession } = useAuthSession()
+const menuButton = useTemplateRef<{ $el: HTMLElement }>('menuButton')
+const menuOpen = shallowRef(false)
+const logoutOpen = shallowRef(false)
+
+async function openLogoutDialog() {
+  menuOpen.value = false
+  await nextTick()
+  logoutOpen.value = true
+}
+
+function restoreMenuFocus(event: Event) {
+  event.preventDefault()
+  menuButton.value?.$el.focus()
+}
 
 const hostname = computed<string>(() => {
   if (import.meta.client) {
@@ -24,28 +36,15 @@ const user = computed<User>(() => ({
   email: `root@${hostname.value}`,
   avatar: '/sink.png',
 }))
-
-function logOut() {
-  const method = authMethod.value || (getToken() ? 'site-token' : 'cloudflare-access')
-  const shouldLogoutAccess = accessEnabled.value || method === 'cloudflare-access'
-  removeToken()
-  clearAuthSession()
-
-  if (shouldLogoutAccess) {
-    window.location.assign('/cdn-cgi/access/logout')
-    return
-  }
-
-  navigateTo('/dashboard/login')
-}
 </script>
 
 <template>
   <SidebarMenu>
     <SidebarMenuItem>
-      <DropdownMenu>
+      <DropdownMenu v-model:open="menuOpen">
         <DropdownMenuTrigger as-child>
           <SidebarMenuButton
+            ref="menuButton"
             size="lg"
             :aria-label="user.name"
             class="
@@ -89,39 +88,21 @@ function logOut() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <AlertDialog>
-            <AlertDialogTrigger as-child>
-              <DropdownMenuItem
-                variant="destructive"
-                class="min-h-11 cursor-pointer"
-                @select.prevent
-              >
-                <LogOut aria-hidden="true" class="mr-2 size-4" />
-                {{ $t('logout.action') }}
-              </DropdownMenuItem>
-            </AlertDialogTrigger>
-            <AlertDialogContent
-              class="
-                max-h-[95svh] max-w-[95svw] grid-rows-[auto_minmax(0,1fr)_auto]
-                md:max-w-lg
-              "
-            >
-              <AlertDialogHeader>
-                <AlertDialogTitle>{{ $t('logout.title') }}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {{ $t('logout.confirm') }}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{{ $t('common.cancel') }}</AlertDialogCancel>
-                <AlertDialogAction variant="destructive" @click="logOut">
-                  {{ $t('logout.action') }}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <DropdownMenuItem
+            variant="destructive"
+            class="min-h-11 cursor-pointer"
+            @select.prevent="openLogoutDialog"
+          >
+            <LogOut aria-hidden="true" class="mr-2 size-4" />
+            {{ $t('logout.action') }}
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <DashboardLogout
+        v-model:open="logoutOpen"
+        :show-trigger="false"
+        @close-auto-focus="restoreMenuFocus"
+      />
     </SidebarMenuItem>
   </SidebarMenu>
 </template>

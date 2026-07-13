@@ -33,17 +33,20 @@ export const EditLinkPasswordSchema = z.string().trim().max(128).refine(
   'masked password cannot be submitted',
 ).optional()
 
-export const LinkSchema = z.object({
-  id: z.string().trim().max(26).default(nanoid(10)),
-  url: z.string().trim().url().max(2048),
-  slug: z.string().trim().max(2048).regex(new RegExp(slugRegex)).default(nanoid()),
+const IdSchema = z.string().trim().min(1).max(26)
+export const UrlSchema = z.string().trim().url().max(2048)
+export const SlugSchema = z.string().trim().max(2048).regex(new RegExp(slugRegex))
+const TimestampSchema = z.number().int().safe()
+const ExpirationSchema = TimestampSchema.refine(expiration => expiration > Math.floor(Date.now() / 1000), {
+  message: 'expiration must be greater than current time',
+  path: ['expiration'],
+})
+
+const LinkFieldsSchema = z.object({
+  url: UrlSchema,
+  slug: SlugSchema,
   comment: z.string().trim().max(2048).optional(),
-  createdAt: z.number().int().safe().default(() => Math.floor(Date.now() / 1000)),
-  updatedAt: z.number().int().safe().default(() => Math.floor(Date.now() / 1000)),
-  expiration: z.number().int().safe().refine(expiration => expiration > Math.floor(Date.now() / 1000), {
-    message: 'expiration must be greater than current time',
-    path: ['expiration'],
-  }).optional(),
+  expiration: ExpirationSchema.optional(),
   title: z.string().trim().max(256).optional(),
   description: z.string().trim().max(2048).optional(),
   image: z.string().trim().max(128).optional(),
@@ -57,11 +60,49 @@ export const LinkSchema = z.object({
   tags: TagsSchema,
 })
 
-export type Link = z.infer<typeof LinkSchema>
-
-export const StoredLinkSchema = LinkSchema.extend({
-  expiration: z.number().int().safe().optional(),
+export const CreateLinkSchema = LinkFieldsSchema.extend({
+  id: IdSchema.default(nanoid(10)),
+  slug: SlugSchema.default(nanoid()),
+  createdAt: TimestampSchema.default(() => Math.floor(Date.now() / 1000)),
+  updatedAt: TimestampSchema.default(() => Math.floor(Date.now() / 1000)),
 })
+
+export const EditLinkSchema = LinkFieldsSchema.extend({
+  password: EditLinkPasswordSchema,
+})
+
+export const ImportLinkSchema = LinkFieldsSchema.extend({
+  id: z.preprocess(value => typeof value === 'string' && !value.trim() ? undefined : value, IdSchema.optional()),
+  createdAt: TimestampSchema.optional(),
+  updatedAt: TimestampSchema.optional(),
+  expiration: TimestampSchema.optional(),
+})
+
+export const StoredLinkSchema = LinkFieldsSchema.extend({
+  id: IdSchema,
+  createdAt: TimestampSchema,
+  updatedAt: TimestampSchema,
+  expiration: TimestampSchema.optional(),
+})
+
+export function parseLegacyKvLink(value: unknown, slug: string) {
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    return StoredLinkSchema.safeParse(value)
+
+  const link = value as Record<string, unknown>
+  const now = Math.floor(Date.now() / 1000)
+  const isEmpty = (field: unknown) => field === undefined || field === null || (typeof field === 'string' && !field.trim())
+  return StoredLinkSchema.safeParse({
+    ...link,
+    id: isEmpty(link.id) ? nanoid(10)() : link.id,
+    slug: isEmpty(link.slug) ? slug : link.slug,
+    createdAt: isEmpty(link.createdAt) ? now : link.createdAt,
+    updatedAt: isEmpty(link.updatedAt) ? now : link.updatedAt,
+  })
+}
+
+export type Link = z.infer<typeof StoredLinkSchema>
+export type EditLink = z.infer<typeof EditLinkSchema>
 
 export interface ExportData {
   version: string

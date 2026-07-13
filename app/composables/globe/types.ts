@@ -34,6 +34,7 @@ export interface WebGLGlobeContext {
   countryColorTiers: ComputedRef<CountryColorTiers>
   heatmapColorTiers: ComputedRef<HeatmapColorTiers>
   reducedMotion: Ref<boolean>
+  paused: Ref<boolean>
 }
 
 export interface ArcData {

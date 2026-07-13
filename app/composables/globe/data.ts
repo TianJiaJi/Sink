@@ -1,8 +1,8 @@
-import type { ComputedRef, Ref, ShallowRef } from 'vue'
 import type { AreaData, ColoData, CurrentLocation, GeoJSONData, LocationData } from '@/types'
 import { watchDeep } from '@vueuse/core'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, inject, ref, shallowRef } from 'vue'
 import { useAPI } from '@/utils/api'
+import { REALTIME_PAUSED_KEY } from '@/utils/injection-keys'
 import { useDashboardRealtimeStore } from '../realtime'
 
 interface RawLocationData {
@@ -11,20 +11,9 @@ interface RawLocationData {
   count: string | number
 }
 
-export interface GlobeDataState {
-  countries: ShallowRef<GeoJSONData>
-  locations: ShallowRef<LocationData[]>
-  colos: ShallowRef<Record<string, ColoData>>
-  currentLocation: Ref<CurrentLocation>
-  countryStats: ShallowRef<Map<string, number>>
-  highest: ComputedRef<number>
-  maxCountryVisits: ComputedRef<number>
-  error: ShallowRef<boolean>
-  dispose: () => void
-}
-
 export function useGlobeData() {
   const realtimeStore = useDashboardRealtimeStore()
+  const isPaused = inject(REALTIME_PAUSED_KEY, shallowRef(false))
 
   const countries = shallowRef<GeoJSONData>({ features: [] })
   const locations = shallowRef<LocationData[]>([])
@@ -60,7 +49,7 @@ export function useGlobeData() {
   }
 
   const isInitStale = (version: number, signal: AbortSignal) => disposed || signal.aborted || version !== initVersion
-  const isRealtimeStale = (version: number, signal: AbortSignal) => disposed || signal.aborted || version !== realtimeVersion
+  const isRealtimeStale = (version: number, signal: AbortSignal) => disposed || isPaused.value || signal.aborted || version !== realtimeVersion
 
   async function getGlobeJSON(signal: AbortSignal) {
     return await $fetch<GeoJSONData>('/countries.geojson', { signal })
@@ -136,11 +125,14 @@ export function useGlobeData() {
     error.value = false
 
     const optionalLocation = getCurrentLocation(requestSignal).catch(() => currentLocation.value)
+    const realtimeSnapshot = isPaused.value
+      ? Promise.resolve<[LocationData[], Map<string, number>]>([locations.value, countryStats.value])
+      : getRealtimeSnapshot(requestSignal)
     const [nextCountries, nextColos, nextLocation, [nextLocations, nextStats]] = await Promise.all([
       getGlobeJSON(requestSignal),
       getColosJSON(requestSignal),
       optionalLocation,
-      getRealtimeSnapshot(requestSignal),
+      realtimeSnapshot,
     ])
 
     if (isInitStale(version, requestSignal))
@@ -156,6 +148,9 @@ export function useGlobeData() {
   }
 
   async function refresh() {
+    if (isPaused.value)
+      return
+
     refreshController?.abort()
     const controller = createController()
     refreshController = controller
@@ -177,7 +172,12 @@ export function useGlobeData() {
     }
   }
 
-  const stopDataWatch = watchDeep([() => realtimeStore.timeRange, () => realtimeStore.filters], () => {
+  const stopDataWatch = watchDeep([() => realtimeStore.timeRange, () => realtimeStore.filters, isPaused], () => {
+    if (isPaused.value) {
+      realtimeVersion++
+      refreshController?.abort()
+      return
+    }
     void refresh()
   })
 

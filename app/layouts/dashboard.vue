@@ -18,6 +18,17 @@ useSeoMeta({
 
 <template>
   <SidebarProvider>
+    <a
+      href="#dashboard-main"
+      class="
+        fixed top-4 left-4 z-50 -translate-y-24 rounded-md bg-background px-4
+        py-2 text-sm font-medium shadow-lg
+        focus:translate-y-0
+        focus-visible:ring-2 focus-visible:ring-ring
+      "
+    >
+      {{ $t('layouts.links.skip_to_content') }}
+    </a>
     <DashboardSidebarAppSidebar />
     <SidebarInset
       class="
@@ -72,7 +83,9 @@ useSeoMeta({
         </header>
 
         <div
+          id="dashboard-main"
           ref="scrollContainer"
+          tabindex="-1"
           class="
             flex-1 overflow-x-hidden overflow-y-auto p-4
             pb-[calc(1rem+env(safe-area-inset-bottom))]

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Link } from '@/types'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 
 const props = defineProps<{
@@ -79,9 +79,9 @@ function handleCloseAutoFocus(event: Event) {
       @escape-key-down="handleEscapeKeyDown"
     >
       <AlertDialogHeader>
-        <AlertDialogTitle>{{ $t('links.delete_confirm_title') }}</AlertDialogTitle>
+        <AlertDialogTitle>{{ $t('ux.links.delete_title', { slug: link.slug }) }}</AlertDialogTitle>
         <AlertDialogDescription>
-          {{ $t('links.delete_confirm_desc') }}
+          {{ $t('ux.links.delete_description', { slug: link.slug }) }}
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
@@ -95,7 +95,7 @@ function handleCloseAutoFocus(event: Event) {
           @click.prevent="deleteLink"
         >
           <Loader2 v-if="deleting" class="motion-safe:animate-spin" aria-hidden="true" />
-          {{ $t('common.continue') }}
+          {{ $t('ux.links.delete_action') }}
         </Button>
       </AlertDialogFooter>
     </AlertDialogContent>

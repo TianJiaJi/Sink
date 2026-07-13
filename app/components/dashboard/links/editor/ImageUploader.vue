@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ImagePlus, Loader2, X } from 'lucide-vue-next'
+import { ImagePlus, Loader2, X } from '@lucide/vue'
 import { toast } from 'vue-sonner'
-import { IMAGE_ALLOWED_TYPES, IMAGE_MAX_SIZE } from '@/utils/image'
+import { IMAGE_ALLOWED_TYPES, IMAGE_MAX_SIZE } from '#shared/utils/image'
 
 const props = defineProps<{
   slug: string

@@ -3,7 +3,12 @@ import { computed } from 'vue'
 import { useFetch } from '#imports'
 
 export function useVersionCheck() {
-  const { data } = useFetch<{ version: string }>('https://cdn.jsdelivr.net/gh/miantiao-me/Sink@master/package.json')
+  const { data } = useFetch<{ version: string }>('https://cdn.jsdelivr.net/gh/miantiao-me/Sink@master/package.json', {
+    key: 'latest-sink-version',
+    server: false,
+    lazy: true,
+    dedupe: 'defer',
+  })
 
   const latestVersion = computed(() => data.value?.version)
   const hasUpdate = computed(() => latestVersion.value ? compareVersion(latestVersion.value, currentVersion) > 0 : false)

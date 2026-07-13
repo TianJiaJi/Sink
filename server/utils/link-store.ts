@@ -5,7 +5,7 @@ import type { LinkSearchItem, LinkSortBy, LinkStatus } from '#shared/types/link'
 import { and, asc, count, desc, eq, gt, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/d1'
 import { parseURL, stringifyParsedURL } from 'ufo'
-import { StoredLinkSchema } from '#shared/schemas/link'
+import { parseLegacyKvLink, StoredLinkSchema } from '#shared/schemas/link'
 import { LinkMigrationMarkerSchema } from '#shared/schemas/link-migration'
 import { links, linkTags, linkTombstones, tags } from '../database/schema'
 
@@ -15,7 +15,7 @@ const KV_CURSOR_PREFIX = 'kv:v1:'
 
 type LinkRow = typeof links.$inferSelect
 
-export function withoutQuery(url: string): string {
+function withoutQuery(url: string): string {
   const parsed = parseURL(url)
   return stringifyParsedURL({ ...parsed, search: '' })
 }
@@ -135,7 +135,7 @@ function logCacheError(operation: string, slug: string, error: unknown): void {
   })
 }
 
-export async function putLinkCache(event: H3Event, link: Link, effectiveExpiresAt?: number | null): Promise<void> {
+async function putLinkCache(event: H3Event, link: Link, effectiveExpiresAt?: number | null): Promise<void> {
   const { KV } = event.context.cloudflare.env
   const expiration = effectiveExpiresAt === undefined ? getExpiration(event, link.expiration) : effectiveExpiresAt ?? undefined
   await KV.put(`link:${link.slug}`, JSON.stringify(link), {
@@ -175,15 +175,18 @@ async function deleteCache(event: H3Event, slug: string): Promise<void> {
   }
 }
 
-export async function getCachedLinkWithMetadata(event: H3Event, slug: string, cacheTtl?: number): Promise<{ link: Link | null, metadata: Record<string, unknown> | null }> {
+async function getCachedLinkWithMetadata(event: H3Event, slug: string, cacheTtl?: number): Promise<{ link: Link | null, metadata: Record<string, unknown> | null }> {
   const { KV } = event.context.cloudflare.env
   const result = await KV.getWithMetadata(`link:${slug}`, { type: 'json', cacheTtl })
-  const parsed = StoredLinkSchema.safeParse(result.value)
+  const migrationComplete = await isLinkMigrationComplete(event)
+  const parsed = migrationComplete
+    ? StoredLinkSchema.safeParse(result.value)
+    : parseLegacyKvLink(result.value, slug)
   const metadata = result.metadata as Record<string, unknown> | null
   const metadataExpiration = typeof metadata?.expiration === 'number' ? metadata.expiration : undefined
 
   if (!parsed.success || !isActiveExpiration(metadataExpiration ?? parsed.data.expiration)) {
-    if (result.value !== null)
+    if (result.value !== null && (parsed.success || migrationComplete))
       await deleteCache(event, slug)
     return { link: null, metadata }
   }
@@ -215,8 +218,16 @@ export async function getLink(event: H3Event, slug: string, cacheTtl?: number): 
       }
 
       const tombstone = await getDatabase(event).select({ slug: linkTombstones.slug }).from(linkTombstones).where(eq(linkTombstones.slug, slug)).limit(1)
-      if (!tombstone.length)
-        return cached.link
+      if (!tombstone.length) {
+        const metadataExpiration = typeof cached.metadata?.expiration === 'number' ? cached.metadata.expiration : undefined
+        await migrateKvLink(event, cached.link, metadataExpiration)
+        const migratedRows = await getDatabase(event).select().from(links).where(eq(links.slug, slug)).limit(1)
+        const [migratedLink] = await rowsToLinks(event, migratedRows)
+        if (migratedLink) {
+          await writeThroughCache(event, migratedLink, migratedRows[0]?.effectiveExpiresAt)
+          return migratedLink
+        }
+      }
 
       await deleteCache(event, slug)
       return null
@@ -257,11 +268,11 @@ export async function getMigrationMarker(event: H3Event): Promise<LinkMigrationM
   }
 }
 
-export async function isLinkMigrationComplete(event: H3Event): Promise<boolean> {
+async function isLinkMigrationComplete(event: H3Event): Promise<boolean> {
   return (await getMigrationMarker(event)) !== null
 }
 
-export async function migrateLegacyLink(event: H3Event, slug: string): Promise<void> {
+async function migrateLegacyLink(event: H3Event, slug: string): Promise<void> {
   if (await isLinkMigrationComplete(event))
     return
 
@@ -305,10 +316,6 @@ export async function getLinkWithMetadata(event: H3Event, slug: string): Promise
   }
 }
 
-export async function linkExists(event: H3Event, slug: string): Promise<boolean> {
-  return (await getAuthoritativeLink(event, slug)) !== null
-}
-
 export async function createLink(event: H3Event, link: Link): Promise<boolean> {
   await migrateLegacyLink(event, link.slug)
   const db = getDatabase(event)
@@ -340,10 +347,6 @@ export async function createLink(event: H3Event, link: Link): Promise<boolean> {
 
   await writeThroughCache(event, link, values.effectiveExpiresAt)
   return true
-}
-
-export async function importLink(event: H3Event, link: Link): Promise<boolean> {
-  return await createLink(event, link)
 }
 
 export async function migrateKvLink(event: H3Event, link: Link, effectiveExpiresAt?: number): Promise<boolean> {
@@ -429,10 +432,6 @@ export async function updateLink(event: H3Event, link: Link, expected?: Expected
     return false
   await writeThroughCache(event, link, values.effectiveExpiresAt)
   return true
-}
-
-export async function putLink(event: H3Event, link: Link): Promise<void> {
-  await updateLink(event, link)
 }
 
 export async function deleteLink(event: H3Event, slug: string): Promise<void> {
@@ -621,7 +620,7 @@ export async function listAllAuthoritativeLinks(env: Cloudflare.Env, caseSensiti
       const keys = page.keys.slice(offset, offset + 20)
       const values = await Promise.all(keys.map(async (key) => {
         const stored = await env.KV.getWithMetadata(key.name, { type: 'json' })
-        const parsed = StoredLinkSchema.safeParse(stored.value)
+        const parsed = parseLegacyKvLink(stored.value, key.name.slice(5))
         if (!parsed.success)
           return null
 

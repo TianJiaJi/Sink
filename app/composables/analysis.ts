@@ -1,6 +1,7 @@
 import type { AnalysisQueryState, AnalysisView, DashboardSlugFilters, HeatmapMetric } from '@/utils/dashboard-query'
 import { ref } from 'vue'
 import { defineStore, useI18n } from '#imports'
+import { toSlugFilters } from '@/utils/dashboard-query'
 import { computeDateRange } from '@/utils/time'
 
 export const useDashboardAnalysisStore = defineStore('dashboard-analysis', () => {
@@ -29,8 +30,7 @@ export const useDashboardAnalysisStore = defineStore('dashboard-analysis', () =>
     if (type !== 'slug')
       return
 
-    const slugs = [...new Set(value.split(',').map(slug => slug.trim()).filter(Boolean))]
-    filters.value = slugs.length ? { slug: slugs.join(',') } : {}
+    filters.value = toSlugFilters(value)
   }
 
   function clearFilters() {
@@ -42,7 +42,7 @@ export const useDashboardAnalysisStore = defineStore('dashboard-analysis', () =>
     updateDateRange(state.datePreset
       ? computeDateRange(state.datePreset, locale.value)
       : state.dateRange ?? computeDateRange('last-7d', locale.value))
-    filters.value = state.slugs.length ? { slug: state.slugs.join(',') } : {}
+    filters.value = toSlugFilters(state.slugs)
     viewMode.value = state.view
     heatmapMetric.value = state.metric
   }

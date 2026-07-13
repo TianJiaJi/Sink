@@ -129,7 +129,7 @@ onMounted(() => {
   <div class="space-y-6">
     <Card>
       <CardHeader>
-        <CardTitle>{{ $t('check.title') }}</CardTitle>
+        <CardTitle><h2>{{ $t('check.title') }}</h2></CardTitle>
         <CardDescription>{{ $t('check.description') }}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -159,7 +159,9 @@ onMounted(() => {
         <CardHeader class="pb-2">
           <CardDescription>{{ $t('check.stats.total') }}</CardDescription>
           <CardTitle class="tabular-nums">
-            {{ totalCount }}
+            <h3 :aria-label="`${$t('check.stats.total')}: ${totalCount}`">
+              {{ totalCount }}
+            </h3>
           </CardTitle>
         </CardHeader>
       </Card>
@@ -167,7 +169,9 @@ onMounted(() => {
         <CardHeader class="pb-2">
           <CardDescription>{{ $t('check.stats.checked') }}</CardDescription>
           <CardTitle class="tabular-nums">
-            {{ checkedCount }}
+            <h3 :aria-label="`${$t('check.stats.checked')}: ${checkedCount}`">
+              {{ checkedCount }}
+            </h3>
           </CardTitle>
         </CardHeader>
       </Card>
@@ -175,7 +179,9 @@ onMounted(() => {
         <CardHeader class="pb-2">
           <CardDescription>{{ $t('check.stats.normal') }}</CardDescription>
           <CardTitle class="tabular-nums">
-            {{ normalCount }}
+            <h3 :aria-label="`${$t('check.stats.normal')}: ${normalCount}`">
+              {{ normalCount }}
+            </h3>
           </CardTitle>
         </CardHeader>
       </Card>
@@ -183,7 +189,9 @@ onMounted(() => {
         <CardHeader class="pb-2">
           <CardDescription>{{ $t('check.stats.abnormal') }}</CardDescription>
           <CardTitle class="tabular-nums">
-            {{ abnormalCount }}
+            <h3 :aria-label="`${$t('check.stats.abnormal')}: ${abnormalCount}`">
+              {{ abnormalCount }}
+            </h3>
           </CardTitle>
         </CardHeader>
       </Card>
@@ -191,7 +199,9 @@ onMounted(() => {
         <CardHeader class="pb-2">
           <CardDescription>{{ $t('check.stats.network_error') }}</CardDescription>
           <CardTitle class="tabular-nums">
-            {{ networkErrorCount }}
+            <h3 :aria-label="`${$t('check.stats.network_error')}: ${networkErrorCount}`">
+              {{ networkErrorCount }}
+            </h3>
           </CardTitle>
         </CardHeader>
       </Card>
@@ -199,7 +209,7 @@ onMounted(() => {
 
     <Card>
       <CardHeader>
-        <CardTitle>{{ $t('check.progress.title') }}</CardTitle>
+        <CardTitle><h2>{{ $t('check.progress.title') }}</h2></CardTitle>
         <CardDescription :role="checking ? 'status' : undefined" :aria-live="checking ? 'polite' : undefined">
           {{ wasStopped ? $t('check.progress.stopped') : $t('check.progress.description', { checked: checkedCount, total: totalCount }) }}
         </CardDescription>
@@ -215,7 +225,7 @@ onMounted(() => {
 
     <Card>
       <CardHeader>
-        <CardTitle>{{ $t('check.results.title') }}</CardTitle>
+        <CardTitle><h2>{{ $t('check.results.title') }}</h2></CardTitle>
         <CardDescription>{{ $t('check.results.description') }}</CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">

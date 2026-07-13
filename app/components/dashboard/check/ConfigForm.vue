@@ -38,7 +38,7 @@ const form = useForm({
 
 const validateTimeout = makeZodValidator(LinkCheckConfigSchema.shape.timeout)
 const validateBatchSize = makeZodValidator(LinkCheckConfigSchema.shape.batchSize)
-const { isInvalid, getAriaInvalid } = useFieldHelpers()
+const clearDialogOpen = shallowRef(false)
 
 function getNumberInputValue(value: unknown) {
   return typeof value === 'number' && Number.isFinite(value) ? value : ''
@@ -164,7 +164,7 @@ function getNumberInputChangeValue(event: Event) {
           sm:min-h-9
         "
         :disabled="checking || !hasResults"
-        @click="emit('clear')"
+        @click="clearDialogOpen = true"
       >
         {{ $t('check.actions.clear') }}
       </Button>
@@ -182,4 +182,9 @@ function getNumberInputChangeValue(event: Event) {
       </Button>
     </div>
   </form>
+
+  <DashboardCheckClearResultsDialog
+    v-model:open="clearDialogOpen"
+    @confirm="emit('clear')"
+  />
 </template>

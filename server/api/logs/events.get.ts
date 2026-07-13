@@ -1,15 +1,18 @@
 import type { H3Event } from 'h3'
+import { sql } from 'kysely'
 import { QuerySchema } from '#shared/schemas/query'
-import { date2unix } from '@/utils/time'
 
-const { select } = SqlBricks
-
-function query2sql(query: Query, event: H3Event): string {
-  const filter = query2filter(query)
+function query2sql(query: Query, event: H3Event) {
+  const filter = buildAnalyticsFilter(query)
   const { dataset } = useRuntimeConfig(event)
-  const sql = select(`*`).from(dataset).where(filter).orderBy('timestamp DESC')
-  appendTimeFilter(sql, query)
-  return `${sql.toString()} LIMIT ${query.limit}`
+  const limit = Math.max(0, Math.floor(query.limit))
+  const analyticsQuery = createAnalyticsQuery(dataset)
+  const filteredQuery = filter ? analyticsQuery.where(filter) : analyticsQuery
+
+  return filteredQuery
+    .selectAll()
+    .orderBy('timestamp', 'desc')
+    .limit(sql.lit(limit))
 }
 
 interface WAEEvents {
@@ -49,7 +52,7 @@ function events2logs(events: WAEEvents[]) {
       ...doubles2logs(doubles),
       ip: undefined,
       id: `${baseId}_${occurrence}`,
-      timestamp: date2unix(new Date(`${event.timestamp}Z`)),
+      timestamp: Math.floor(new Date(`${event.timestamp}Z`).getTime() / 1000),
     }
   })
 }

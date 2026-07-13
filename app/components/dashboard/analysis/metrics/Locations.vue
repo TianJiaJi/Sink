@@ -19,6 +19,15 @@ const metricsError = shallowRef(false)
 const mapError = shallowRef(false)
 const hasLoaded = shallowRef(false)
 const metricsRetryKey = shallowRef(0)
+const summaryId = `locations-summary-${useId()}`
+const totalVisits = computed(() => areaData.value.reduce((sum, item) => sum + Number(item.count), 0))
+const topAreas = computed(() => [...areaData.value]
+  .sort((a, b) => Number(b.count) - Number(a.count))
+  .slice(0, 5))
+const locationsSummary = computed(() => t('ux.analysis.locations_summary', {
+  totalVisits: formatNumber(totalVisits.value),
+  countryCount: areaData.value.length,
+}))
 
 const chartConfig = computed<ChartConfig>(() => ({
   count: {
@@ -117,7 +126,7 @@ function tooltipTemplate(d: any): string {
     "
   >
     <CardHeader>
-      <CardTitle>{{ $t('dashboard.locations') }}</CardTitle>
+      <CardTitle><h2>{{ $t('dashboard.locations') }}</h2></CardTitle>
     </CardHeader>
     <CardContent class="relative flex-1" :aria-busy="loading || mapLoading">
       <div
@@ -184,6 +193,9 @@ function tooltipTemplate(d: any): string {
         :data="{ areas: areaData }"
         :style="{ height: isMounted ? '100%' : 'auto', width: '100%' }"
         class="absolute inset-0"
+        role="img"
+        :aria-label="locationsSummary"
+        :aria-describedby="summaryId"
       >
         <VisTopoJSONMap
           :topojson="worldMapTopoJSON"
@@ -200,6 +212,14 @@ function tooltipTemplate(d: any): string {
           }"
         />
       </VisSingleContainer>
+      <div v-if="hasLoaded && areaData.length" :id="summaryId" class="sr-only">
+        <p>{{ locationsSummary }}</p>
+        <ul>
+          <li v-for="area in topAreas" :key="area.id">
+            {{ getRegionName(area.name, locale) }}: {{ formatNumber(Number(area.count)) }}
+          </li>
+        </ul>
+      </div>
     </CardContent>
   </Card>
 </template>

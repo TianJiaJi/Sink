@@ -4,6 +4,13 @@ import { useDocumentVisibility, useIntervalFn } from '@vueuse/core'
 const realtimeStore = useDashboardRealtimeStore()
 const showGlobe = shallowRef(false)
 const visibility = useDocumentVisibility()
+const isPaused = inject(REALTIME_PAUSED_KEY, shallowRef(false))
+const logsError = shallowRef(false)
+const statusKey = computed(() => {
+  if (isPaused.value)
+    return 'ux.realtime.paused'
+  return logsError.value ? 'dashboard.realtime.events_error' : 'ux.realtime.running'
+})
 
 const rIC = window.requestIdleCallback || ((cb: IdleRequestCallback) => setTimeout(cb, 50))
 const cancelRIC = window.cancelIdleCallback || clearTimeout
@@ -11,23 +18,27 @@ let idleCallbackId: number | undefined
 const { pause, resume } = useIntervalFn(
   () => realtimeStore.selectPreset(realtimeStore.timeName),
   10_000,
-  { immediate: false, immediateCallback: true },
+  { immediate: false, immediateCallback: false },
 )
 
 onMounted(() => {
-  if (visibility.value === 'visible')
+  if (visibility.value === 'visible' && !isPaused.value) {
+    void realtimeStore.selectPreset(realtimeStore.timeName)
     resume()
+  }
 
   idleCallbackId = rIC(() => {
     showGlobe.value = true
   }, { timeout: 1000 })
 })
 
-watch(visibility, (state) => {
-  if (state === 'hidden') {
+watch([visibility, isPaused], ([state, paused], previous) => {
+  if (state === 'hidden' || paused) {
     pause()
     return
   }
+  if (previous?.[0] === 'hidden' || previous?.[1])
+    void realtimeStore.selectPreset(realtimeStore.timeName)
   resume()
 })
 
@@ -80,21 +91,21 @@ onBeforeUnmount(() => {
         absolute top-2 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2
         text-xs text-muted-foreground
       "
+      aria-live="polite"
     >
       <span
         aria-hidden="true"
-        class="
-          size-1.5 rounded-full bg-chart-2
-          motion-safe:animate-pulse
-        "
+        class="size-1.5 rounded-full bg-chart-2"
+        :class="{ 'motion-safe:animate-pulse': !isPaused && !logsError }"
       />
-      {{ $t('nav.realtime') }}
+      {{ $t(statusKey) }}
     </div>
     <DashboardRealtimeLogs
       class="
         z-10 h-[400px]
         lg:absolute lg:top-0 lg:right-0 lg:h-full
       "
+      @error-change="logsError = $event"
     />
   </div>
 </template>

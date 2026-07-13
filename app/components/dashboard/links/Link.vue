@@ -2,8 +2,8 @@
 import type { ComponentPublicInstance } from 'vue'
 import type { CounterData } from '@/types'
 import type { DashboardLink } from '@/types/dashboard-links'
+import { CalendarPlus2, Copy, CopyCheck, Eraser, Flame, Hourglass, Link as LinkIcon, MousePointerClick, QrCode, ShieldAlert, SquareChevronDown, SquarePen, Users } from '@lucide/vue'
 import { useClipboard } from '@vueuse/core'
-import { CalendarPlus2, Copy, CopyCheck, Eraser, Flame, Hourglass, Link as LinkIcon, MousePointerClick, QrCode, ShieldAlert, SquareChevronDown, SquarePen, Users } from 'lucide-vue-next'
 import { parseURL } from 'ufo'
 import { toast } from 'vue-sonner'
 
@@ -55,6 +55,9 @@ function handleDialogCloseAutoFocus(event: Event) {
 
 const countersMap = inject<Ref<Record<string, CounterData>> | undefined>('linksCountersMap', undefined)
 const counters = computed(() => countersMap?.value?.[props.link.id])
+const counterErrorIds = inject<Ref<Set<string>> | undefined>('linksCounterErrorIds', undefined)
+const retryCounters = inject<((id: string) => void) | undefined>('retryLinkCounters', undefined)
+const countersError = computed(() => counterErrorIds?.value.has(props.link.id) ?? false)
 
 const requestUrl = useRequestURL()
 const host = requestUrl.host
@@ -135,7 +138,8 @@ function copyLink() {
                         ml-1 shrink-0
                       "
                     >
-                      <ShieldAlert class="size-3" />
+                      <ShieldAlert aria-hidden="true" class="size-3" />
+                      <span>{{ $t('ux.links.unsafe') }}</span>
                     </Badge>
                     <Badge
                       v-if="isExpired"
@@ -195,7 +199,8 @@ function copyLink() {
               <Badge
                 v-if="link.unsafe" variant="destructive" class="ml-1 shrink-0"
               >
-                <ShieldAlert class="size-3" />
+                <ShieldAlert aria-hidden="true" class="size-3" />
+                <span>{{ $t('ux.links.unsafe') }}</span>
               </Badge>
               <Badge
                 v-if="isExpired"
@@ -228,8 +233,8 @@ function copyLink() {
             :aria-label="copied ? $t('links.copy_success') : shortLink"
             @click="copyLink"
           >
-            <CopyCheck v-if="copied" class="size-4" />
-            <Copy v-else class="size-4" />
+            <CopyCheck v-if="copied" aria-hidden="true" class="size-4" />
+            <Copy v-else aria-hidden="true" class="size-4" />
           </Button>
 
           <Button
@@ -244,7 +249,7 @@ function copyLink() {
               rel="noopener noreferrer"
               :aria-label="link.url"
             >
-              <LinkIcon class="size-5" />
+              <LinkIcon aria-hidden="true" class="size-5" />
             </a>
           </Button>
 
@@ -259,7 +264,7 @@ function copyLink() {
                 "
                 :aria-label="$t('links.download_qr_code')"
               >
-                <QrCode class="size-5" />
+                <QrCode aria-hidden="true" class="size-5" />
               </Button>
             </PopoverTrigger>
             <PopoverContent>
@@ -283,7 +288,7 @@ function copyLink() {
                 "
                 :aria-label="`${$t('common.edit')} / ${$t('common.delete')}`"
               >
-                <SquareChevronDown class="size-5" />
+                <SquareChevronDown aria-hidden="true" class="size-5" />
               </Button>
             </PopoverTrigger>
             <PopoverContent
@@ -380,16 +385,39 @@ function copyLink() {
             v-if="countersMap"
             class="flex shrink-0 items-center gap-1 tabular-nums"
           >
-            <template v-if="counters">
-              <Badge variant="secondary" class="shrink-0">
+            <template v-if="countersError">
+              <Button
+                type="button"
+                variant="link"
+                class="h-5 px-0 text-xs text-destructive"
+                :aria-label="$t('ux.links.counts_retry', { slug: link.slug })"
+                @click="retryCounters?.(link.id)"
+              >
+                {{ $t('common.try_again') }}
+              </Button>
+            </template>
+            <template v-else-if="counters">
+              <Badge
+                variant="secondary"
+                class="shrink-0"
+                :aria-label="$t('ux.links.visits_count', { count: counters.visits })"
+              >
                 <MousePointerClick aria-hidden="true" class="size-3.5" />
                 {{ counters.visits }}
               </Badge>
-              <Badge variant="secondary" class="shrink-0">
+              <Badge
+                variant="secondary"
+                class="shrink-0"
+                :aria-label="$t('ux.links.visitors_count', { count: counters.visitors })"
+              >
                 <Users aria-hidden="true" class="size-3.5" />
                 {{ counters.visitors }}
               </Badge>
-              <Badge variant="secondary" class="shrink-0">
+              <Badge
+                variant="secondary"
+                class="shrink-0"
+                :aria-label="$t('ux.links.referers_count', { count: counters.referers })"
+              >
                 <Flame aria-hidden="true" class="size-3.5" />
                 {{ counters.referers }}
               </Badge>

@@ -12,7 +12,7 @@ import {
   Vehicles,
 } from 'ua-parser-js/extensions'
 import { parseURL } from 'ufo'
-import { getFlag } from '@/utils/flag'
+import { getFlag } from '#shared/utils/flag'
 
 function toBlobNumber(blob: string) {
   return +blob.replace(/\D/g, '')
@@ -199,5 +199,5 @@ export function writeAccessLog(event: H3Event, accessLogs: LogsMap): void {
     return
   }
 
-  console.log('access logs:', accessLogs, logs2blobs(accessLogs), logs2doubles(accessLogs), { ...blobs2logs(logs2blobs(accessLogs)), ...doubles2logs(logs2doubles(accessLogs)) })
+  console.log('access logs:', accessLogs)
 }

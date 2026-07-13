@@ -84,6 +84,20 @@ describe('/api/link/og-ai', () => {
 })
 
 describe('/api/link/create', { concurrent: false }, () => {
+  it('generates identity, slug, and timestamps by default', async () => {
+    const before = Math.floor(Date.now() / 1000)
+    const response = await postJson('/api/link/create', { url: 'https://example.com/generated' })
+    expect(response.status).toBe(201)
+
+    const data = await response.json() as { link: { id: string, slug: string, createdAt: number, updatedAt: number, tags: string[] } }
+    trackSlug(data.link.slug)
+    expect(data.link.id).toHaveLength(10)
+    expect(data.link.slug).not.toBe('')
+    expect(data.link.createdAt).toBeGreaterThanOrEqual(before)
+    expect(data.link.updatedAt).toBeGreaterThanOrEqual(before)
+    expect(data.link.tags).toEqual([])
+  })
+
   it('creates new link with valid data', async () => {
     const payload = createLinkPayload()
     const response = await postJson('/api/link/create', payload)
@@ -422,6 +436,11 @@ describe('/api/link/edit', { concurrent: false }, () => {
 
   it('returns 400 when body is invalid', async () => {
     const response = await putJson('/api/link/edit', { url: 'invalid-url' })
+    expect(response.status).toBe(400)
+  })
+
+  it('returns 400 when slug is missing', async () => {
+    const response = await putJson('/api/link/edit', { url: 'https://example.com' })
     expect(response.status).toBe(400)
   })
 })

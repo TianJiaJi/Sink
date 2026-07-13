@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CloudUpload, Loader } from 'lucide-vue-next'
+import { CloudUpload, Loader } from '@lucide/vue'
 import { toast } from 'vue-sonner'
 
 const { t } = useI18n()
@@ -29,7 +29,7 @@ async function handleBackup() {
 <template>
   <Card class="h-fit">
     <CardHeader>
-      <CardTitle>{{ $t('migrate.backup.title') }}</CardTitle>
+      <CardTitle><h2>{{ $t('migrate.backup.title') }}</h2></CardTitle>
       <CardDescription>{{ $t('migrate.backup.description') }}</CardDescription>
     </CardHeader>
     <CardContent>
@@ -39,6 +39,7 @@ async function handleBackup() {
           lg:min-h-9
         "
         :disabled="isBackingUp"
+        :aria-busy="isBackingUp"
         @click="handleBackup"
       >
         <Loader
