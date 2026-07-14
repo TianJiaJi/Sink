@@ -356,7 +356,7 @@ defineExpose({ initializeRandomSlug })
                     size-11
                     sm:size-9
                   "
-                  :aria-label="$t('ux.links.generate_random_slug')"
+                  :aria-label="$t('links.form.generate_random_slug')"
                   @click="randomSlug"
                 >
                   <Shuffle class="size-4" />
@@ -369,7 +369,7 @@ defineExpose({ initializeRandomSlug })
                     size-11
                     sm:size-9
                   "
-                  :aria-label="$t('ux.links.generate_ai_slug')"
+                  :aria-label="$t('links.form.generate_ai_slug')"
                   :disabled="aiSlugPending"
                   @click="aiSlug"
                 >

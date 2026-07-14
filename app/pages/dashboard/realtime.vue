@@ -34,13 +34,13 @@ function handleFilterChange(type: string, value: string) {
           min-h-11
           lg:min-h-9
         "
-        :aria-label="$t(isPaused ? 'ux.realtime.resume' : 'ux.realtime.pause')"
+        :aria-label="$t(isPaused ? 'dashboard.realtime.resume' : 'dashboard.realtime.pause')"
         :aria-pressed="isPaused"
         @click="isPaused = !isPaused"
       >
         <Play v-if="isPaused" aria-hidden="true" />
         <Pause v-else aria-hidden="true" />
-        {{ $t(isPaused ? 'ux.realtime.resume' : 'ux.realtime.pause') }}
+        {{ $t(isPaused ? 'dashboard.realtime.resume' : 'dashboard.realtime.pause') }}
       </Button>
       <DashboardTimePicker />
       <DashboardFilters :filters="realtimeStore.filters" @change="handleFilterChange" />

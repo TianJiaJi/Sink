@@ -112,7 +112,7 @@ async function handleSubmit() {
       <Loader2
         v-if="isSubmitting" aria-hidden="true" class="motion-safe:animate-spin"
       />
-      {{ $t(isSubmitting ? 'ux.login.logging_in' : 'login.submit') }}
+      {{ $t(isSubmitting ? 'login.logging_in' : 'login.submit') }}
     </Button>
   </form>
 </template>

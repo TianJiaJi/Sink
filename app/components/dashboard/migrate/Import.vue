@@ -143,7 +143,7 @@ async function handleImport() {
           index: batchStart + idx,
           slug: link.slug,
           url: link.url,
-          reason: error instanceof Error ? error.message : t('ux.import.batch_failed'),
+          reason: error instanceof Error ? error.message : t('migrate.import.errors.batch_failed'),
         })
       })
     }
@@ -276,7 +276,7 @@ function reset() {
                 {{ selectedFile?.name }}
               </p>
               <p class="text-sm text-muted-foreground">
-                {{ $t('ux.import.links_found', { count: parsedData.links.length }) }}
+                {{ $t('migrate.import.links_found', { count: parsedData.links.length }) }}
               </p>
             </div>
             <Button
@@ -365,7 +365,7 @@ function reset() {
             @click="downloadSuccessItems"
           >
             <Download aria-hidden="true" class="mr-2 size-4" />
-            {{ $t('ux.import.download_success', { count: importResult.success }) }}
+            {{ $t('migrate.import.download_success', { count: importResult.success }) }}
           </Button>
           <Button
             v-if="importResult.skipped > 0"
@@ -377,7 +377,7 @@ function reset() {
             @click="downloadSkippedItems"
           >
             <Download aria-hidden="true" class="mr-2 size-4" />
-            {{ $t('ux.import.download_skipped', { count: importResult.skipped }) }}
+            {{ $t('migrate.import.download_skipped', { count: importResult.skipped }) }}
           </Button>
           <Button
             v-if="importResult.failed > 0"
@@ -389,7 +389,7 @@ function reset() {
             @click="downloadFailedItems"
           >
             <Download aria-hidden="true" class="mr-2 size-4" />
-            {{ $t('ux.import.download_failed', { count: importResult.failed }) }}
+            {{ $t('migrate.import.download_failed', { count: importResult.failed }) }}
           </Button>
         </div>
       </div>

@@ -33,15 +33,15 @@ function updateOpen(value: boolean) {
       "
     >
       <AlertDialogHeader>
-        <AlertDialogTitle>{{ $t('ux.links.discard_title') }}</AlertDialogTitle>
+        <AlertDialogTitle>{{ $t('links.dialogs.discard.title') }}</AlertDialogTitle>
         <AlertDialogDescription>
-          {{ $t('ux.links.discard_description') }}
+          {{ $t('links.dialogs.discard.description') }}
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>{{ $t('common.cancel') }}</AlertDialogCancel>
         <AlertDialogAction variant="destructive" @click="discardChanges">
-          {{ $t('ux.links.discard_action') }}
+          {{ $t('links.dialogs.discard.action') }}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>

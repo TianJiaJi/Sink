@@ -20,15 +20,15 @@ function confirmClear() {
       "
     >
       <AlertDialogHeader>
-        <AlertDialogTitle>{{ $t('ux.check.clear_title') }}</AlertDialogTitle>
+        <AlertDialogTitle>{{ $t('check.dialogs.clear.title') }}</AlertDialogTitle>
         <AlertDialogDescription>
-          {{ $t('ux.check.clear_description') }}
+          {{ $t('check.dialogs.clear.description') }}
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>{{ $t('common.cancel') }}</AlertDialogCancel>
         <AlertDialogAction variant="destructive" @click="confirmClear">
-          {{ $t('ux.check.clear_action') }}
+          {{ $t('check.dialogs.clear.action') }}
         </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>

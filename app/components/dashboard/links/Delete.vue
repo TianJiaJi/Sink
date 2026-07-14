@@ -79,9 +79,9 @@ function handleCloseAutoFocus(event: Event) {
       @escape-key-down="handleEscapeKeyDown"
     >
       <AlertDialogHeader>
-        <AlertDialogTitle>{{ $t('ux.links.delete_title', { slug: link.slug }) }}</AlertDialogTitle>
+        <AlertDialogTitle>{{ $t('links.dialogs.delete.title', { slug: link.slug }) }}</AlertDialogTitle>
         <AlertDialogDescription>
-          {{ $t('ux.links.delete_description', { slug: link.slug }) }}
+          {{ $t('links.dialogs.delete.description', { slug: link.slug }) }}
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
@@ -95,7 +95,7 @@ function handleCloseAutoFocus(event: Event) {
           @click.prevent="deleteLink"
         >
           <Loader2 v-if="deleting" class="motion-safe:animate-spin" aria-hidden="true" />
-          {{ $t('ux.links.delete_action') }}
+          {{ $t('links.dialogs.delete.action') }}
         </Button>
       </AlertDialogFooter>
     </AlertDialogContent>

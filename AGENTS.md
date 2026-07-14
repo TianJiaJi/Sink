@@ -12,6 +12,8 @@
 - Use `@lucide/vue` for Lucide icons; do not add `lucide-vue-next`.
 - Application forms must live in dedicated `*Form.vue` components and should prefer `@tanstack/vue-form`. Generated components under `app/components/ui/form/**` may use `vee-validate` internally.
 - Business dialogs must live in dedicated `*Dialog.vue` or `*Modal.vue` components; do not inline `Dialog`, `AlertDialog`, or `ResponsiveModal` implementations in unrelated components.
+- Locale messages live in `i18n/locales/<locale>/*.json` and are loaded through the module list in `i18n/i18n.ts`. Organize feature messages by their owning product domain; do not introduce cross-cutting `ux`, `ui`, or `messages` namespaces at the top level or across product domains.
+- Keep every locale directory aligned on module files, translation keys, and interpolation placeholders. When moving a key or changing the module list, update every locale and all application references in the same change.
 
 ## Setup and commands
 

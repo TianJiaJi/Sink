@@ -8,8 +8,8 @@ const isPaused = inject(REALTIME_PAUSED_KEY, shallowRef(false))
 const logsError = shallowRef(false)
 const statusKey = computed(() => {
   if (isPaused.value)
-    return 'ux.realtime.paused'
-  return logsError.value ? 'dashboard.realtime.events_error' : 'ux.realtime.running'
+    return 'dashboard.realtime.paused'
+  return logsError.value ? 'dashboard.realtime.events_error' : 'dashboard.realtime.running'
 })
 
 const rIC = window.requestIdleCallback || ((cb: IdleRequestCallback) => setTimeout(cb, 50))

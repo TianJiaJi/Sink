@@ -61,8 +61,8 @@ const chartSummary = computed(() => {
     return t('dashboard.no_data')
 
   const key = props.mode === 'full'
-    ? 'ux.analysis.chart_summary_with_visitors'
-    : 'ux.analysis.chart_summary'
+    ? 'dashboard.analysis.chart_summary_with_visitors'
+    : 'dashboard.analysis.chart_summary'
   return t(key, {
     totalVisits: formatNumber(totalVisits.value),
     totalVisitors: formatNumber(totalVisitors.value),

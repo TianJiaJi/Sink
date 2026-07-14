@@ -157,7 +157,7 @@ function copyLink() {
                   <TooltipTrigger as-child>
                     <NuxtLink
                       :to="getDashboardLinkDetailLocation(link.slug)"
-                      :aria-label="$t('ux.links.unsafe')"
+                      :aria-label="$t('links.unsafe')"
                       class="
                         relative z-20 ml-1 inline-flex shrink-0 rounded-sm
                         text-destructive outline-none
@@ -168,7 +168,7 @@ function copyLink() {
                     </NuxtLink>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{{ $t('ux.links.unsafe') }}</p>
+                    <p>{{ $t('links.unsafe') }}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -360,7 +360,7 @@ function copyLink() {
                 type="button"
                 variant="link"
                 class="h-5 px-0 text-xs text-destructive"
-                :aria-label="$t('ux.links.counts_retry', { slug: link.slug })"
+                :aria-label="$t('links.stats.retry', { slug: link.slug })"
                 @click="retryCounters?.(link.id)"
               >
                 {{ $t('common.try_again') }}
@@ -370,7 +370,7 @@ function copyLink() {
               <Badge
                 variant="secondary"
                 class="shrink-0"
-                :aria-label="$t('ux.links.visits_count', { count: counters.visits })"
+                :aria-label="$t('links.stats.visits', { count: counters.visits })"
               >
                 <MousePointerClick aria-hidden="true" class="size-3.5" />
                 {{ counters.visits }}
@@ -378,7 +378,7 @@ function copyLink() {
               <Badge
                 variant="secondary"
                 class="shrink-0"
-                :aria-label="$t('ux.links.visitors_count', { count: counters.visitors })"
+                :aria-label="$t('links.stats.visitors', { count: counters.visitors })"
               >
                 <Users aria-hidden="true" class="size-3.5" />
                 {{ counters.visitors }}
@@ -386,7 +386,7 @@ function copyLink() {
               <Badge
                 variant="secondary"
                 class="shrink-0"
-                :aria-label="$t('ux.links.referers_count', { count: counters.referers })"
+                :aria-label="$t('links.stats.referers', { count: counters.referers })"
               >
                 <Flame aria-hidden="true" class="size-3.5" />
                 {{ counters.referers }}

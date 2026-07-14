@@ -60,7 +60,7 @@ onMounted(() => {
       ref="qrCodeEl"
       :data-text="data"
       role="img"
-      :aria-label="$t('ux.links.qr_text_alternative', { url: data })"
+      :aria-label="$t('links.qr.text_alternative', { url: data })"
       class="rounded-lg border border-border bg-white p-1 shadow-sm"
     />
     <div class="flex items-center gap-4">

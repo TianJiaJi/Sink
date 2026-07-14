@@ -24,7 +24,7 @@ const totalVisits = computed(() => areaData.value.reduce((sum, item) => sum + Nu
 const topAreas = computed(() => [...areaData.value]
   .sort((a, b) => Number(b.count) - Number(a.count))
   .slice(0, 5))
-const locationsSummary = computed(() => t('ux.analysis.locations_summary', {
+const locationsSummary = computed(() => t('dashboard.analysis.locations_summary', {
   totalVisits: formatNumber(totalVisits.value),
   countryCount: areaData.value.length,
 }))
