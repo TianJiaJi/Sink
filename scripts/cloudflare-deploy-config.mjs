@@ -8,17 +8,22 @@ const sourcePath = new URL('wrangler.jsonc', rootDir)
 const envPath = new URL('.env', rootDir)
 const outputPath = new URL('wrangler.deploy.jsonc', rootDir)
 
-const optionalName = z.preprocess(
+const defaultName = z.preprocess(
   value => typeof value === 'string' && value.trim() === '' ? undefined : value,
   z.string().trim().min(1).default('sink'),
+)
+
+const optionalName = z.preprocess(
+  value => typeof value === 'string' && value.trim() === '' ? undefined : value,
+  z.string().trim().min(1).optional(),
 )
 
 const deployEnvSchema = z.object({
   DEPLOY_D1_DATABASE_ID: z.string().trim().min(1),
   DEPLOY_KV_NAMESPACE_ID: z.string().trim().min(1),
-  DEPLOY_D1_DATABASE_NAME: optionalName,
+  DEPLOY_D1_DATABASE_NAME: defaultName,
   DEPLOY_R2_BUCKET_NAME: optionalName,
-  DEPLOY_ANALYTICS_DATASET: optionalName,
+  DEPLOY_ANALYTICS_DATASET: defaultName,
 })
 
 async function loadEnv() {
@@ -61,15 +66,21 @@ if (parseErrors.length > 0) {
 const env = await loadEnv()
 const d1 = getBinding(config, 'd1_databases', 'DB')
 const kv = getBinding(config, 'kv_namespaces', 'KV')
-const r2 = getBinding(config, 'r2_buckets', 'R2')
 const analytics = getBinding(config, 'analytics_engine_datasets', 'ANALYTICS')
 
 d1.database_id = env.DEPLOY_D1_DATABASE_ID
 d1.database_name = env.DEPLOY_D1_DATABASE_NAME
 kv.id = env.DEPLOY_KV_NAMESPACE_ID
 kv.preview_id = env.DEPLOY_KV_NAMESPACE_ID
-r2.bucket_name = env.DEPLOY_R2_BUCKET_NAME
-r2.preview_bucket_name = env.DEPLOY_R2_BUCKET_NAME
 analytics.dataset = env.DEPLOY_ANALYTICS_DATASET
+
+if (env.DEPLOY_R2_BUCKET_NAME) {
+  const r2 = getBinding(config, 'r2_buckets', 'R2')
+  r2.bucket_name = env.DEPLOY_R2_BUCKET_NAME
+  r2.preview_bucket_name = env.DEPLOY_R2_BUCKET_NAME
+}
+else {
+  config.r2_buckets = config.r2_buckets.filter(({ binding }) => binding !== 'R2')
+}
 
 await writeFile(outputPath, `${JSON.stringify(config, null, 2)}\n`, 'utf8')

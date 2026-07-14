@@ -1,103 +1,111 @@
 ---
-title: Sink Configuration
-description: Configure Sink build, runtime, public, authentication, analytics, redirect, AI, backup, and deployment settings.
+title: Configuration Reference
+description: Authoritative defaults, placement rules, and activation conditions for every supported Sink environment variable.
 ---
 
-# Sink Configuration
+# Configuration Reference
 
-Environment variables map to the defaults in `nuxt.config.ts`.
+This page lists every supported Sink environment variable. Environment values are strings; boolean switches use `true` unless stated otherwise.
 
-| Category          | Variables                                          | Cloudflare Workers placement                                      |
-| ----------------- | -------------------------------------------------- | ----------------------------------------------------------------- |
-| Build only        | `NUXT_API_CORS`                                    | **Build variables and secrets**                                   |
-| Build and runtime | `NUXT_PUBLIC_*`                                    | Build variables and Worker runtime variables                      |
-| Runtime           | Other `NUXT_*` variables mapped to `runtimeConfig` | Worker **Variables and Secrets**                                  |
-| Deployment only   | `DEPLOY_*`                                         | Build environment or local `.env`; never Worker runtime variables |
+## Scope
 
-`DEPLOY_*` variables generate `wrangler.deploy.jsonc` for CLI deployment and remote migrations. They are not application settings.
+| Scope           | Meaning                                                                                     | Workers placement                                         | Pages placement                                                        |
+| --------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Build           | Used while generating the deployment configuration or building the application.             | Workers Builds variables and secrets.                     | **Settings → Variables and Secrets**; the same set is also at runtime. |
+| Runtime         | Read by the deployed application. Secrets must use the platform's encrypted secret storage. | Worker **Settings → Variables and Secrets**.              | **Settings → Variables and Secrets**; the same set is also at build.   |
+| Build + Runtime | Used by prerendered UI at build time and by the deployed application.                       | Set the same value in Workers Builds and Worker settings. | Set once in **Settings → Variables and Secrets**.                      |
 
-## Public settings
+After changing a build or public value, rebuild the deployment.
 
-| Variable                          | Default        | Description                                                                                                                                                                                                             |
-| --------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NUXT_PUBLIC_PREVIEW_MODE`        | Empty/disabled | Enables demo mode. Created links expire after five minutes and cannot be edited or deleted.                                                                                                                             |
-| `NUXT_PUBLIC_SLUG_DEFAULT_LENGTH` | `6`            | Default length of generated slugs.                                                                                                                                                                                      |
-| `NUXT_PUBLIC_KV_BATCH_LIMIT`      | `50`           | Page size used by link import and export. Import accepts half this value per request. Despite the historical name, authoritative link operations use D1; KV is the write-through cache and pre-migration legacy source. |
+## Cloudflare bindings
 
-For Workers, set public variables in both the build and runtime environments.
+| Binding     | Requirement                           | Purpose                                                                                                                      |
+| ----------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `DB`        | Required                              | Authoritative D1 link storage.                                                                                               |
+| `KV`        | Required                              | Link read cache and migration compatibility.                                                                                 |
+| `ANALYTICS` | Recommended                           | Analytics event writes. Enable it for dashboard analytics and keep its dataset aligned with `NUXT_DATASET`.                  |
+| `R2`        | Optional, recommended for backups     | Snapshot storage. Workers Builds can generate this binding with `DEPLOY_R2_BUCKET_NAME`; Pages must add it in the dashboard. |
+| `AI`        | Optional, recommended for AI features | Workers AI slug and metadata generation.                                                                                     |
+| `ASSETS`    | Automatic                             | Static application assets; the deployment configuration provides it automatically.                                           |
 
-## Authentication and Access
+## Required configuration
 
-| Variable                     | Default                | Description                                                                                                                                   |
-| ---------------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NUXT_SITE_TOKEN`            | Random UUID when unset | Dashboard and API bearer token. Production deployments should set a strong value with at least eight characters and avoid predictable tokens. |
-| `NUXT_CF_ACCESS_TEAM_DOMAIN` | Empty                  | Access team domain, such as `https://team.cloudflareaccess.com`.                                                                              |
-| `NUXT_CF_ACCESS_AUD`         | Empty                  | Access application audience tag. Access authentication is enabled only when both values are set.                                              |
+| Variable                 | Scope          | Placement                                                         | Requirement                                                                                                                                         |
+| ------------------------ | -------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NUXT_SITE_TOKEN`        | Runtime secret | Encrypted Worker runtime secret or encrypted Pages unified secret | Explicitly set a strong, stable value for dashboard and Bearer authentication. Do not rely on the random fallback, which can change between builds. |
+| `DEPLOY_D1_DATABASE_ID`  | Build          | Workers Builds variable or Pages unified variable                 | Existing D1 database ID used to generate deployment configuration.                                                                                  |
+| `DEPLOY_KV_NAMESPACE_ID` | Build          | Workers Builds variable or Pages unified variable                 | Existing KV namespace ID used for both production and preview bindings.                                                                             |
 
-See [Cloudflare Access authentication](./cloudflare-access).
+## Recommended configuration
 
-## Redirects and links
+| Variable             | Scope          | Placement                                                         | Purpose                                                              |
+| -------------------- | -------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `NUXT_CF_ACCOUNT_ID` | Runtime        | Worker runtime variable or Pages unified variable                 | Cloudflare account queried by the analytics dashboard.               |
+| `NUXT_CF_API_TOKEN`  | Runtime secret | Encrypted Worker runtime secret or encrypted Pages unified secret | Token with Account Analytics access, used with `NUXT_CF_ACCOUNT_ID`. |
 
-| Variable                    | Default | Description                                                                                                   |
-| --------------------------- | ------- | ------------------------------------------------------------------------------------------------------------- |
-| `NUXT_REDIRECT_STATUS_CODE` | `301`   | Redirect status; `302`, `307`, and `308` are also supported.                                                  |
-| `NUXT_LINK_CACHE_TTL`       | `60`    | KV cache TTL in seconds for short-link reads. Longer values can delay cache refreshes.                        |
-| `NUXT_REDIRECT_WITH_QUERY`  | `false` | Global default for appending incoming query parameters. A link can override it.                               |
-| `NUXT_REDIRECT_NO_STORE`    | `false` | Sends no-store behavior for redirects so changes take effect promptly in browsers and CDNs.                   |
-| `NUXT_HOME_URL`             | Empty   | Redirect target for the root page. Empty uses Sink's introduction page.                                       |
-| `NUXT_CASE_SENSITIVE`       | `false` | Preserves slug case when true; otherwise slugs are normalized to lowercase.                                   |
-| `NUXT_SAFE_BROWSING_DOH`    | Empty   | DoH endpoint for unsafe-domain detection. A response resolving the domain to `0.0.0.0` marks the link unsafe. |
-| `NUXT_NOT_FOUND_REDIRECT`   | Empty   | Optional target when a slug is not found. Empty uses Sink's 404 page.                                         |
+The `ANALYTICS` binding is also recommended. Add `R2` when using [Link Backups](/features/backups), and `AI` when using [Workers AI](/features/ai).
 
-Cloudflare Family DNS (`https://family.cloudflare-dns.com/dns-query`) or a custom Cloudflare Zero Trust Gateway DoH endpoint can be used for safe browsing.
+## Build + Runtime public overrides
 
-## Analytics
+Only configure these variables when overriding their defaults. On Workers, set the same value in Workers Builds and Worker runtime settings. On Pages, set it once in the unified **Variables and Secrets**. Rebuild after every change.
 
-| Variable                      | Default | Description                                                                        |
-| ----------------------------- | ------- | ---------------------------------------------------------------------------------- |
-| `NUXT_CF_ACCOUNT_ID`          | Empty   | Cloudflare account ID used to query Analytics Engine.                              |
-| `NUXT_CF_API_TOKEN`           | Empty   | Cloudflare API token with Account Analytics access.                                |
-| `NUXT_DATASET`                | `sink`  | Analytics Engine dataset. Keep it aligned with the deployed binding.               |
-| `NUXT_LIST_QUERY_LIMIT`       | `500`   | Maximum result count for metric lists.                                             |
-| `NUXT_DISABLE_BOT_ACCESS_LOG` | `false` | Excludes detected bot traffic from access statistics and click webhooks when true. |
+| Variable                          | Scope           | Placement                                                      | Default | Purpose                                                        |
+| --------------------------------- | --------------- | -------------------------------------------------------------- | ------- | -------------------------------------------------------------- |
+| `NUXT_PUBLIC_PREVIEW_MODE`        | Build + Runtime | Workers build and runtime variables, or Pages unified variable | Empty   | `true` enables preview mode.                                   |
+| `NUXT_PUBLIC_SLUG_DEFAULT_LENGTH` | Build + Runtime | Workers build and runtime variables, or Pages unified variable | `6`     | Length used for generated random slugs.                        |
+| `NUXT_PUBLIC_KV_BATCH_LIMIT`      | Build + Runtime | Workers build and runtime variables, or Pages unified variable | `50`    | Export page size; import accepts half this number per request. |
 
-## Workers AI
+## Optional configuration
 
-| Variable            | Default                      | Description                                                                       |
-| ------------------- | ---------------------------- | --------------------------------------------------------------------------------- |
-| `NUXT_AI_MODEL`     | `@cf/qwen/qwen3-30b-a3b-fp8` | Workers AI model for slug and OpenGraph generation.                               |
-| `NUXT_AI_PROMPT`    | Built-in prompt              | Custom slug-generation prompt. Keep the `{slugRegex}` placeholder.                |
-| `NUXT_AI_OG_PROMPT` | Built-in prompt              | Custom OpenGraph title and description prompt. Sink appends the preferred locale. |
+### Optional build configuration
 
-Default slug prompt:
+#### Workers Builds and Pages
 
-```txt
-You are a URL shortening assistant, please shorten the URL provided by the user into a SLUG. The SLUG information should be derived from the URL and page content (if provided). Do not make any assumptions beyond the given information. A SLUG is human-readable and should not exceed three words and can be validated using regular expressions {slugRegex} . Only the best one is returned, the format must be JSON reference {"slug": "example-slug"}
-```
+| Variable        | Placement                                         | Enabled when                                           |
+| --------------- | ------------------------------------------------- | ------------------------------------------------------ |
+| `NUXT_API_CORS` | Workers Builds variable or Pages unified variable | Exactly `true` enables CORS route rules for `/api/**`. |
 
-Default OpenGraph prompt:
+#### Workers Builds only
 
-```txt
-You are an OpenGraph metadata assistant. Please summarize the page content provided by the user into a perfect title and description for an OpenGraph preview. Do not make any assumptions beyond the given information. Only the best one is returned, the format must be JSON reference {"title": "Example Title", "description": "Example description that summarizes the page accurately."}
-```
+| Variable                | Placement           | Enabled when                                                                                                           |
+| ----------------------- | ------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `DEPLOY_R2_BUCKET_NAME` | Workers Builds only | Set to an existing bucket name to include the `R2` binding in generated Worker configuration. Recommended for backups. |
 
-## Backups, webhooks, and CORS
+Pages does not use `DEPLOY_R2_BUCKET_NAME`. Add the `R2` binding to the Pages project in the Cloudflare dashboard instead.
 
-| Variable                   | Default          | Description                                                                                                                |
-| -------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `NUXT_DISABLE_AUTO_BACKUP` | `false`          | Disables the automatic daily KV backup to R2 when true. Backups run at 00:00 UTC and use `backups/links-{timestamp}.json`. |
-| `NUXT_WEBHOOK_URL`         | Empty            | HTTP(S) receiver for best-effort click webhooks. Empty disables delivery.                                                  |
-| `NUXT_WEBHOOK_SECRET`      | Empty            | Optional `whsec_` signing secret. See [Webhooks](./webhooks).                                                              |
-| `NUXT_API_CORS`            | `false` at build | Set to `true` during the build to enable CORS on `/api/**`.                                                                |
+### Optional runtime configuration
 
-Automatic backups require the `R2` binding. Note that backup compatibility concerns KV data; D1 remains the authoritative link store.
+| Variable                     | Scope          | Placement                                                         | Enabled when                                                                                |
+| ---------------------------- | -------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `NUXT_HOME_URL`              | Runtime        | Worker runtime variable or Pages unified variable                 | A non-empty URL redirects `/`; empty serves the Sink homepage.                              |
+| `NUXT_NOT_FOUND_REDIRECT`    | Runtime        | Worker runtime variable or Pages unified variable                 | A non-empty path or URL receives missing-link redirects.                                    |
+| `NUXT_CF_ACCESS_TEAM_DOMAIN` | Runtime        | Worker runtime variable or Pages unified variable                 | Cloudflare Access is enabled when this and `NUXT_CF_ACCESS_AUD` are both set.               |
+| `NUXT_CF_ACCESS_AUD`         | Runtime        | Worker runtime variable or Pages unified variable                 | Cloudflare Access is enabled when this and the team domain are both set.                    |
+| `NUXT_SAFE_BROWSING_DOH`     | Runtime        | Worker runtime variable or Pages unified variable                 | A non-empty DNS-over-HTTPS URL enables unsafe-domain checks when `unsafe` was not supplied. |
+| `NUXT_WEBHOOK_URL`           | Runtime        | Worker runtime variable or Pages unified variable                 | A non-empty HTTP(S) URL enables click delivery.                                             |
+| `NUXT_WEBHOOK_SECRET`        | Runtime secret | Encrypted Worker runtime secret or encrypted Pages unified secret | A valid `whsec_` value signs webhook requests; empty sends unsigned requests.               |
 
-## Deployment settings
+Cloudflare Family DNS (`https://family.cloudflare-dns.com/dns-query`) or a custom Cloudflare Zero Trust Gateway DoH endpoint can be used for safe browsing. See [Cloudflare Access](./cloudflare-access), [Link Features](/features/links), and [Click Webhooks](./webhooks).
 
-| Variable                   | Default                     | Description                    |
-| -------------------------- | --------------------------- | ------------------------------ |
-| `DEPLOY_D1_DATABASE_ID`    | Required for CLI deployment | D1 database ID.                |
-| `DEPLOY_KV_NAMESPACE_ID`   | Required for CLI deployment | KV namespace ID.               |
-| `DEPLOY_D1_DATABASE_NAME`  | `sink`                      | D1 database name.              |
-| `DEPLOY_R2_BUCKET_NAME`    | `sink`                      | Existing R2 bucket name.       |
-| `DEPLOY_ANALYTICS_DATASET` | `sink`                      | Analytics Engine dataset name. |
+## Advanced defaults
+
+These settings already have application defaults and normally do not need configuration.
+
+| Variable                      | Scope   | Placement                                | Default                      | Purpose                                                                         |
+| ----------------------------- | ------- | ---------------------------------------- | ---------------------------- | ------------------------------------------------------------------------------- |
+| `NUXT_REDIRECT_STATUS_CODE`   | Runtime | Worker runtime or Pages unified variable | `301`                        | Normal redirect status; also supports `302`, `307`, and `308`.                  |
+| `NUXT_LINK_CACHE_TTL`         | Runtime | Worker runtime or Pages unified variable | `60`                         | KV read-cache lifetime in seconds.                                              |
+| `NUXT_REDIRECT_WITH_QUERY`    | Runtime | Worker runtime or Pages unified variable | `false`                      | Globally forwards incoming query parameters when `true`; links can override it. |
+| `NUXT_REDIRECT_NO_STORE`      | Runtime | Worker runtime or Pages unified variable | `false`                      | Adds no-store behavior to normal redirects when `true`.                         |
+| `NUXT_CASE_SENSITIVE`         | Runtime | Worker runtime or Pages unified variable | `false`                      | Preserves custom slug case and permits case-distinct slugs when `true`.         |
+| `NUXT_DATASET`                | Runtime | Worker runtime or Pages unified variable | `sink`                       | Analytics dataset queried by the dashboard; must match the `ANALYTICS` binding. |
+| `NUXT_LIST_QUERY_LIMIT`       | Runtime | Worker runtime or Pages unified variable | `500`                        | Maximum result count for analytics metric lists.                                |
+| `NUXT_DISABLE_BOT_ACCESS_LOG` | Runtime | Worker runtime or Pages unified variable | `false`                      | Excludes detected bots from analytics and click webhooks when `true`.           |
+| `NUXT_DISABLE_AUTO_BACKUP`    | Runtime | Worker runtime or Pages unified variable | `false`                      | Disables scheduled R2 snapshots when `true`.                                    |
+| `NUXT_AI_MODEL`               | Runtime | Worker runtime or Pages unified variable | `@cf/qwen/qwen3-30b-a3b-fp8` | Workers AI model.                                                               |
+| `NUXT_AI_PROMPT`              | Runtime | Worker runtime or Pages unified variable | Built-in slug prompt         | Custom prompt must retain `{slugRegex}`.                                        |
+| `NUXT_AI_OG_PROMPT`           | Runtime | Worker runtime or Pages unified variable | Built-in OpenGraph prompt    | Custom metadata prompt; Sink appends the requested locale.                      |
+| `DEPLOY_D1_DATABASE_NAME`     | Build   | Workers Builds or Pages unified variable | `sink`                       | Generated D1 database name.                                                     |
+| `DEPLOY_ANALYTICS_DATASET`    | Build   | Workers Builds or Pages unified variable | `sink`                       | Generated Analytics Engine dataset name.                                        |
+
+Deployment values generate the ignored `wrangler.deploy.jsonc`; they are not runtime application settings. See [Analytics and Realtime](/features/analytics) and [API](/api/).

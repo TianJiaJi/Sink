@@ -99,7 +99,7 @@
       },
       "customizable_slug": {
         "title": "사용자 지정 슬러그",
-        "description": "개인화된 슬러그, UTM 매개변수, 대소문자 구분을 지원합니다"
+        "description": "사용자 지정 슬러그를 만들고 UTM 매개변수를 추가하세요"
       },
       "ai_slug": {
         "title": "AI 지원",
@@ -118,8 +118,8 @@
         "description": "제목, 설명, 이미지로 소셜 미리보기를 사용자 지정하세요"
       },
       "realtime_analytics": {
-        "title": "실시간 분석",
-        "description": "실시간 3D 지구본과 실시간 이벤트 로그"
+        "title": "준실시간 분석",
+        "description": "주기적 폴링과 클라이언트 재생으로 표시되는 3D 지구본 및 이벤트 로그"
       },
       "qr_code": {
         "title": "QR 코드",
@@ -127,7 +127,7 @@
       },
       "import_export": {
         "title": "가져오기/내보내기",
-        "description": "JSON을 통한 대량 링크 마이그레이션 및 CSV를 통한 분석 접근"
+        "description": "JSON으로 링크를 일괄 전송하고 액세스 분석을 CSV로 내보내세요"
       },
       "multi_language": {
         "title": "다국어",
@@ -135,9 +135,9 @@
       }
     },
     "cta": {
-      "title": "즉시 배포",
-      "description": "몇 번의 간단한 클릭만으로 비용 없이 배포를 시작할 수 있습니다",
-      "button": "배포 시작"
+      "title": "Sink 배포하기",
+      "description": "시작 가이드에 따라 Cloudflare에 Sink를 구성하고 배포하세요",
+      "button": "배포 가이드 보기"
     },
     "logos": {
       "title": "훌륭한 기술로 제작되었습니다"

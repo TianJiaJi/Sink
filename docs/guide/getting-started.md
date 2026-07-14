@@ -1,30 +1,41 @@
 ---
 title: Getting Started
-description: Choose a Sink deployment target, configure Cloudflare bindings, and open your first self-hosted dashboard.
+description: Prepare Cloudflare resources, deploy Sink, and create your first short link.
 ---
 
 # Getting Started
 
-Sink is a self-hosted link shortener and analytics application built for Cloudflare. D1 is the authoritative link store. KV is a write-through read cache and remains a temporary source for legacy links only until the KV-to-D1 migration is marked complete.
+Sink is a self-hosted link shortener and analytics application for Cloudflare.
 
-## Prerequisites
+## 1. Fork Sink
 
-- Node.js 22 or later and pnpm 11.11.0 for local commands
-- A Cloudflare account
-- A fork of the [Sink repository](https://github.com/miantiao-me/Sink/fork)
-- A D1 database, KV namespace, R2 bucket, and Analytics Engine dataset
+Create a [fork of the Sink repository](https://github.com/miantiao-me/Sink/fork) in your GitHub account.
 
-## Choose a deployment target
+## 2. Choose a deployment target
 
-- [Cloudflare Workers](/deployment/workers) is the recommended Git-integrated deployment path and uses Sink's generated Wrangler configuration.
-- [Cloudflare Pages](/deployment/pages) uses dashboard-managed bindings and requires remote D1 migrations before releases that change the schema.
+- [Cloudflare Workers](/deployment/workers) is the recommended Git-integrated option.
+- [Cloudflare Pages](/deployment/pages) is also supported.
 
-## Configure the instance
+## 3. Prepare Cloudflare resources
 
-At minimum, configure the required Cloudflare bindings and set a strong `NUXT_SITE_TOKEN`. Use at least eight characters and avoid predictable values such as digit-only tokens. Then review [environment variables](/configuration/) and optionally configure [Cloudflare Access](/configuration/cloudflare-access) or [click webhooks](/configuration/webhooks).
+| Binding     | Status      | Purpose                                         |
+| ----------- | ----------- | ----------------------------------------------- |
+| `DB` (D1)   | Required    | Stores links and related data.                  |
+| `KV`        | Required    | Speeds up link redirects.                       |
+| `ANALYTICS` | Recommended | Records visits for analytics and logs.          |
+| `R2`        | Optional    | Recommended for backups and OpenGraph images.   |
+| `AI`        | Optional    | Recommended for AI-assisted slugs and metadata. |
 
-After deployment, open `/dashboard` on your hostname. API clients can use the same site token as a bearer token. See the [API reference](/api/) or explore the public [Sink demo API](https://sink.cool/_docs/scalar).
+For the complete Sink experience, enable all five resources.
 
-## Storage migration
+## 4. Configure the deployment
 
-New installations write links to D1 and populate KV as a cache. Upgraded installations should call the authenticated migration endpoints until the status reports completion. The migration copies bounded pages of legacy `link:*` KV records into D1 without overwriting existing D1 rows. See [API migration endpoints](/api/#migration-and-utilities).
+Follow the guide for your chosen target to connect the fork, add the resources, and configure a stable, strong `NUXT_SITE_TOKEN`. Review the [configuration reference](/configuration/) for analytics and other features.
+
+## 5. Deploy
+
+Start the Git deployment from Cloudflare and wait for it to finish.
+
+## 6. Create your first link
+
+Open `/dashboard` on your deployed hostname, sign in with `NUXT_SITE_TOKEN`, and create a link.

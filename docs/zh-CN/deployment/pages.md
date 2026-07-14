@@ -1,42 +1,54 @@
 ---
-title: 部署 Sink 到 Cloudflare Pages
-description: 将 Sink 部署到 Cloudflare Pages，并配置 D1、KV、R2、Analytics Engine、兼容性标志和迁移。
+title: 部署到 Cloudflare Pages
+description: 通过 Git 集成和仪表盘管理的绑定将 Sink 部署到 Cloudflare Pages。
 ---
 
-# 部署 Sink 到 Cloudflare Pages
+# 部署到 Cloudflare Pages
 
-1. [Fork 仓库](https://github.com/miantiao-me/Sink/fork)。
-2. 从 Fork 创建 [Cloudflare Pages](https://developers.cloudflare.com/pages/) 项目，并选择 Nuxt.js 预设。
-3. 按阶段配置环境变量：
-   - **仅构建时：** 需要 CORS 时设置 `NUXT_API_CORS=true`。
-   - **构建和运行时：** 全部 `NUXT_PUBLIC_*`。
-   - **运行时：** 其他映射到运行时配置的 `NUXT_*`，包括站点令牌、分析凭据、Access 与 Webhook 设置。
+## 1. 创建 Pages 项目
 
-建议使用至少 8 个字符的安全 `NUXT_SITE_TOKEN`，并避免纯数字等可预测值。Analytics API Token 至少需要 Account Analytics 权限。
+[Fork Sink 仓库](https://github.com/miantiao-me/Sink/fork)。在 Cloudflare 仪表盘中创建 Pages 应用，导入该 Fork，并配置：
 
-4. 保存项目并开始部署，然后在第一次完整发布前取消部署。
-5. 在 **Settings** → **Bindings** 中添加：
-   - **KV Namespace：** 将命名空间绑定为 `KV`。
-   - **D1 Database：** 创建或选择 `sink`，绑定为 `DB` 并复制数据库 ID。
-   - **Workers AI**（可选）：将目录绑定为 `AI`。
-   - **R2 Bucket：** 将已有存储桶绑定为 `R2`。
-   - **Analytics Engine：** 为账户启用该产品，再把 `sink` 数据集绑定为 `ANALYTICS`。
-6. 在已通过 Wrangler 登录的本地检出中，将部署值写入 `.env` 并应用 D1 结构：
+- **生产分支：** `master`
+- **框架预设：** Nuxt
+- **构建命令：** `pnpm build`
+- **构建输出目录：** `dist`
 
-```dotenv
-DEPLOY_D1_DATABASE_ID=your-d1-database-id
-DEPLOY_KV_NAMESPACE_ID=your-kv-namespace-id
-```
+创建项目以进入项目设置。如果配置完成前已开始首次部署，请取消该部署。
 
-```sh
-pnpm db:migrate:remote
-```
+## 2. 准备资源和绑定
 
-即使 Pages 绑定由仪表盘管理，迁移命令仍使用这些值生成 `wrangler.deploy.jsonc`。每次发布包含新迁移的版本前都要运行该命令。`DEPLOY_D1_DATABASE_NAME`、`DEPLOY_R2_BUCKET_NAME` 和 `DEPLOY_ANALYTICS_DATASET` 可选且默认均为 `sink`。不要把 `DEPLOY_*` 上传为运行时变量，也不要编辑版本库中的 `wrangler.jsonc`。
+创建需要使用的资源，然后在 **Settings → Bindings** 中添加：
 
-7. 在 **Settings** → **Runtime** → **Compatibility flags** 中添加 `nodejs_compat`。
-8. 重新部署。
+| 绑定        | 状态 | 用途                                       |
+| ----------- | ---- | ------------------------------------------ |
+| `DB`（D1）  | 必需 | 存储链接及相关数据。                       |
+| `KV`        | 必需 | 加速链接重定向。                           |
+| `ANALYTICS` | 推荐 | 记录访问数据，用于分析和日志。             |
+| `R2`        | 可选 | 使用备份和 OpenGraph 图片功能时推荐启用。  |
+| `AI`        | 可选 | 使用 AI 辅助生成 Slug 和元数据时推荐启用。 |
 
-D1 是链接的权威存储。KV 是写穿式读取缓存，并在迁移完成前临时提供旧记录。升级实例应运行 [KV 到 D1 迁移 API](/zh-CN/api/#迁移与工具)。
+如需完整的 Sink 使用体验，建议启用以上五项资源。为生产环境和预览环境添加 `nodejs_compat` 兼容性标志。
 
-如需保护仪表盘，请参阅 [Cloudflare Access](/zh-CN/configuration/cloudflare-access)；事件投递详见[点击 Webhook](/zh-CN/configuration/webhooks)。更新 Fork 可参考 GitHub 的[同步 Fork](https://docs.github.com/zh/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork)指南。
+## 3. 配置变量和密钥
+
+在 **Settings → Variables and Secrets** 中添加以下值。Pages 只有这一套设置，构建和 Functions 运行时都会使用它。
+
+| 变量                     | 状态 | 类型     | 值或用途                                         |
+| ------------------------ | ---- | -------- | ------------------------------------------------ |
+| `DEPLOY_D1_DATABASE_ID`  | 必需 | 变量     | D1 数据库 ID。                                   |
+| `DEPLOY_KV_NAMESPACE_ID` | 必需 | 变量     | KV 命名空间 ID。                                 |
+| `NUXT_SITE_TOKEN`        | 必需 | 加密密钥 | 用于仪表盘和 Bearer 身份认证的高强度、稳定令牌。 |
+| `NUXT_CF_ACCOUNT_ID`     | 推荐 | 变量     | Cloudflare 账户 ID，供仪表盘访问分析使用。       |
+| `NUXT_CF_API_TOKEN`      | 推荐 | 加密密钥 | 具有 Account Analytics 访问权限的 API Token。    |
+| `NUXT_PUBLIC_*`          | 可选 | 变量     | 仅在覆盖默认值时配置；每次修改后都需要重新构建。 |
+
+其他可选设置请查看[配置参考](/zh-CN/configuration/)。R2 只能通过 **Settings → Bindings** 配置。
+
+## 4. 部署
+
+从 `master` 分支启动部署并等待完成。
+
+首次部署后，打开 `/dashboard`，登录并创建链接。
+
+Pages 支持手动创建 [R2 链接快照](/zh-CN/features/backups)，但本仓库没有配置 Pages 计划触发器。

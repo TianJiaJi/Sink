@@ -99,7 +99,7 @@
       },
       "customizable_slug": {
         "title": "Slug personnalisable",
-        "description": "Prise en charge des slugs personnalisés, des paramètres UTM et de la casse"
+        "description": "Créez des slugs personnalisés et ajoutez des paramètres UTM"
       },
       "ai_slug": {
         "title": "Assistance IA",
@@ -118,8 +118,8 @@
         "description": "Personnalisez les aperçus avec titres, descriptions et images"
       },
       "realtime_analytics": {
-        "title": "Analyses en temps réel",
-        "description": "Globe 3D en direct et journaux d'événements"
+        "title": "Analyses quasi instantanées",
+        "description": "Globe 3D et journaux d'événements alimentés par interrogation périodique et restitution côté client"
       },
       "qr_code": {
         "title": "Code QR",
@@ -127,7 +127,7 @@
       },
       "import_export": {
         "title": "Import/Export",
-        "description": "Migration de liens via JSON et export analytics via CSV"
+        "description": "Transférez des liens en masse avec JSON et exportez les analyses d'accès au format CSV"
       },
       "multi_language": {
         "title": "Multilingue",
@@ -135,9 +135,9 @@
       }
     },
     "cta": {
-      "title": "Déploiement immédiat",
-      "description": "En quelques clics, vous pouvez commencer à déployer sans aucun frais",
-      "button": "Lancer le déploiement"
+      "title": "Déployer Sink",
+      "description": "Consultez le guide de démarrage pour configurer et déployer Sink sur Cloudflare",
+      "button": "Voir le guide de déploiement"
     },
     "logos": {
       "title": "Construit avec de superbes technologies"

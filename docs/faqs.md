@@ -1,87 +1,64 @@
 ---
-title: Sink FAQs
-description: Troubleshoot Sink bindings, authentication, analytics, redirects, link routing, import and export, cloaking, and safety features.
+title: Troubleshooting
+description: Diagnose common Sink deployment, authentication, analytics, redirect, import, backup, and optional-feature failures.
 ---
 
-# Frequently Asked Questions
+# Troubleshooting
 
-## Why can't I create a link?
+## I cannot create or resolve links
 
-Confirm that both D1 and KV are bound with the exact uppercase names `DB` and `KV`. D1 is the authoritative link store; KV is the write-through read cache and the temporary legacy source before migration completion.
+Confirm that D1 and KV are bound with the exact names `DB` and `KV`, then redeploy the latest `master` branch so required D1 updates are applied.
+
+If this is an upgrade from an older instance that stored links only in KV, open **Dashboard → Links** to start or continue the [KV-to-D1 migration](/storage/kv-to-d1).
 
 <details>
   <summary><b>KV binding screenshot</b></summary>
   <img alt="KV binding settings in Cloudflare" src="./images/faqs-kv.png">
 </details>
 
-## Why can't I log in?
+## I cannot sign in or call the API
 
-Check that the supplied token exactly matches `NUXT_SITE_TOKEN`. For production, use a strong value with at least eight characters and avoid predictable values such as digit-only tokens.
+Check that the supplied bearer value exactly matches `NUXT_SITE_TOKEN`. If using Cloudflare Access, verify that both Access settings are present, the AUD belongs to the application, and the signed application cookie reaches `/api`. Strict Access policies also require non-browser clients to pass the edge policy.
 
-## Why can't I see analytics data?
+## Analytics is empty
 
-1. Verify `NUXT_CF_ACCOUNT_ID` and `NUXT_CF_API_TOKEN`. The account ID must belong to the deployment account and the token needs Account Analytics access.
-2. Enable Analytics Engine and bind `ANALYTICS` to the dataset named by `NUXT_DATASET` (default `sink`).
+Confirm all of the following:
+
+1. Analytics Engine is enabled and bound as `ANALYTICS`.
+2. The configured dataset name matches the bound dataset.
+3. The account ID belongs to the deployment account.
+4. The API token has Account Analytics access.
+5. Bot filtering or the selected dashboard filters are not excluding the traffic.
 
 <details>
   <summary><b>Analytics Engine binding screenshot</b></summary>
   <img alt="Analytics Engine binding settings in Cloudflare" src="./images/faqs-Analytics_engine.png">
 </details>
 
-## Can the homepage redirect to my website?
+## Realtime events arrive in bursts or appear delayed
 
-Yes. Set `NUXT_HOME_URL` to your blog or website URL.
+This is expected within bounds: the dashboard polls every 10 seconds and replays queued events at about one per second. Verify that the view is not paused, the tab is visible, and analytics queries are working. It is not an SSE or WebSocket stream.
 
-## Why are statistics missing after a NuxtHub deployment?
+## Custom slugs do not preserve uppercase characters
 
-NuxtHub's `ANALYTICS` binding can point to its own dataset. Set `NUXT_DATASET` to that same dataset name so Sink queries the dataset receiving events.
+Enable the case-sensitive setting and redeploy. It affects custom slug normalization; generated random slugs intentionally remain lowercase. Existing slugs are not renamed automatically.
 
-## Why are links case-insensitive?
+## A cloaked destination is blank or refuses to load
 
-Sink normalizes slugs to lowercase by default to avoid accidental capitalization differences. Set `NUXT_CASE_SENSITIVE=true` to preserve case. New random slugs can then contain uppercase and lowercase characters, and `MyLink` and `mylink` become distinct.
+The destination likely blocks iframe embedding through `X-Frame-Options` or `Content-Security-Policy: frame-ancestors`. Disable cloaking or change the destination policy if you control it. OAuth and payment pages commonly reject framing.
 
-## Why does the metric list show only 500 entries?
+## Safe browsing did not change a link's unsafe flag
 
-The default `NUXT_LIST_QUERY_LIMIT` is 500 to bound analytics query cost. Increase it if your deployment can support larger queries.
+Automatic detection runs only when a create or relevant edit request omits `unsafe`. An explicitly supplied `true` or `false` wins. Also verify the DoH URL and note that lookup errors fail open.
 
-## How do I exclude bots and crawlers?
+## Import skips or rejects records
 
-Set `NUXT_DISABLE_BOT_ACCESS_LOG=true`. Excluded bot clicks are also omitted from click webhooks.
+Check the per-item result. Active slug conflicts are skipped, while malformed records fail validation or processing. Expired records are allowed. Keep each request within half the configured export batch size and use portable password hashes rather than dashboard-masked placeholders.
 
-## What is link cloaking?
+## A backup was not created
 
-Cloaking keeps the short link in the address bar and loads the HTTPS destination in a full-screen iframe. Enable **Link Cloaking** in link settings.
+Verify that `R2` is bound. If this is a legacy KV-only upgrade, complete the [KV-to-D1 migration](/storage/kv-to-d1) first. For scheduled backups, confirm the automatic-backup setting and the Workers cron. Pages has no automatic scheduled trigger in this repository; use the dashboard's manual backup action instead.
 
-It does not hide the destination from source, developer tools, network logs, or inspection. Sites using `X-Frame-Options: DENY` or restrictive `Content-Security-Policy: frame-ancestors` will not load. OAuth and payment flows may also reject iframe use. Device-specific redirects take precedence. If you control the destination, allow your short-link origin, for example:
+## Redirect changes appear stale
 
-```http
-Content-Security-Policy: frame-ancestors 'self' https://your-short-domain.example
-```
-
-## How does query forwarding work?
-
-With `redirectWithQuery`, parameters from a request such as `https://s.example/link?ref=social` are appended to the destination. Set `NUXT_REDIRECT_WITH_QUERY=true` for the global default, then override it per link with **Redirect with Query Parameters**.
-
-## How do import and export work?
-
-- **Export:** Fetches cursor-paginated JSON pages, defaulting to 50 links per page.
-- **Import:** Accepts bounded batches, defaulting to 25 links per request.
-- **Storage:** D1 performs authoritative duplicate detection and writes. Successful writes update KV as a best-effort cache operation. The batch sizes are compatibility and request-cost limits, not a claim that every link consumes two KV operations.
-- **Expiration:** Imports with expiration timestamps in the past are rejected.
-- **Duplicates:** Existing active slugs are skipped and preserved.
-- **Validation:** The complete request is schema-validated before import processing.
-- **Passwords:** Export preserves password hashes in Sink's portable storage format, and those hashes can be imported unchanged. Values masked by the dashboard cannot be imported as plaintext passwords.
-
-Legacy KV records are migrated separately through `/api/link/migration/run`; import/export is not the KV-to-D1 migration mechanism.
-
-## How do protected and unsafe links work?
-
-Password-protected browser visitors receive a password form. Programmatic clients can send `x-link-password`. Unsafe links display a warning and programmatic clients can send `x-link-confirm: true` after approval. Set `NUXT_SAFE_BROWSING_DOH` to a DoH endpoint for automatic unsafe-domain checks during create and edit.
-
-## How does geo-routing work?
-
-Set country-specific destinations with two-letter codes, such as `{ "US": "https://example.com/us" }`. Sink uses Cloudflare's `request.cf.country`; device-specific Apple or Android destinations take precedence.
-
-## How can I export analytics?
-
-Use the dashboard or authenticated `GET /api/stats/export`. It returns CSV with `slug`, `url`, `viewer`, `views`, and `referer`. Supply the same filters used by analytics views, such as `startAt`, `endAt`, `slug`, `country`, `browser`, or `device`.
+KV and browser or CDN caching can delay visible changes. Review the link cache lifetime and redirect no-store setting in [configuration](/configuration/#advanced-defaults), then confirm the current link in the dashboard.

@@ -99,7 +99,7 @@
       },
       "customizable_slug": {
         "title": "自定義短連結",
-        "description": "支援自訂短連結、UTM 參數和大小寫敏感"
+        "description": "建立自訂短連結並加入 UTM 參數"
       },
       "ai_slug": {
         "title": "AI 助手",
@@ -118,8 +118,8 @@
         "description": "自訂標題、描述和圖片等社交預覽"
       },
       "realtime_analytics": {
-        "title": "即時分析",
-        "description": "3D 地球視覺化和即時事件日誌"
+        "title": "近即時分析",
+        "description": "透過定時輪詢與用戶端回放顯示 3D 地球和事件日誌"
       },
       "qr_code": {
         "title": "QR Code",
@@ -127,7 +127,7 @@
       },
       "import_export": {
         "title": "匯入/匯出",
-        "description": "透過 JSON 批次遷移連結，並透過 CSV 匯出訪問分析"
+        "description": "透過 JSON 批次匯入或匯出連結，並透過 CSV 匯出存取分析"
       },
       "multi_language": {
         "title": "多語言",
@@ -135,9 +135,9 @@
       }
     },
     "cta": {
-      "title": "立即部署",
-      "description": "只需幾個簡單的點擊，您就可以免費開始部署",
-      "button": "開始部署"
+      "title": "部署 Sink",
+      "description": "閱讀入門指南，在 Cloudflare 上設定並部署 Sink",
+      "button": "查看部署指南"
     },
     "logos": {
       "title": "使用優秀的技術構建"

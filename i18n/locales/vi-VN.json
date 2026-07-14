@@ -99,7 +99,7 @@
       },
       "customizable_slug": {
         "title": "Slug tùy chỉnh",
-        "description": "Hỗ trợ slug cá nhân hóa, tham số UTM và phân biệt chữ hoa/thường"
+        "description": "Tạo slug tùy chỉnh và thêm tham số UTM"
       },
       "ai_slug": {
         "title": "Trợ lý AI",
@@ -118,8 +118,8 @@
         "description": "Tùy chỉnh bản xem trước với tiêu đề, mô tả và hình ảnh"
       },
       "realtime_analytics": {
-        "title": "Phân tích thời gian thực",
-        "description": "Địa cầu 3D trực tiếp và nhật ký sự kiện"
+        "title": "Phân tích gần thời gian thực",
+        "description": "Địa cầu 3D và nhật ký sự kiện qua thăm dò định kỳ và phát lại phía máy khách"
       },
       "qr_code": {
         "title": "Mã QR",
@@ -127,7 +127,7 @@
       },
       "import_export": {
         "title": "Nhập/Xuất",
-        "description": "Di chuyển liên kết qua JSON và xuất phân tích qua CSV"
+        "description": "Chuyển liên kết hàng loạt bằng JSON và xuất phân tích truy cập dưới dạng CSV"
       },
       "multi_language": {
         "title": "Đa ngôn ngữ",
@@ -135,9 +135,9 @@
       }
     },
     "cta": {
-      "title": "Triển khai ngay",
-      "description": "Chỉ với vài cú nhấp chuột, bạn có thể triển khai miễn phí",
-      "button": "Bắt đầu triển khai"
+      "title": "Triển khai Sink",
+      "description": "Xem hướng dẫn bắt đầu để cấu hình và triển khai Sink trên Cloudflare",
+      "button": "Xem hướng dẫn triển khai"
     },
     "logos": {
       "title": "Xây dựng bằng những công nghệ tuyệt vời"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { github } = useAppConfig()
+const { documentation } = useAppConfig()
 </script>
 
 <template>
@@ -33,7 +33,7 @@ const { github } = useAppConfig()
               class="min-h-11"
             >
               <a
-                :href="`${github}?tab=readme-ov-file#%EF%B8%8F-deployment`"
+                :href="`${documentation}/guide/getting-started`"
                 target="_blank"
                 rel="noopener noreferrer"
                 :title="$t('home.cta.button')"

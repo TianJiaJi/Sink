@@ -1,52 +1,47 @@
 ---
-title: Cloudflare Access Authentication
-description: Protect the Sink dashboard with Cloudflare Access while preserving public short links and SiteToken API clients.
+title: Cloudflare Access
+description: Enable Cloudflare Access authentication for the Sink dashboard while preserving public links and supported API clients.
 ---
 
-# Cloudflare Access Authentication
+# Cloudflare Access
 
-Sink can use Cloudflare Access as an alternative to the site token. An API request is accepted when it has either a valid `NUXT_SITE_TOKEN` bearer token or a valid Cloudflare Access application JWT for a user or service token. Sink verifies the JWT signature, issuer, audience, and expiration against the team's public keys; a header or cookie is never trusted by presence alone.
+Cloudflare Access is optional. When configured, Sink accepts either a valid site-token bearer credential or a valid Access application JWT for API authentication. Sink verifies the JWT signature, issuer, audience, and expiration; it never trusts a cookie or header by presence alone.
 
 ## Compatibility-first setup
 
-This setup protects the dashboard while keeping public short links and SiteToken clients unchanged.
+1. Create a Cloudflare Access self-hosted application for the Sink hostname.
+2. Protect `/dashboard` and its child routes.
+3. Leave `/api` outside the Access proxy policy so site-token clients can still reach Sink authentication.
+4. Leave the Access **Cookie Path** setting disabled so the signed application cookie reaches `/api`.
+5. Set `NUXT_CF_ACCESS_TEAM_DOMAIN` and `NUXT_CF_ACCESS_AUD`, then redeploy. See [configuration](./) for activation rules.
 
-1. Create a Cloudflare Access self-hosted application for your Sink hostname.
-2. Cover `/dashboard` and its child routes with the application path.
-3. Do not protect `/api` at the Access proxy layer. Sink authenticates API requests with SiteToken or the signed Access application cookie.
-4. In advanced cookie settings, leave **Cookie Path** disabled so the cookie reaches `/api`. Use `Lax` or `Strict` SameSite when cross-site requests are unnecessary.
-5. Configure both values and redeploy:
+Minimal configuration:
 
 ```ini
-NUXT_CF_ACCESS_TEAM_DOMAIN=https://your-team.cloudflareaccess.com
+NUXT_CF_ACCESS_TEAM_DOMAIN=https://team.cloudflareaccess.com
 NUXT_CF_ACCESS_AUD=your-application-aud-tag
 ```
 
-The team domain must not include a path. Find the AUD tag in the Access application's additional settings.
+Replace `team` with your Access team name. The Team Domain must use this origin format with no path. Copy the AUD value from the Access application.
 
-Short links, static assets, and API documentation remain public at the Access layer. Sink still authenticates API operations. Protect `/_docs` separately if the OpenAPI schema should not be public.
+Short links remain public. API operations remain authenticated by Sink. Protect `/_docs` separately at the edge if the generated OpenAPI document must not be public.
 
-## Security considerations
+## Security model
 
-In compatibility-first mode, Sink validates the signed JWT locally instead of asking the Access proxy to evaluate every `/api` request. An administrator-revoked session can therefore remain usable until its JWT expires. Choose an appropriately short Access policy or application session duration.
+In compatibility-first mode, Sink validates the signed JWT locally. A revoked Access session can remain usable until that JWT expires, so choose an appropriate Access session duration.
 
-Because Access uses a browser cookie, Sink rejects cross-site browser requests authenticated through Access and verifies `Origin` for state-changing methods. SiteToken requests are unchanged; non-browser clients should use `NUXT_SITE_TOKEN`.
+Browser requests authenticated through Access receive origin checks for state-changing methods. Non-browser clients should normally use the site token. An accepted Access service token maps to Sink's `root` identity, so allow only explicitly trusted service tokens in the Access policy.
 
-A verified Access service token is mapped to Sink's `root` identity. Only allow explicitly designated, trusted service tokens in the Access policy because each accepted service token receives full root access. Sink authenticates the signed application JWT and does not trust raw `CF-Access-Client-Id` or `CF-Access-Client-Secret` headers.
+Protect every hostname routed to the deployment. Securing one dashboard hostname does not protect another hostname that exposes the same application with a weak site token.
 
-Do not expose another deployment hostname with a weak SiteToken. Protecting the dashboard hostname does not protect other hostnames routed to the same Worker or Pages project.
+## Strict edge enforcement
 
-## Logout
+You may protect both `/dashboard` and `/api` with Access. The edge then blocks requests before Sink. Site-token-only clients cannot use that hostname unless they also pass Access; use a separate API hostname when necessary.
 
-When the dashboard uses Access authentication, Sink redirects logout to `/cdn-cgi/access/logout`, which revokes the Access session across applications and clears the application cookie.
+Dashboard logout uses `/cdn-cgi/access/logout` when Access authentication is active.
 
-## Strict setup
-
-For stronger edge enforcement, protect both `/dashboard` and `/api`. Cloudflare then blocks requests before they reach Sink. A client that passes Access with an allowed service token can use the signed application JWT that reaches the Worker; it does not also need a Sink SiteToken. A SiteToken-only client cannot use that hostname unless it also passes Access, so use a separate API hostname when Access is not available to the client.
-
-## References
+## Cloudflare references
 
 - [Validate Access JWTs](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/)
-- [Access application token](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/application-token/)
 - [Access application paths](https://developers.cloudflare.com/cloudflare-one/access-controls/policies/app-paths/)
 - [Access session management](https://developers.cloudflare.com/cloudflare-one/access-controls/access-settings/session-management/)

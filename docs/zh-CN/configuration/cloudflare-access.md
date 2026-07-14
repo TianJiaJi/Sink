@@ -1,52 +1,47 @@
 ---
 title: Cloudflare Access 身份认证
-description: 使用 Cloudflare Access 保护 Sink 仪表盘，同时保留公开短链接与 SiteToken API 客户端。
+description: 为 Sink 仪表盘启用 Cloudflare Access 身份认证，同时保留公开链接和受支持的 API 客户端。
 ---
 
 # Cloudflare Access 身份认证
 
-Sink 可以使用 Cloudflare Access 作为站点令牌的替代认证方式。API 请求只要携带有效的 `NUXT_SITE_TOKEN` Bearer Token，或用户或 Service Token 的有效 Cloudflare Access 应用 JWT 即可通过。Sink 会通过团队公钥验证 JWT 的签名、签发者、受众和有效期；绝不会只因请求中存在某个 Header 或 Cookie 就信任它。
+Cloudflare Access 是可选功能。配置后，Sink 会接受有效的站点令牌 Bearer 凭据或有效的 Access 应用 JWT 进行 API 身份认证。Sink 会验证 JWT 的签名、签发者、受众和过期时间，绝不会仅凭 Cookie 或 Header 的存在就信任它们。
 
-## 兼容优先配置
-
-此方案保护仪表盘，同时保持公开短链接与 SiteToken 客户端不变。
+## 兼容性优先配置
 
 1. 为 Sink 域名创建 Cloudflare Access 自托管应用。
-2. 将应用路径覆盖 `/dashboard` 及其子路由。
-3. 不要在 Access 代理层保护 `/api`。Sink 会用 SiteToken 或已签名的 Access 应用 Cookie 自行认证 API 请求。
-4. 在高级 Cookie 设置中关闭 **Cookie Path**，确保 Cookie 也会发往 `/api`。不需要跨站请求时，将 SameSite 设为 `Lax` 或 `Strict`。
-5. 配置以下两个值并重新部署：
+2. 保护 `/dashboard` 及其子路由。
+3. 将 `/api` 排除在 Access 代理策略之外，以便使用站点令牌的客户端仍可访问 Sink 身份认证。
+4. 保持 Access 的 **Cookie Path** 设置处于禁用状态，使已签名的应用 Cookie 能够到达 `/api`。
+5. 设置 `NUXT_CF_ACCESS_TEAM_DOMAIN` 和 `NUXT_CF_ACCESS_AUD`，然后重新部署。启用规则详见[配置参考](./)。
+
+最小配置：
 
 ```ini
-NUXT_CF_ACCESS_TEAM_DOMAIN=https://your-team.cloudflareaccess.com
+NUXT_CF_ACCESS_TEAM_DOMAIN=https://team.cloudflareaccess.com
 NUXT_CF_ACCESS_AUD=your-application-aud-tag
 ```
 
-团队域名不能带路径。AUD 标签可在 Access 应用的附加设置中找到。
+将 `team` 替换为你的 Access 团队名称。Team Domain 必须使用上述不含路径的源格式。从 Access 应用中复制 AUD 值。
 
-短链接、静态资源和 API 文档在 Access 层仍然公开，API 操作仍由 Sink 认证。如果 OpenAPI Schema 不应公开，请单独保护 `/_docs`。
+短链接保持公开。API 操作仍由 Sink 进行身份认证。如果自动生成的 OpenAPI 文档不能公开，请在边缘单独保护 `/_docs`。
 
-## 安全注意事项
+## 安全模型
 
-在兼容优先模式中，Sink 本地验证已签名 JWT，而不是让 Access 代理评估每个 `/api` 请求。因此，管理员撤销的会话在 JWT 过期前仍可能可用，请设置适当短的 Access 策略或应用会话时长。
+在兼容性优先模式下，Sink 会在本地验证已签名的 JWT。已撤销的 Access 会话在该 JWT 过期前可能仍然可用，因此应选择合适的 Access 会话时长。
 
-Access 使用浏览器 Cookie，因此 Sink 会拒绝通过 Access 认证的跨站浏览器请求，并对修改数据的方法校验 `Origin`。SiteToken 请求不受影响；非浏览器客户端应使用 `NUXT_SITE_TOKEN`。
+通过 Access 认证的浏览器请求在执行状态变更方法时会接受来源检查。非浏览器客户端通常应使用站点令牌。被接受的 Access 服务令牌会映射到 Sink 的 `root` 身份，因此 Access 策略中应只允许明确受信任的服务令牌。
 
-验证后的 Access Service Token 会映射为 Sink 的 `root` 身份。Access policy 只能允许明确指定且可信的 Service Token，因为每个被接受的 Service Token 都会获得完整的 root 权限。Sink 认证的是已签名的应用 JWT，不信任原始 `CF-Access-Client-Id` 或 `CF-Access-Client-Secret` 请求头。
+保护路由到该部署的每个域名。只保护一个仪表盘域名，并不能保护另一个使用弱站点令牌公开同一应用的域名。
 
-不要通过另一个部署域名暴露弱 SiteToken。保护仪表盘域名并不会自动保护指向同一 Worker 或 Pages 项目的其他域名。
+## 严格边缘强制
 
-## 退出登录
+你可以同时使用 Access 保护 `/dashboard` 和 `/api`。这样，边缘会在请求到达 Sink 前将其拦截。仅使用站点令牌的客户端无法访问该域名，除非它们也通过 Access；必要时请使用单独的 API 域名。
 
-仪表盘通过 Access 认证时，Sink 会把退出操作重定向到 `/cdn-cgi/access/logout`，从而撤销跨应用的 Access 会话并清除应用 Cookie。
+启用 Access 身份认证时，仪表盘注销会使用 `/cdn-cgi/access/logout`。
 
-## 严格配置
-
-如需更强的边缘强制策略，可以同时保护 `/dashboard` 与 `/api`。Cloudflare 会在请求抵达 Sink 前拦截它。通过 Access 且使用 policy 允许的 Service Token 的客户端，可以直接使用传递至 Worker 的已签名应用 JWT，无需额外提供 Sink SiteToken。仅携带 SiteToken 的客户端无法使用该域名；客户端无法使用 Access 时，请改用独立 API 域名。
-
-## 参考资料
+## Cloudflare 参考资料
 
 - [验证 Access JWT](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/)
-- [Access 应用令牌](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/application-token/)
 - [Access 应用路径](https://developers.cloudflare.com/cloudflare-one/access-controls/policies/app-paths/)
 - [Access 会话管理](https://developers.cloudflare.com/cloudflare-one/access-controls/access-settings/session-management/)

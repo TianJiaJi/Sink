@@ -1,28 +1,31 @@
 ---
 layout: home
 title: Sink Documentation
-description: Deploy, configure, and use Sink, a simple, speedy, and secure link shortener with analytics on Cloudflare.
+description: Deploy, configure, operate, and integrate Sink, a self-hosted link shortener and analytics platform for Cloudflare.
 
 hero:
   name: Sink
-  text: Link shortening and analytics on Cloudflare
-  tagline: Deploy your own fast, secure link shortener with D1-backed storage, KV caching, and built-in analytics.
+  text: Self-hosted links on Cloudflare
+  tagline: Manage short links with D1-backed storage, KV caching, analytics, routing, and optional Workers AI.
   actions:
     - theme: brand
       text: Get Started
       link: /guide/getting-started
     - theme: alt
-      text: API Demo
-      link: https://sink.cool/_docs/scalar
+      text: Explore Features
+      link: /features/links
     - theme: alt
-      text: Sink Website
-      link: https://sink.cool
+      text: API Reference
+      link: /api/
 
 features:
   - title: Cloudflare-native
-    details: Run on Workers or Pages with D1, KV, Analytics Engine, R2, and optional Workers AI.
-  - title: Complete link management
-    details: Create, edit, import, route, protect, and monitor short links from the dashboard or REST API.
-  - title: Privacy-aware analytics
-    details: Understand traffic with counters, metrics, maps, exports, and optional signed click webhooks.
+    icon: ☁️
+    details: Deploy to Workers or Pages with required D1 and KV, recommended Analytics Engine, and optional R2 and Workers AI.
+  - title: Link management
+    icon: 🔗
+    details: Add expiration, passwords, warnings, metadata, tags, and device or geographic routing when needed.
+  - title: Analytics
+    icon: 📊
+    details: Understand visits through dashboard reports, logs, filters, and a near-realtime view.
 ---

@@ -1,87 +1,64 @@
 ---
-title: Sink 常见问题
-description: 排查 Sink 绑定、认证、访问分析、重定向、链接路由、导入导出、隐匿和安全功能问题。
+title: 故障排查
+description: 诊断常见的 Sink 部署、身份认证、访问分析、重定向、导入、备份和可选功能故障。
 ---
 
-# 常见问题
+# 故障排查
 
-## 为什么无法创建链接？
+## 无法创建或解析链接
 
-确认 D1 与 KV 均已绑定，且变量名严格使用大写 `DB` 和 `KV`。D1 是链接的权威存储；KV 是写穿式读取缓存，并在迁移完成前临时提供旧数据。
+确认 D1 和 KV 已使用准确名称 `DB` 和 `KV` 进行绑定，然后重新部署最新的 `master` 分支，以自动完成所需的 D1 更新。
+
+如果现有实例从仅使用 KV 存储链接的旧版本升级，请打开 **Dashboard → Links** 启动或继续 [KV 到 D1 迁移](/zh-CN/storage/kv-to-d1)。
 
 <details>
   <summary><b>KV 绑定截图</b></summary>
   <img alt="Cloudflare 中的 KV 绑定设置" src="../images/faqs-kv.png">
 </details>
 
-## 为什么无法登录？
+## 无法登录或调用 API
 
-检查提交的令牌是否与 `NUXT_SITE_TOKEN` 完全一致。生产环境建议使用至少 8 个字符的安全值，并避免纯数字等可预测令牌。
+检查提供的 Bearer 值是否与 `NUXT_SITE_TOKEN` 完全一致。如果使用 Cloudflare Access，请确认两项 Access 设置均已提供、AUD 属于该应用，且已签名的应用 Cookie 能够到达 `/api`。严格 Access 策略还要求非浏览器客户端通过边缘策略。
 
-## 为什么看不到访问分析数据？
+## 访问分析为空
 
-1. 检查 `NUXT_CF_ACCOUNT_ID` 与 `NUXT_CF_API_TOKEN`。账户 ID 必须属于部署账户，Token 需要 Account Analytics 权限。
-2. 启用 Analytics Engine，并将 `ANALYTICS` 绑定到 `NUXT_DATASET` 指定的数据集（默认 `sink`）。
+确认以下所有事项：
+
+1. Analytics Engine 已启用并绑定为 `ANALYTICS`。
+2. 配置的数据集名称与绑定的数据集一致。
+3. 账户 ID 属于部署账户。
+4. API Token 具有 Account Analytics 权限。
+5. 机器人过滤或所选仪表盘过滤条件没有排除这些流量。
 
 <details>
   <summary><b>Analytics Engine 绑定截图</b></summary>
   <img alt="Cloudflare 中的 Analytics Engine 绑定设置" src="../images/faqs-Analytics_engine.png">
 </details>
 
-## 首页可以跳转到自己的网站吗？
+## 近实时事件成批到达或似乎有延迟
 
-可以。将 `NUXT_HOME_URL` 设为博客或官网地址。
+在一定范围内这是预期行为：仪表盘每 10 秒轮询一次，并以大约每秒一个事件的速度回放队列中的事件。请确认视图没有暂停、标签页可见且访问分析查询正常工作。它不是 SSE 或 WebSocket 流。
 
-## 为什么通过 NuxtHub 部署后看不到统计数据？
+## 自定义 Slug 不保留大写字符
 
-NuxtHub 的 `ANALYTICS` 绑定可能指向其自己的数据集。请将 `NUXT_DATASET` 设为同一个数据集名称，确保 Sink 查询的正是接收事件的数据集。
+启用区分大小写设置并重新部署。它会影响自定义 Slug 的规范化；自动生成的随机 Slug 会有意保持小写。现有 Slug 不会自动重命名。
 
-## 为什么链接默认不区分大小写？
+## 隐匿目标显示空白或拒绝加载
 
-Sink 默认将 Slug 统一转为小写，以避免意外大小写差异。设置 `NUXT_CASE_SENSITIVE=true` 可保留大小写；此后随机 Slug 可以同时包含大小写字符，`MyLink` 与 `mylink` 也会成为不同链接。
+目标可能通过 `X-Frame-Options` 或 `Content-Security-Policy: frame-ancestors` 禁止 iframe 嵌入。请禁用隐匿功能；如果你控制目标，也可以修改其策略。OAuth 和支付页面通常会拒绝被嵌入。
 
-## 为什么指标列表只显示 500 条？
+## 安全浏览没有更改链接的 unsafe 标志
 
-`NUXT_LIST_QUERY_LIMIT` 默认为 500，以限制分析查询成本。如果部署能够承受更大的查询，可以提高该值。
+仅当创建或相关编辑请求中省略 `unsafe` 时，才会运行自动检测。显式提供的 `true` 或 `false` 优先。还应检查 DoH URL，并注意查询错误会放行。
 
-## 如何排除机器人和爬虫？
+## 导入时跳过或拒绝记录
 
-设置 `NUXT_DISABLE_BOT_ACCESS_LOG=true`。被排除的机器人点击也不会发送点击 Webhook。
+检查每个项目的结果。活动 Slug 冲突会被跳过，格式错误的记录则会在验证或处理时失败。允许导入过期记录。每个请求不得超过已配置导出批次大小的一半，并应使用可移植密码哈希，而不是仪表盘中经过遮盖的占位符。
 
-## 什么是链接隐匿？
+## 未创建备份
 
-链接隐匿会让浏览器地址栏保留短网址，并在全屏 iframe 中加载 HTTPS 目标。可在链接设置中启用 **Link Cloaking**。
+确认 `R2` 已绑定。如果现有实例从旧版纯 KV 部署升级，请先完成 [KV 到 D1 迁移](/zh-CN/storage/kv-to-d1)。对于计划备份，请确认自动备份设置和 Workers Cron。Pages 在本仓库中没有自动计划触发器；请改用仪表盘中的手动备份操作。
 
-它无法向页面源代码、开发者工具、网络日志或主动检查的用户隐藏目标。设置了 `X-Frame-Options: DENY` 或严格 `Content-Security-Policy: frame-ancestors` 的网站无法加载，OAuth 和支付流程也可能拒绝 iframe。设备专用重定向优先级更高。如果你控制目标站点，可以允许短链接来源，例如：
+## 重定向变更似乎仍是旧值
 
-```http
-Content-Security-Policy: frame-ancestors 'self' https://your-short-domain.example
-```
-
-## 查询参数转发如何工作？
-
-启用 `redirectWithQuery` 后，`https://s.example/link?ref=social` 等请求的查询参数会附加到目标 URL。使用 `NUXT_REDIRECT_WITH_QUERY=true` 设置全局默认值，再通过链接设置中的 **Redirect with Query Parameters** 为单个链接覆盖。
-
-## 导入和导出如何工作？
-
-- **导出：** 使用游标分页下载 JSON，默认每页 50 条。
-- **导入：** 接受受限批次，默认每个请求 25 条。
-- **存储：** D1 执行权威重复检测和写入；成功写入后进行尽力而为的 KV 缓存更新。批次大小用于兼容与控制请求成本，并不代表每条链接执行两次 KV 操作。
-- **过期时间：** 过期时间已在过去的导入会被拒绝。
-- **重复 Slug：** 跳过并保留已有活动链接。
-- **校验：** 处理导入前会对整个请求执行 Schema 校验。
-- **密码：** 导出会保留 Sink 可迁移存储格式中的密码哈希，这类哈希可以原样导入；仪表盘显示的遮盖值不能作为明文密码导入。
-
-旧 KV 记录通过 `/api/link/migration/run` 单独迁移；导入/导出不是 KV 到 D1 的迁移机制。
-
-## 受密码保护和不安全链接如何工作？
-
-浏览器访问受密码保护链接时会看到密码表单，程序客户端可以发送 `x-link-password`。不安全链接会显示警告，程序客户端确认后可发送 `x-link-confirm: true`。配置 `NUXT_SAFE_BROWSING_DOH` 后，创建和编辑链接时可以自动检查不安全域名。
-
-## 地域路由如何工作？
-
-使用两字母代码配置目标，例如 `{ "US": "https://example.com/us" }`。Sink 使用 Cloudflare 的 `request.cf.country`；Apple 或 Android 设备专用目标优先级更高。
-
-## 如何导出访问分析？
-
-使用仪表盘或已认证的 `GET /api/stats/export`。响应为 CSV，包含 `slug`、`url`、`viewer`、`views` 和 `referer`。可传入 `startAt`、`endAt`、`slug`、`country`、`browser` 或 `device` 等分析视图过滤条件。
+KV、浏览器或 CDN 缓存可能会延迟可见变更。请在[配置参考](/zh-CN/configuration/#高级默认值)中查看链接缓存生命周期和重定向 no-store 设置，然后在仪表盘中确认当前链接。

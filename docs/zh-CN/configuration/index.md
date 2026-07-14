@@ -1,103 +1,111 @@
 ---
-title: Sink 配置
-description: 配置 Sink 的构建、运行时、公开变量、身份认证、分析、重定向、AI、备份和部署设置。
+title: 配置参考
+description: Sink 所有受支持环境变量的权威默认值、放置规则和启用条件。
 ---
 
-# Sink 配置
+# 配置参考
 
-环境变量映射到 `nuxt.config.ts` 中的默认值。
+本页列出 Sink 支持的所有环境变量。环境变量值都是字符串；除非另有说明，布尔开关均使用 `true`。
 
-| 类别         | 变量                                   | Cloudflare Workers 配置位置                       |
-| ------------ | -------------------------------------- | ------------------------------------------------- |
-| 仅构建时     | `NUXT_API_CORS`                        | **Build variables and secrets**                   |
-| 构建和运行时 | `NUXT_PUBLIC_*`                        | 构建变量与 Worker 运行时变量均需配置              |
-| 运行时       | 映射到 `runtimeConfig` 的其他 `NUXT_*` | Worker **Variables and Secrets**                  |
-| 仅部署时     | `DEPLOY_*`                             | 构建环境或本地 `.env`；禁止设为 Worker 运行时变量 |
+## 范围
 
-`DEPLOY_*` 用于生成 CLI 部署与远程迁移所需的 `wrangler.deploy.jsonc`，不是应用设置。
+| 范围          | 含义                                               | Workers 放置位置                               | Pages 放置位置                                                   |
+| ------------- | -------------------------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------- |
+| 构建          | 在生成部署配置或构建应用时使用。                   | Workers Builds 变量与密钥。                    | **Settings → Variables and Secrets**；同一套设置也供运行时使用。 |
+| 运行时        | 由已部署应用读取。密钥必须使用平台的加密密钥存储。 | Worker **Settings → Variables and Secrets**。  | **Settings → Variables and Secrets**；同一套设置也供构建使用。   |
+| 构建 + 运行时 | 构建时由预渲染 UI 使用，部署后由应用使用。         | 在 Workers Builds 和 Worker 设置中配置相同值。 | 只需在 **Settings → Variables and Secrets** 中配置一次。         |
 
-## 公开设置
+修改构建变量或公开变量后，需要重新构建部署。
 
-| 变量                              | 默认值  | 说明                                                                                                                           |
-| --------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `NUXT_PUBLIC_PREVIEW_MODE`        | 空/禁用 | 启用演示模式；创建的链接 5 分钟后过期，且不能编辑或删除。                                                                      |
-| `NUXT_PUBLIC_SLUG_DEFAULT_LENGTH` | `6`     | 自动生成 Slug 的默认长度。                                                                                                     |
-| `NUXT_PUBLIC_KV_BATCH_LIMIT`      | `50`    | 链接导入和导出的分页大小；每次导入上限为其一半。尽管沿用历史变量名，权威链接操作使用 D1；KV 是写穿式缓存及迁移前的旧数据来源。 |
+## Cloudflare 绑定
 
-使用 Workers 时，公开变量必须同时配置在构建和运行时环境中。
+| 绑定        | 要求               | 用途                                                                                           |
+| ----------- | ------------------ | ---------------------------------------------------------------------------------------------- |
+| `DB`        | 必须               | D1 权威链接存储。                                                                              |
+| `KV`        | 必须               | 链接读取缓存和迁移兼容。                                                                       |
+| `ANALYTICS` | 推荐               | 写入访问分析事件。使用仪表盘访问分析时应启用，并使数据集与 `NUXT_DATASET` 一致。               |
+| `R2`        | 可选，备份功能推荐 | 存储快照。Workers Builds 可通过 `DEPLOY_R2_BUCKET_NAME` 生成此绑定；Pages 必须在仪表盘中添加。 |
+| `AI`        | 可选，AI 功能推荐  | Workers AI Slug 和元数据生成。                                                                 |
+| `ASSETS`    | 自动               | 静态应用资源；部署配置会自动提供。                                                             |
 
-## 身份认证与 Access
+## 必须配置
 
-| 变量                         | 默认值                | 说明                                                                                  |
-| ---------------------------- | --------------------- | ------------------------------------------------------------------------------------- |
-| `NUXT_SITE_TOKEN`            | 未设置时生成随机 UUID | 仪表盘与 API 的 Bearer Token。生产环境应配置至少 8 个字符的安全值，并避免可预测令牌。 |
-| `NUXT_CF_ACCESS_TEAM_DOMAIN` | 空                    | Access 团队域名，例如 `https://team.cloudflareaccess.com`。                           |
-| `NUXT_CF_ACCESS_AUD`         | 空                    | Access 应用 Audience 标签。仅当两项均配置时启用 Access 认证。                         |
+| 变量                     | 范围       | 放置位置                                        | 要求                                                                                                     |
+| ------------------------ | ---------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `NUXT_SITE_TOKEN`        | 运行时密钥 | 加密的 Worker 运行时密钥或加密的 Pages 统一密钥 | 必须显式设置高强度且稳定的值，用于仪表盘和 Bearer 身份认证。不要依赖随机回退值，它可能在每次构建时变化。 |
+| `DEPLOY_D1_DATABASE_ID`  | 构建       | Workers Builds 变量或 Pages 统一变量            | 用于生成部署配置的现有 D1 数据库 ID。                                                                    |
+| `DEPLOY_KV_NAMESPACE_ID` | 构建       | Workers Builds 变量或 Pages 统一变量            | 用作生产和预览绑定的现有 KV 命名空间 ID。                                                                |
 
-详见 [Cloudflare Access 身份认证](./cloudflare-access)。
+## 推荐配置
 
-## 重定向与链接
+| 变量                 | 范围       | 放置位置                                        | 用途                                                                  |
+| -------------------- | ---------- | ----------------------------------------------- | --------------------------------------------------------------------- |
+| `NUXT_CF_ACCOUNT_ID` | 运行时     | Worker 运行时变量或 Pages 统一变量              | 访问分析仪表盘查询的 Cloudflare 账户。                                |
+| `NUXT_CF_API_TOKEN`  | 运行时密钥 | 加密的 Worker 运行时密钥或加密的 Pages 统一密钥 | 与 `NUXT_CF_ACCOUNT_ID` 配合使用、具有 Account Analytics 权限的令牌。 |
 
-| 变量                        | 默认值  | 说明                                                                    |
-| --------------------------- | ------- | ----------------------------------------------------------------------- |
-| `NUXT_REDIRECT_STATUS_CODE` | `301`   | 重定向状态码，也支持 `302`、`307` 与 `308`。                            |
-| `NUXT_LINK_CACHE_TTL`       | `60`    | 短链接读取的 KV 缓存 TTL（秒）；更长的值可能延迟缓存更新。              |
-| `NUXT_REDIRECT_WITH_QUERY`  | `false` | 是否默认附加请求查询参数；单个链接可覆盖。                              |
-| `NUXT_REDIRECT_NO_STORE`    | `false` | 为重定向启用 no-store，使修改更快地在浏览器和 CDN 生效。                |
-| `NUXT_HOME_URL`             | 空      | 根页面的重定向目标；空值使用 Sink 介绍页。                              |
-| `NUXT_CASE_SENSITIVE`       | `false` | 为 `true` 时保留 Slug 大小写，否则统一转为小写。                        |
-| `NUXT_SAFE_BROWSING_DOH`    | 空      | 不安全域名检测的 DoH 地址；若域名解析到 `0.0.0.0`，链接会标记为不安全。 |
-| `NUXT_NOT_FOUND_REDIRECT`   | 空      | Slug 不存在时的可选目标；空值使用 Sink 404 页面。                       |
+同时推荐配置 `ANALYTICS` 绑定。使用[链接备份](/zh-CN/features/backups)时添加 `R2`，使用 [Workers AI](/zh-CN/features/ai)时添加 `AI`。
 
-安全浏览可以使用 Cloudflare Family DNS（`https://family.cloudflare-dns.com/dns-query`）或自定义 Cloudflare Zero Trust Gateway DoH 地址。
+## 构建 + 运行时公开覆盖值
 
-## 访问分析
+仅在覆盖默认值时配置这些变量。Workers 需要在 Workers Builds 和 Worker 运行时设置中配置相同值；Pages 只需在统一的 **Variables and Secrets** 中配置一次。每次修改后都需要重新构建。
 
-| 变量                          | 默认值  | 说明                                                      |
-| ----------------------------- | ------- | --------------------------------------------------------- |
-| `NUXT_CF_ACCOUNT_ID`          | 空      | 查询 Analytics Engine 的 Cloudflare 账户 ID。             |
-| `NUXT_CF_API_TOKEN`           | 空      | 具有 Account Analytics 权限的 API Token。                 |
-| `NUXT_DATASET`                | `sink`  | Analytics Engine 数据集，需与部署绑定保持一致。           |
-| `NUXT_LIST_QUERY_LIMIT`       | `500`   | 指标列表最大结果数。                                      |
-| `NUXT_DISABLE_BOT_ACCESS_LOG` | `false` | 为 `true` 时从访问统计和点击 Webhook 中排除已识别机器人。 |
+| 变量                              | 范围          | 放置位置                                    | 默认值 | 用途                                           |
+| --------------------------------- | ------------- | ------------------------------------------- | ------ | ---------------------------------------------- |
+| `NUXT_PUBLIC_PREVIEW_MODE`        | 构建 + 运行时 | Workers 构建与运行时变量，或 Pages 统一变量 | 空     | `true` 会启用预览模式。                        |
+| `NUXT_PUBLIC_SLUG_DEFAULT_LENGTH` | 构建 + 运行时 | Workers 构建与运行时变量，或 Pages 统一变量 | `6`    | 自动生成随机 Slug 时使用的长度。               |
+| `NUXT_PUBLIC_KV_BATCH_LIMIT`      | 构建 + 运行时 | Workers 构建与运行时变量，或 Pages 统一变量 | `50`   | 导出分页大小；每个导入请求最多接受该值的一半。 |
 
-## Workers AI
+## 可选配置
 
-| 变量                | 默认值                       | 说明                                                     |
-| ------------------- | ---------------------------- | -------------------------------------------------------- |
-| `NUXT_AI_MODEL`     | `@cf/qwen/qwen3-30b-a3b-fp8` | 用于生成 Slug 与 OpenGraph 数据的 Workers AI 模型。      |
-| `NUXT_AI_PROMPT`    | 内置提示词                   | 自定义 Slug 提示词，应保留 `{slugRegex}` 占位符。        |
-| `NUXT_AI_OG_PROMPT` | 内置提示词                   | 自定义 OpenGraph 标题与描述提示词；Sink 会附加首选语言。 |
+### 可选构建配置
 
-默认 Slug 提示词：
+#### Workers Builds 和 Pages
 
-```txt
-You are a URL shortening assistant, please shorten the URL provided by the user into a SLUG. The SLUG information should be derived from the URL and page content (if provided). Do not make any assumptions beyond the given information. A SLUG is human-readable and should not exceed three words and can be validated using regular expressions {slugRegex} . Only the best one is returned, the format must be JSON reference {"slug": "example-slug"}
-```
+| 变量            | 放置位置                             | 启用条件                                                |
+| --------------- | ------------------------------------ | ------------------------------------------------------- |
+| `NUXT_API_CORS` | Workers Builds 变量或 Pages 统一变量 | 值严格等于 `true` 时，为 `/api/**` 启用 CORS 路由规则。 |
 
-默认 OpenGraph 提示词：
+#### 仅 Workers Builds
 
-```txt
-You are an OpenGraph metadata assistant. Please summarize the page content provided by the user into a perfect title and description for an OpenGraph preview. Do not make any assumptions beyond the given information. Only the best one is returned, the format must be JSON reference {"title": "Example Title", "description": "Example description that summarizes the page accurately."}
-```
+| 变量                    | 放置位置          | 启用条件                                                                         |
+| ----------------------- | ----------------- | -------------------------------------------------------------------------------- |
+| `DEPLOY_R2_BUCKET_NAME` | 仅 Workers Builds | 设置为现有存储桶名称时，在生成的 Worker 配置中包含 `R2` 绑定。备份功能推荐配置。 |
 
-## 备份、Webhook 与 CORS
+Pages 不使用 `DEPLOY_R2_BUCKET_NAME`。请改为在 Cloudflare 仪表盘中为 Pages 项目添加 `R2` 绑定。
 
-| 变量                       | 默认值           | 说明                                                                                                     |
-| -------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------- |
-| `NUXT_DISABLE_AUTO_BACKUP` | `false`          | 为 `true` 时禁用每日 KV 到 R2 自动备份。备份在 UTC 00:00 运行，路径为 `backups/links-{timestamp}.json`。 |
-| `NUXT_WEBHOOK_URL`         | 空               | 接收尽力投递点击 Webhook 的 HTTP(S) 地址；空值禁用。                                                     |
-| `NUXT_WEBHOOK_SECRET`      | 空               | 可选的 `whsec_` 签名密钥，详见 [Webhook](./webhooks)。                                                   |
-| `NUXT_API_CORS`            | 构建时为 `false` | 构建时设为 `true` 可为 `/api/**` 启用 CORS。                                                             |
+### 可选运行时配置
 
-自动备份需要 `R2` 绑定。该功能用于 KV 数据兼容性备份；D1 仍是链接的权威存储。
+| 变量                         | 范围       | 放置位置                                        | 启用条件                                                           |
+| ---------------------------- | ---------- | ----------------------------------------------- | ------------------------------------------------------------------ |
+| `NUXT_HOME_URL`              | 运行时     | Worker 运行时变量或 Pages 统一变量              | 非空 URL 会重定向 `/`；空值提供 Sink 首页。                        |
+| `NUXT_NOT_FOUND_REDIRECT`    | 运行时     | Worker 运行时变量或 Pages 统一变量              | 非空路径或 URL 会接收缺失链接的重定向。                            |
+| `NUXT_CF_ACCESS_TEAM_DOMAIN` | 运行时     | Worker 运行时变量或 Pages 统一变量              | 它与 `NUXT_CF_ACCESS_AUD` 均已设置时启用 Cloudflare Access。       |
+| `NUXT_CF_ACCESS_AUD`         | 运行时     | Worker 运行时变量或 Pages 统一变量              | 它与团队域名均已设置时启用 Cloudflare Access。                     |
+| `NUXT_SAFE_BROWSING_DOH`     | 运行时     | Worker 运行时变量或 Pages 统一变量              | 非空 DNS-over-HTTPS URL 会在未提供 `unsafe` 时启用不安全域名检查。 |
+| `NUXT_WEBHOOK_URL`           | 运行时     | Worker 运行时变量或 Pages 统一变量              | 非空的 HTTP(S) URL 会启用点击事件投递。                            |
+| `NUXT_WEBHOOK_SECRET`        | 运行时密钥 | 加密的 Worker 运行时密钥或加密的 Pages 统一密钥 | 有效的 `whsec_` 值会为 Webhook 请求签名；空值发送未签名请求。      |
 
-## 部署设置
+安全浏览可以使用 Cloudflare Family DNS（`https://family.cloudflare-dns.com/dns-query`）或自定义 Cloudflare Zero Trust Gateway DoH 端点。详见 [Cloudflare Access](./cloudflare-access)、[链接功能](/zh-CN/features/links)和[点击 Webhook](./webhooks)。
 
-| 变量                       | 默认值         | 说明                          |
-| -------------------------- | -------------- | ----------------------------- |
-| `DEPLOY_D1_DATABASE_ID`    | CLI 部署时必填 | D1 数据库 ID。                |
-| `DEPLOY_KV_NAMESPACE_ID`   | CLI 部署时必填 | KV 命名空间 ID。              |
-| `DEPLOY_D1_DATABASE_NAME`  | `sink`         | D1 数据库名称。               |
-| `DEPLOY_R2_BUCKET_NAME`    | `sink`         | 已存在的 R2 存储桶名称。      |
-| `DEPLOY_ANALYTICS_DATASET` | `sink`         | Analytics Engine 数据集名称。 |
+## 高级默认值
+
+这些设置已有应用默认值，通常不需要配置。
+
+| 变量                          | 范围   | 放置位置                         | 默认值                       | 用途                                                              |
+| ----------------------------- | ------ | -------------------------------- | ---------------------------- | ----------------------------------------------------------------- |
+| `NUXT_REDIRECT_STATUS_CODE`   | 运行时 | Worker 运行时或 Pages 统一变量   | `301`                        | 普通重定向状态码；还支持 `302`、`307` 和 `308`。                  |
+| `NUXT_LINK_CACHE_TTL`         | 运行时 | Worker 运行时或 Pages 统一变量   | `60`                         | KV 读取缓存生命周期，单位为秒。                                   |
+| `NUXT_REDIRECT_WITH_QUERY`    | 运行时 | Worker 运行时或 Pages 统一变量   | `false`                      | 为 `true` 时全局转发传入的查询参数；单个链接可以覆盖。            |
+| `NUXT_REDIRECT_NO_STORE`      | 运行时 | Worker 运行时或 Pages 统一变量   | `false`                      | 为 `true` 时为普通重定向添加 no-store 行为。                      |
+| `NUXT_CASE_SENSITIVE`         | 运行时 | Worker 运行时或 Pages 统一变量   | `false`                      | 为 `true` 时保留自定义 Slug 大小写并允许只存在大小写差异的 Slug。 |
+| `NUXT_DATASET`                | 运行时 | Worker 运行时或 Pages 统一变量   | `sink`                       | 仪表盘查询的访问分析数据集；必须与 `ANALYTICS` 绑定一致。         |
+| `NUXT_LIST_QUERY_LIMIT`       | 运行时 | Worker 运行时或 Pages 统一变量   | `500`                        | 访问分析指标列表的最大结果数。                                    |
+| `NUXT_DISABLE_BOT_ACCESS_LOG` | 运行时 | Worker 运行时或 Pages 统一变量   | `false`                      | 为 `true` 时从访问分析和点击 Webhook 中排除识别到的机器人。       |
+| `NUXT_DISABLE_AUTO_BACKUP`    | 运行时 | Worker 运行时或 Pages 统一变量   | `false`                      | 为 `true` 时禁用计划 R2 快照。                                    |
+| `NUXT_AI_MODEL`               | 运行时 | Worker 运行时或 Pages 统一变量   | `@cf/qwen/qwen3-30b-a3b-fp8` | Workers AI 模型。                                                 |
+| `NUXT_AI_PROMPT`              | 运行时 | Worker 运行时或 Pages 统一变量   | 内置 Slug 提示词             | 自定义提示词必须保留 `{slugRegex}`。                              |
+| `NUXT_AI_OG_PROMPT`           | 运行时 | Worker 运行时或 Pages 统一变量   | 内置 OpenGraph 提示词        | 自定义元数据提示词；Sink 会附加请求的语言区域。                   |
+| `DEPLOY_D1_DATABASE_NAME`     | 构建   | Workers Builds 或 Pages 统一变量 | `sink`                       | 生成的 D1 数据库名称。                                            |
+| `DEPLOY_ANALYTICS_DATASET`    | 构建   | Workers Builds 或 Pages 统一变量 | `sink`                       | 生成的 Analytics Engine 数据集名称。                              |
+
+部署变量用于生成被忽略的 `wrangler.deploy.jsonc`，并非运行时应用设置。详见[访问分析与近实时视图](/zh-CN/features/analytics)和 [API](/zh-CN/api/)。

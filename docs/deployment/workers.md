@@ -1,38 +1,52 @@
 ---
-title: Deploy Sink on Cloudflare Workers
-description: Deploy Sink to Cloudflare Workers with D1, KV, R2, Analytics Engine, runtime variables, and automated migrations.
+title: Deploy on Cloudflare Workers
+description: Deploy Sink on Cloudflare Workers through Git integration.
 ---
 
-# Deploy Sink on Cloudflare Workers
+# Deploy on Cloudflare Workers
 
-1. [Fork the repository](https://github.com/miantiao-me/Sink/fork).
-2. Create a [KV namespace](https://developers.cloudflare.com/kv/) and copy its ID.
-3. Create D1 and copy its ID: `pnpm wrangler d1 create sink`.
-4. Create an [R2 bucket](https://developers.cloudflare.com/r2/) named `sink`, or run `pnpm wrangler r2 bucket create sink`. The deployment always includes `R2`; OpenGraph uploads and automatic compatibility backups depend on it.
-5. Create a [Cloudflare Workers](https://developers.cloudflare.com/workers/) project connected to the fork.
-6. Configure these commands:
-   - **Build command:** `pnpm build`
-   - **Deploy command:** `pnpm deploy:worker`
-7. Under **Workers Builds** → **Build variables and secrets**, configure:
-   - `DEPLOY_D1_DATABASE_ID` (**required**)
-   - `DEPLOY_KV_NAMESPACE_ID` (**required**, used for production and preview KV bindings)
-   - `DEPLOY_D1_DATABASE_NAME` (optional, default `sink`)
-   - `DEPLOY_R2_BUCKET_NAME` (optional, default `sink`; the bucket must exist)
-   - `DEPLOY_ANALYTICS_DATASET` (optional, default `sink`)
-   - `NUXT_API_CORS` (optional, build only)
-   - Each `NUXT_PUBLIC_*` value needed by the instance
+## 1. Fork Sink and prepare resources
 
-`DEPLOY_*` values are deployment-only. Do not add them as Worker runtime variables or edit tracked `wrangler.jsonc`. The deploy command creates gitignored `wrangler.deploy.jsonc`, applies pending D1 migrations, and publishes the Worker.
+Create a [fork of the Sink repository](https://github.com/miantiao-me/Sink/fork), then prepare these Cloudflare resources:
 
-8. Save and deploy.
-9. Under the Worker's **Settings** → **Variables and Secrets**, configure runtime values:
-   - Repeat all `NUXT_PUBLIC_*` build values.
-   - Set a strong `NUXT_SITE_TOKEN`; use at least eight characters and avoid predictable values such as digit-only tokens.
-   - Set `NUXT_CF_ACCOUNT_ID` and an `NUXT_CF_API_TOKEN` with at least Account Analytics permission.
-   - Add other runtime `NUXT_*` values as needed, including `NUXT_DATASET`, Access, and webhook settings.
-10. Enable Analytics Engine under **Workers & Pages** → **Account details** and keep `NUXT_DATASET` aligned with `DEPLOY_ANALYTICS_DATASET`.
-11. Redeploy the project.
+| Binding     | Status      | Purpose                                         |
+| ----------- | ----------- | ----------------------------------------------- |
+| `DB` (D1)   | Required    | Stores links and related data.                  |
+| `KV`        | Required    | Speeds up link redirects.                       |
+| `ANALYTICS` | Recommended | Records visits for analytics and logs.          |
+| `R2`        | Optional    | Recommended for backups and OpenGraph images.   |
+| `AI`        | Optional    | Recommended for AI-assisted slugs and metadata. |
 
-D1 is the authoritative link store. KV is a write-through read cache and a temporary legacy source before migration completion. For upgrades with existing KV links, use the [migration API](/api/#migration-and-utilities) after applying D1 migrations.
+For the complete Sink experience, enable all five resources.
 
-For optional dashboard protection, see [Cloudflare Access](/configuration/cloudflare-access). For event delivery details, see [Click Webhooks](/configuration/webhooks). To update a fork, follow GitHub's [syncing a fork](https://docs.github.com/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork) guide.
+## 2. Connect Workers Builds
+
+In the Cloudflare dashboard, create a Worker with Git integration and connect your fork. Use these settings:
+
+- **Production branch:** `master`
+- **Build command:** `pnpm build`
+- **Deploy command:** `pnpm deploy:worker`
+
+Add these build variables:
+
+| Variable                 | When to set                                |
+| ------------------------ | ------------------------------------------ |
+| `DEPLOY_D1_DATABASE_ID`  | Required. Use the ID of your D1 database.  |
+| `DEPLOY_KV_NAMESPACE_ID` | Required. Use the ID of your KV namespace. |
+| `DEPLOY_R2_BUCKET_NAME`  | Set when using R2. Use your bucket name.   |
+
+Workers Builds uses the deployment token generated automatically by Cloudflare when you connect the repository. No additional credentials are needed.
+
+## 3. Configure application settings
+
+Under **Settings → Variables and Secrets**, set a stable, strong `NUXT_SITE_TOKEN` as an encrypted runtime secret. Add any public or optional settings described in the [configuration reference](/configuration/).
+
+For dashboard analytics queries, configure `NUXT_CF_ACCOUNT_ID`, encrypted `NUXT_CF_API_TOKEN`, and `NUXT_DATASET` as described in [recommended configuration](/configuration/#recommended-configuration).
+
+Confirm that the enabled resources use the binding names `DB`, `KV`, `ANALYTICS`, `R2`, and `AI`.
+
+## 4. Deploy
+
+Start the Workers build and wait for Sink to be published.
+
+After the first deployment, open `/dashboard`, sign in, and create a link. For later releases, follow [Upgrading Sink](./upgrading).

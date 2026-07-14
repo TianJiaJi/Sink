@@ -37,31 +37,49 @@ export default defineConfig({
         nav: [
           { text: 'Guide', link: '/guide/getting-started' },
           { text: 'Deployment', link: '/deployment/workers' },
-          { text: 'Configuration', link: '/configuration/' },
+          { text: 'Features', link: '/features/links' },
+          { text: 'Operations', link: '/features/import-export' },
+          { text: 'Integrations', link: '/integrations/' },
           { text: 'API', link: '/api/' },
           { text: 'Website', link: 'https://sink.cool' },
         ],
         sidebar: {
           '/': [
             { text: 'Introduction', link: '/' },
-            { text: 'Guide', items: [{ text: 'Getting Started', link: '/guide/getting-started' }] },
+            { text: 'Guide', items: [
+              { text: 'Getting Started', link: '/guide/getting-started' },
+              { text: 'Architecture', link: '/guide/architecture' },
+            ] },
             { text: 'Deployment', items: [
               { text: 'Cloudflare Workers', link: '/deployment/workers' },
               { text: 'Cloudflare Pages', link: '/deployment/pages' },
+              { text: 'Upgrading Sink', link: '/deployment/upgrading' },
             ] },
             { text: 'Configuration', items: [
               { text: 'Environment Variables', link: '/configuration/' },
               { text: 'Cloudflare Access', link: '/configuration/cloudflare-access' },
               { text: 'Webhooks', link: '/configuration/webhooks' },
             ] },
+            { text: 'Features', items: [
+              { text: 'Links', link: '/features/links' },
+              { text: 'Analytics and Realtime', link: '/features/analytics' },
+              { text: 'Workers AI', link: '/features/ai' },
+            ] },
+            { text: 'Operations', items: [
+              { text: 'Import and Export', link: '/features/import-export' },
+              { text: 'Link Backups', link: '/features/backups' },
+            ] },
+            { text: 'Integrations', items: [
+              { text: 'Integrations', link: '/integrations/' },
+            ] },
             { text: 'Reference', items: [
               { text: 'API', link: '/api/' },
-              { text: 'FAQs', link: '/faqs' },
+              { text: 'Troubleshooting', link: '/faqs' },
             ] },
           ],
         },
         editLink: {
-          pattern: 'https://github.com/miantiao-me/Sink/edit/main/docs/:path',
+          pattern: 'https://github.com/miantiao-me/Sink/edit/master/docs/:path',
           text: 'Edit this page on GitHub',
         },
         socialLinks,
@@ -77,31 +95,49 @@ export default defineConfig({
         nav: [
           { text: '指南', link: '/zh-CN/guide/getting-started' },
           { text: '部署', link: '/zh-CN/deployment/workers' },
-          { text: '配置', link: '/zh-CN/configuration/' },
+          { text: '功能', link: '/zh-CN/features/links' },
+          { text: '运维', link: '/zh-CN/features/import-export' },
+          { text: '集成', link: '/zh-CN/integrations/' },
           { text: 'API', link: '/zh-CN/api/' },
           { text: '官网', link: 'https://sink.cool' },
         ],
         sidebar: {
           '/zh-CN/': [
             { text: '简介', link: '/zh-CN/' },
-            { text: '指南', items: [{ text: '快速开始', link: '/zh-CN/guide/getting-started' }] },
+            { text: '指南', items: [
+              { text: '快速开始', link: '/zh-CN/guide/getting-started' },
+              { text: '架构', link: '/zh-CN/guide/architecture' },
+            ] },
             { text: '部署', items: [
               { text: 'Cloudflare Workers', link: '/zh-CN/deployment/workers' },
               { text: 'Cloudflare Pages', link: '/zh-CN/deployment/pages' },
+              { text: '升级 Sink', link: '/zh-CN/deployment/upgrading' },
             ] },
             { text: '配置', items: [
               { text: '环境变量', link: '/zh-CN/configuration/' },
               { text: 'Cloudflare Access', link: '/zh-CN/configuration/cloudflare-access' },
               { text: 'Webhook', link: '/zh-CN/configuration/webhooks' },
             ] },
+            { text: '功能', items: [
+              { text: '链接', link: '/zh-CN/features/links' },
+              { text: '分析与实时视图', link: '/zh-CN/features/analytics' },
+              { text: 'Workers AI', link: '/zh-CN/features/ai' },
+            ] },
+            { text: '运维', items: [
+              { text: '导入与导出', link: '/zh-CN/features/import-export' },
+              { text: '链接备份', link: '/zh-CN/features/backups' },
+            ] },
+            { text: '集成', items: [
+              { text: '集成', link: '/zh-CN/integrations/' },
+            ] },
             { text: '参考', items: [
               { text: 'API', link: '/zh-CN/api/' },
-              { text: '常见问题', link: '/zh-CN/faqs' },
+              { text: '故障排除', link: '/zh-CN/faqs' },
             ] },
           ],
         },
         editLink: {
-          pattern: 'https://github.com/miantiao-me/Sink/edit/main/docs/:path',
+          pattern: 'https://github.com/miantiao-me/Sink/edit/master/docs/:path',
           text: '在 GitHub 上编辑此页',
         },
         lastUpdated: { text: '最后更新于' },
