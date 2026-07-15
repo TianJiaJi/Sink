@@ -15,7 +15,6 @@ const TWEET_IDS = [
   '1817702576629985685', // @HiTw93
   '1846465874389356916', // @luoleiorg
   '1796478331522781460', // @LuoSays
-  '1905626254931624281', // @DeBill_me
   '1930301401323975179', // @lakphy
   '1961700003459862799', // @wey_gu
   '1794746047136411723', // @morandotim
@@ -24,12 +23,7 @@ const TWEET_IDS = [
   '1893594908147270073', // @hellokaton
   '1857623546606080350', // @TooooooBug
   '1837864449732235602', // @geekbb
-  '1838352739098886414', // @interjc
-  '1838131110754038049', // @_istar__
   '1794162548776079701', // @miantiao_me
-  '1794314853634679109', // @fatwang2ai
-  '1794434955721990506', // @data10086
-  '1794448528523354317', // @HiFrey
   '1901619539869331519', // @GitHub_Daily
   '1941722268847177887', // @KaiyuanXie
   '1952949386348249504', // @taresky
@@ -39,7 +33,6 @@ const TWEET_IDS = [
   '2059979252578357733', // @iluciddreaming
   '1877194614806864242', // @frankwong0205
   '1888954153189380600', // @iBigQiang
-  '1893848135102832809', // @iBigQiang
   '2018655797006541184', // @wey_gu
 ]
 
@@ -69,6 +62,12 @@ async function fetchTweet(id) {
       .replace(/https:\/\/t\.co\/\w+/g, '')
       .replace(/\s+/g, ' ')
       .trim()
+
+    // Skip reply-style tweets that open with @mentions
+    if (cleanContent.startsWith('@')) {
+      console.warn(`Skipping @-prefixed tweet ${id}`)
+      return null
+    }
 
     return {
       id: tweet.id_str,
