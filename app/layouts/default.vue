@@ -96,9 +96,9 @@ function closeMobileMenu() {
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <NavigationMenuLink as-child>
-                      <NuxtLink to="/_docs/scalar">
+                      <a href="/_docs/scalar">
                         {{ $t('layouts.links.api_reference') }}
-                      </NuxtLink>
+                      </a>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
                 </NavigationMenuList>
@@ -182,8 +182,8 @@ function closeMobileMenu() {
                       {{ $t('layouts.links.documentation') }}
                       <ExternalLink class="size-3.5" aria-hidden="true" />
                     </a>
-                    <NuxtLink
-                      to="/_docs/scalar"
+                    <a
+                      href="/_docs/scalar"
                       class="
                         flex min-h-11 items-center rounded-xl px-3 text-sm
                         font-medium text-muted-foreground transition-colors
@@ -192,7 +192,7 @@ function closeMobileMenu() {
                       @click="closeMobileMenu"
                     >
                       {{ $t('layouts.links.api_reference') }}
-                    </NuxtLink>
+                    </a>
                   </nav>
 
                   <div class="mt-auto flex flex-col items-stretch gap-4">
@@ -245,103 +245,81 @@ function closeMobileMenu() {
             md:flex-row md:justify-between
           "
         >
-          <div
-            class="
-              flex flex-col items-center gap-4
-              md:flex-row md:gap-6
-            "
+          <NuxtLink
+            to="/"
+            :title="title"
+            :aria-label="$t('layouts.links.home_aria_label')"
+            class="block size-fit"
           >
-            <NuxtLink
-              to="/"
-              :title="title"
-              :aria-label="$t('layouts.links.home_aria_label')"
-              class="block size-fit"
-            >
-              <div class="flex items-center space-x-2">
-                <span
-                  class="flex size-8 items-center justify-center rounded-full"
+            <div class="flex items-center space-x-2">
+              <span
+                class="flex size-8 items-center justify-center rounded-full"
+              >
+                <img
+                  src="/sink.png"
+                  :alt="`${title} Logo`"
+                  width="32"
+                  height="32"
+                  class="size-full rounded-full"
                 >
-                  <img
-                    src="/sink.png"
-                    :alt="`${title} Logo`"
-                    width="32"
-                    height="32"
-                    class="size-full rounded-full"
-                  >
-                </span>
-                <span class="text-xl font-black">{{ title }}</span>
-              </div>
-            </NuxtLink>
+              </span>
+              <span class="text-xl font-black">{{ title }}</span>
+            </div>
+          </NuxtLink>
 
-            <small
-              class="
-                flex flex-wrap items-center justify-center gap-x-1 text-center
-                text-sm text-muted-foreground
-              "
+          <nav
+            :aria-label="$t('layouts.links.resources_aria_label')"
+            class="flex flex-wrap justify-center gap-2 text-sm"
+          >
+            <Button
+              v-if="twitter"
+              as-child
+              variant="ghost"
+              size="icon"
             >
-              &copy; {{ new Date().getFullYear() }}
               <a
-                href="https://html.zone"
+                :href="twitter"
                 target="_blank"
                 rel="noopener noreferrer"
-                title="HTML.ZONE"
-                class="hover:text-primary"
+                :title="$t('layouts.footer.social.twitter')"
+                :aria-label="$t('layouts.footer.social.twitter')"
               >
-                {{ $t('layouts.footer.copyright') }}
+                <XIcon aria-hidden="true" />
               </a>
-            </small>
-          </div>
-
-          <div class="flex flex-wrap justify-center gap-2 text-sm">
-            <a
-              v-if="twitter"
-              :href="twitter"
-              target="_blank"
-              rel="noopener noreferrer"
-              :title="$t('layouts.footer.social.twitter')"
-              aria-label="Twitter"
-              class="
-                flex size-11 items-center justify-center rounded-xl
-                text-muted-foreground
-                hover:bg-muted hover:text-primary
-                focus-visible:ring-2 focus-visible:ring-ring
-              "
-            >
-              <XIcon class="size-6" aria-hidden="true" />
-            </a>
-            <a
+            </Button>
+            <Button
               v-if="telegram"
-              :href="telegram"
-              target="_blank"
-              rel="noopener noreferrer"
-              :title="$t('layouts.footer.social.telegram')"
-              aria-label="Telegram"
-              class="
-                flex size-11 items-center justify-center rounded-xl
-                text-muted-foreground
-                hover:bg-muted hover:text-primary
-                focus-visible:ring-2 focus-visible:ring-ring
-              "
+              as-child
+              variant="ghost"
+              size="icon"
             >
-              <TelegramIcon class="size-6" aria-hidden="true" />
-            </a>
-            <a
+              <a
+                :href="telegram"
+                target="_blank"
+                rel="noopener noreferrer"
+                :title="$t('layouts.footer.social.telegram')"
+                :aria-label="$t('layouts.footer.social.telegram')"
+              >
+                <TelegramIcon aria-hidden="true" />
+              </a>
+            </Button>
+            <Button
               v-if="github"
-              :href="github"
-              target="_blank"
-              rel="noopener noreferrer"
-              :title="$t('layouts.footer.social.github')"
-              aria-label="GitHub"
-              class="
-                flex size-11 items-center justify-center rounded-xl
-                text-muted-foreground
-                hover:bg-muted hover:text-primary
-                focus-visible:ring-2 focus-visible:ring-ring
-              "
+              as-child
+              variant="ghost"
+              size="icon"
             >
-              <GitHubIcon class="size-6" aria-hidden="true" />
-            </a>
-          </div>
+              <a
+                :href="github"
+                target="_blank"
+                rel="noopener noreferrer"
+                :title="$t('layouts.footer.social.github')"
+                :aria-label="$t('layouts.footer.social.github')"
+              >
+                <GitHubIcon aria-hidden="true" />
+              </a>
+            </Button>
+          </nav>
         </div>
       </div>
     </footer>

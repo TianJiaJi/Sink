@@ -7,22 +7,23 @@ description: 通过同步 GitHub Fork 并重新部署来升级 Sink。
 
 ## 升级前
 
-1. 查看上游版本说明。
-2. 保留 Cloudflare 绑定、密钥和环境设置。
-3. 如果已配置 R2，可以先手动创建[链接快照](/zh-CN/features/backups)。
+1. 看一眼上游版本说明
+2. 不要删除 Cloudflare 绑定、密钥和环境变量
+3. 如果已配置 R2，可先手动[备份](/zh-CN/features/backups)
 
-## 升级 D1 部署
+## 普通升级（当前 D1 部署）
 
-1. 在 GitHub 中将你的 Fork 与上游 `master` 分支同步。如果自己的修改造成冲突，请先解决冲突。
-2. 通过 Workers Builds 或 Pages 重新部署更新后的 `master` 分支。
-3. 等待部署完成。
+1. 在 GitHub 打开你的 Fork → 点 **Sync fork** 同步最新 `master`。如果自己改过文件，先解决冲突
+2. 在 Cloudflare（Workers Builds 或 Pages）重新部署更新后的 `master`
+3. 等待部署完成（数据库更新会在部署过程中自动执行）
 
-## 升级旧版纯 KV 部署
+## 升级很旧的实例（链接只存在 KV 里）
 
-如果现有实例仅使用 KV 存储链接，请先在 Cloudflare 中保留原始 KV 数据，再按照独立的 [KV 到 D1 迁移指南](/zh-CN/storage/kv-to-d1)操作。
+如果旧版本只用 KV 存链接，请先保留该 KV 数据，再按[存储初始化 / 迁移](/zh-CN/storage/kv-to-d1)操作。
 
-## 验证
+## 升级后快速检查
 
-- 打开仪表盘并确认可以正常登录。
-- 创建、打开、编辑和删除一个测试链接。
-- 检查已启用的访问分析和其他可选功能。
+- 能登录仪表盘
+- 打开一次 **Dashboard → Links**（如需会完成存储初始化）
+- 创建、打开、编辑、删除一个测试链接
+- 若用了访问分析，确认能看到数据

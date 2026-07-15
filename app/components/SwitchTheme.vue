@@ -29,21 +29,18 @@ const colorMode = useColorMode()
       align="end"
     >
       <DropdownMenuItem
-        class="cursor-pointer"
         @click="colorMode.preference = 'light'"
       >
         <Sun aria-hidden="true" class="mr-1 size-4" />
         {{ $t('theme.light') }}
       </DropdownMenuItem>
       <DropdownMenuItem
-        class="cursor-pointer"
         @click="colorMode.preference = 'dark'"
       >
         <Moon aria-hidden="true" class="mr-1 size-4" />
         {{ $t('theme.dark') }}
       </DropdownMenuItem>
       <DropdownMenuItem
-        class="cursor-pointer"
         @click="colorMode.preference = 'system'"
       >
         <Laptop aria-hidden="true" class="mr-1 size-4" />

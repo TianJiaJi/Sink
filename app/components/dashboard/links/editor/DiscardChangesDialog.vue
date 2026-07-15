@@ -26,12 +26,7 @@ function updateOpen(value: boolean) {
 
 <template>
   <AlertDialog :open="open" @update:open="updateOpen">
-    <AlertDialogContent
-      class="
-        max-w-[95svw]
-        md:max-w-lg
-      "
-    >
+    <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>{{ $t('links.dialogs.discard.title') }}</AlertDialogTitle>
         <AlertDialogDescription>

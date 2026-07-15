@@ -191,7 +191,11 @@ export function writeAccessLog(event: H3Event, accessLogs: LogsMap): void {
   const link = event.context.link || {}
 
   if (process.env.NODE_ENV === 'production') {
-    cloudflare.env.ANALYTICS.writeDataPoint({
+    const analytics = cloudflare.env.ANALYTICS
+    if (!analytics)
+      return
+
+    analytics.writeDataPoint({
       indexes: [link.id], // only one index
       blobs: logs2blobs(accessLogs),
       doubles: logs2doubles(accessLogs),

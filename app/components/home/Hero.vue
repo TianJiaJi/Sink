@@ -33,9 +33,8 @@ const { title, description, github, twitter } = useAppConfig()
             rel="noopener"
             :title="$t('home.twitter.follow')"
             class="
-              mx-auto mb-8 inline-flex min-h-11 w-fit items-center gap-2
-              rounded-full border bg-card p-1 pr-3 text-card-foreground
-              transition-colors
+              mx-auto mb-8 inline-flex w-fit items-center gap-2 rounded-full
+              border bg-card p-1 pr-3 text-card-foreground transition-colors
               hover:bg-accent hover:text-accent-foreground
               focus-visible:ring-2 focus-visible:ring-ring
               lg:mx-0
@@ -43,8 +42,8 @@ const { title, description, github, twitter } = useAppConfig()
           >
             <span
               class="
-                flex items-center gap-1.5 rounded-full bg-muted px-2 py-1
-                text-xs
+                flex size-7 items-center justify-center rounded-full bg-primary
+                text-xs text-primary-foreground
               "
             >
               <XIcon aria-hidden="true" class="size-3" />
@@ -77,10 +76,7 @@ const { title, description, github, twitter } = useAppConfig()
             <Button
               as-child
               size="lg"
-              class="
-                min-h-11 px-5 text-base
-                sm:min-h-10
-              "
+              class="px-5 text-base"
             >
               <NuxtLink to="/dashboard">
                 <span class="text-nowrap">{{ $t('dashboard.title') }}</span>
@@ -90,10 +86,7 @@ const { title, description, github, twitter } = useAppConfig()
               as-child
               size="lg"
               variant="ghost"
-              class="
-                min-h-11 px-5 text-base
-                sm:min-h-10
-              "
+              class="px-5 text-base"
             >
               <a
                 :href="github"

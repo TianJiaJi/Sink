@@ -1,7 +1,6 @@
 {
   "layouts": {
     "footer": {
-      "copyright": "產品來自 HTML.ZONE",
       "social": {
         "email": "信箱",
         "telegram": "Telegram",
@@ -40,6 +39,7 @@
     "export": "匯出",
     "coffee": "請我喝杯咖啡",
     "github": "GitHub",
+    "releases": "版本發佈",
     "stars": "Stars",
     "update": "新版本 {version} 可用（當前: {current}）"
   }

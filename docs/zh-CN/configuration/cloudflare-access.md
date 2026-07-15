@@ -1,44 +1,109 @@
 ---
 title: Cloudflare Access 身份认证
-description: 为 Sink 仪表盘启用 Cloudflare Access 身份认证，同时保留公开链接和受支持的 API 客户端。
+description: 为 Sink 仪表盘启用可选的 Zero Trust 登录，同时保持短链接公开、API 客户端可用。
 ---
 
 # Cloudflare Access 身份认证
 
-Cloudflare Access 是可选功能。配置后，Sink 会接受有效的站点令牌 Bearer 凭据或有效的 Access 应用 JWT 进行 API 身份认证。Sink 会验证 JWT 的签名、签发者、受众和过期时间，绝不会仅凭 Cookie 或 Header 的存在就信任它们。
+Cloudflare Access 是**可选**功能。适合希望用公司身份（Google、邮箱 OTP、SSO 等）登录仪表盘，而不是只靠分享 `NUXT_SITE_TOKEN` 的场景。
 
-## 兼容性优先配置
+无论是否启用 Access，短链接都保持公开。Access 只影响谁能打开仪表盘、谁能调用 API。
 
-1. 为 Sink 域名创建 Cloudflare Access 自托管应用。
-2. 保护 `/dashboard` 及其子路由。
-3. 将 `/api` 排除在 Access 代理策略之外，以便使用站点令牌的客户端仍可访问 Sink 身份认证。
-4. 保持 Access 的 **Cookie Path** 设置处于禁用状态，使已签名的应用 Cookie 能够到达 `/api`。
-5. 设置 `NUXT_CF_ACCESS_TEAM_DOMAIN` 和 `NUXT_CF_ACCESS_AUD`，然后重新部署。启用规则详见[配置参考](./)。
+## 启用后会发生什么
 
-最小配置：
+| 路径 | 未启用 Access | 推荐的 Access 配置 |
+| ---- | ------------- | ------------------ |
+| 短链接（`/abc`） | 公开 | 仍然公开 |
+| 仪表盘（`/dashboard`） | 知道站点令牌即可 | 先通过 Cloudflare Access，再使用仪表盘 |
+| API（`/api/**`） | 站点令牌（`Bearer …`） | 站点令牌 **或** 有效的 Access 登录（浏览器 Cookie / JWT） |
+| API 文档（`/_docs`） | 在你的域名上公开 | 仍公开；若不想公开，需在 Access 中单独保护 |
+
+Sink **不会**因为「有 Cookie」就放行。它会校验 Access **JWT** — 可以把它想成一张有时效的电子通行证（会检查签名、签发者、受众和过期时间）。
+
+## 推荐配置（大多数人用这个）
+
+目标：用 Access 保护仪表盘，短链接保持公开，脚本/扩展仍可用站点令牌调用 `/api`。
+
+### 1. 创建 Access 应用
+
+在 Cloudflare Zero Trust 中，为 Sink 域名（例如 `links.example.com`）创建一个 **Self-hosted** Access 应用。
+
+### 2. 选择 Access 保护哪些路径
+
+在 Access 应用的路径规则中：
+
+| 路径 | 是否用 Access 保护 | 原因 |
+| ---- | ------------------ | ---- |
+| `/dashboard` 及其子路径 | **是** | 管理后台 |
+| `/api` | **否**（推荐） | 让脚本、扩展仍可用站点令牌调 API，不必再过 Access |
+| 短链接路径 | **否** | 访客必须能直接打开短链 |
+| `/_docs` | 可选 | 只有不想公开 OpenAPI 时才保护 |
+
+### 3. 不要限制 Cookie Path
+
+在 Access 应用设置中，保持 **Cookie Path** 为空/未限制，这样浏览器从仪表盘调用 `/api` 时，已签名的 Access Cookie 才能带上。
+
+如果 Cookie Path 只限 `/dashboard`，可能出现：仪表盘能打开，但 API 一直 401。
+
+### 4. 配置 Sink 环境变量
+
+两个值都要填。**同时设置**后才会启用 Access：
 
 ```ini
-NUXT_CF_ACCESS_TEAM_DOMAIN=https://team.cloudflareaccess.com
-NUXT_CF_ACCESS_AUD=your-application-aud-tag
+NUXT_CF_ACCESS_TEAM_DOMAIN=https://your-team.cloudflareaccess.com
+NUXT_CF_ACCESS_AUD=paste-application-aud-here
 ```
 
-将 `team` 替换为你的 Access 团队名称。Team Domain 必须使用上述不含路径的源格式。从 Access 应用中复制 AUD 值。
+| 变量 | 从哪里拿 |
+| ---- | -------- |
+| `NUXT_CF_ACCESS_TEAM_DOMAIN` | Zero Trust 团队域名。用完整源地址、不要带路径：`https://<team>.cloudflareaccess.com` |
+| `NUXT_CF_ACCESS_AUD` | Access 应用 → **Application Audience (AUD) Tag** |
 
-短链接保持公开。API 操作仍由 Sink 进行身份认证。如果自动生成的 OpenAPI 文档不能公开，请在边缘单独保护 `/_docs`。
+设置后重新部署。
 
-## 安全模型
+### 5. 仍然保留高强度站点令牌
 
-在兼容性优先模式下，Sink 会在本地验证已签名的 JWT。已撤销的 Access 会话在该 JWT 过期前可能仍然可用，因此应选择合适的 Access 会话时长。
+启用 Access 后，仍要设置高强度的 `NUXT_SITE_TOKEN`：
 
-通过 Access 认证的浏览器请求在执行状态变更方法时会接受来源检查。非浏览器客户端通常应使用站点令牌。被接受的 Access 服务令牌会映射到 Sink 的 `root` 身份，因此 Access 策略中应只允许明确受信任的服务令牌。
+- API 客户端和集成仍会用它
+- 它是备用管理凭据
+- 任何能打到这个 Worker/Pages 的域名，只要边缘没拦，仍可能接受站点令牌
 
-保护路由到该部署的每个域名。只保护一个仪表盘域名，并不能保护另一个使用弱站点令牌公开同一应用的域名。
+## 人和工具分别怎么登录
 
-## 严格边缘强制
+```txt
+浏览器 → Access 登录页 → 仪表盘
+         ↘ Access Cookie/JWT → Sink 校验通过 → /api 可用
 
-你可以同时使用 Access 保护 `/dashboard` 和 `/api`。这样，边缘会在请求到达 Sink 前将其拦截。仅使用站点令牌的客户端无法访问该域名，除非它们也通过 Access；必要时请使用单独的 API 域名。
+脚本/扩展 → Authorization: Bearer <NUXT_SITE_TOKEN> → /api 可用
+```
 
-启用 Access 身份认证时，仪表盘注销会使用 `/cdn-cgi/access/logout`。
+- **人（浏览器）：** 先过 Access，再正常使用仪表盘。退出登录走 Cloudflare（`/cdn-cgi/access/logout`）。
+- **工具（API）：** 发送 `Authorization: Bearer YOUR_SITE_TOKEN`。自动化优先用这种方式。
+- **Access 服务令牌：** 若 Access 策略允许，Sink 会把它当作完整管理员（`root`）。只允许受信任的服务令牌。
+
+## 更严格的选项：连 `/api` 也保护
+
+你也可以把 **`/dashboard` 和 `/api` 都**放进 Access。
+
+这样未通过 Access 的请求会在 Cloudflare 边缘被拦下，到不了 Sink。只带站点令牌、不过 Access 的客户端，将无法调用该域名。
+
+如果既要：
+
+- 人用 Access 登录仪表盘，又要
+- 自动化只靠 Bearer 令牌、不过 Access，
+
+请用上面的推荐配置，或给自动化单独准备一个不走 Access 的域名。
+
+## 重要限制
+
+::: warning 保护每一个域名
+如果 `app.example.com` 开了 Access，但 `old.example.com` 也指向同一套 Sink 且没开 Access，旧域名的安全性仍只取决于 `NUXT_SITE_TOKEN`。所有能访问应用的域名都要保护。
+:::
+
+::: tip 会话时长仍然重要
+Sink 在本地校验 JWT。你在 Access 里撤销会话后，旧 JWT 在过期前仍可能可用。请按风险选择合适的 Access 会话时长。
+:::
 
 ## Cloudflare 参考资料
 

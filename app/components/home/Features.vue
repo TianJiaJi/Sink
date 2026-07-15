@@ -102,7 +102,7 @@ const features = computed(() => [
         <Card
           v-for="item in features"
           :key="item.title"
-          class="h-full rounded-2xl"
+          class="h-full"
         >
           <CardContent class="space-y-3">
             <div class="flex items-center gap-2">

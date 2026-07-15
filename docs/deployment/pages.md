@@ -7,48 +7,65 @@ description: Deploy Sink on Cloudflare Pages through Git integration and dashboa
 
 ## 1. Create the Pages project
 
-Create a [fork of the Sink repository](https://github.com/miantiao-me/Sink/fork). In the Cloudflare dashboard, create a Pages application, import the fork, and configure:
+Create a [fork of the Sink repository](https://github.com/miantiao-me/Sink/fork). In the Cloudflare dashboard, create a **Pages** project, import the fork, and set:
 
 - **Production branch:** `master`
 - **Framework preset:** Nuxt
 - **Build command:** `pnpm build`
 - **Build output directory:** `dist`
 
-Create the project so its settings become available. If an initial deployment starts before configuration is complete, cancel it.
+Create the project so settings become available.
 
-## 2. Prepare resources and bindings
+::: tip Cancel the first auto-deploy if needed
+If a deploy starts before you finish bindings and variables, open the deployment list, click **Cancel**, finish setup, then deploy again.
+:::
 
-Create the resources you want to use, then add them under **Settings → Bindings**:
+## 2. Create resources and bind them
 
-| Binding     | Status      | Purpose                                         |
-| ----------- | ----------- | ----------------------------------------------- |
-| `DB` (D1)   | Required    | Stores links and related data.                  |
-| `KV`        | Required    | Speeds up link redirects.                       |
-| `ANALYTICS` | Recommended | Records visits for analytics and logs.          |
-| `R2`        | Optional    | Recommended for backups and OpenGraph images.   |
-| `AI`        | Optional    | Recommended for AI-assisted slugs and metadata. |
+Create the Cloudflare resources you need, then open the Pages project → **Settings → Bindings** and add them. Binding = connect a resource to Sink under a fixed name.
 
-For the complete Sink experience, enable all five resources. Add the `nodejs_compat` compatibility flag to both production and preview environments.
+| Binding name | Product | Required? | What it is |
+| ------------ | ------- | --------- | ---------- |
+| `DB` | D1 | Yes | Stores links |
+| `KV` | KV | Yes | Speeds up redirects |
+| `ANALYTICS` | Analytics Engine | Recommended | Visit stats |
+| `R2` | R2 | Optional | Backups and social images |
+| `AI` | Workers AI | Optional | AI suggestions |
 
-## 3. Configure variables and secrets
+Analytics is optional. Setup: [Analytics and Realtime](/features/analytics).
 
-Under **Settings → Variables and Secrets**, add the following values. Pages makes this single set available to both the build and Functions runtime.
+::: warning Required compatibility flag
+Under **Settings → Functions → Compatibility Flags**, add `nodejs_compat` for both **Production** and **Preview**. Sink needs this flag to run on Pages.
+:::
 
-| Variable                 | Status      | Type             | Value or purpose                                                    |
-| ------------------------ | ----------- | ---------------- | ------------------------------------------------------------------- |
-| `DEPLOY_D1_DATABASE_ID`  | Required    | Variable         | Your D1 database ID.                                                |
-| `DEPLOY_KV_NAMESPACE_ID` | Required    | Variable         | Your KV namespace ID.                                               |
-| `NUXT_SITE_TOKEN`        | Required    | Encrypted secret | A strong, stable token for dashboard and Bearer authentication.     |
-| `NUXT_CF_ACCOUNT_ID`     | Recommended | Variable         | Your Cloudflare account ID, used by dashboard analytics.            |
-| `NUXT_CF_API_TOKEN`      | Recommended | Encrypted secret | An API token with Account Analytics access.                         |
-| `NUXT_PUBLIC_*`          | Optional    | Variable         | Configure only when overriding a default; rebuild after any change. |
+## 3. Variables and secrets
 
-See the [configuration reference](/configuration/) for optional settings. Configure R2 only through **Settings → Bindings**.
+Under **Settings → Variables and Secrets**, add:
 
-## 4. Deploy
+| Variable | Type | What to put |
+| -------- | ---- | ----------- |
+| `DEPLOY_D1_DATABASE_ID` | Variable | D1 database ID (from the D1 detail page) |
+| `DEPLOY_KV_NAMESPACE_ID` | Variable | KV namespace ID (from the KV detail page) |
+| `NUXT_SITE_TOKEN` | Encrypted secret | Dashboard login password and API password (strong, stable, ≥ 8 chars) |
+| `NUXT_CF_ACCOUNT_ID` | Variable | Cloudflare account ID (for analytics) |
+| `NUXT_CF_API_TOKEN` | Encrypted secret | Custom Token with **Account → Account Analytics → Read** only |
 
-Start a deployment from the `master` branch and wait for it to finish.
+How to create the analytics token: Cloudflare dashboard → profile icon → **My Profile** → **API Tokens** → **Create Token** → **Custom Token** → permission **Account → Account Analytics → Read**.
 
-After the first deployment, open `/dashboard`, sign in, and create a link.
+Pages uses one variable set for both build and runtime. Add R2 only under **Bindings**. More options: [configuration](/configuration/).
 
-Pages supports manual [R2 link snapshots](/features/backups), but this repository does not configure a Pages scheduled trigger.
+On successful `master` builds, Pages also updates the D1 database schema automatically.
+
+## 4. Deploy and first use
+
+Start a deployment from `master` and wait until it finishes.
+
+1. Open `/dashboard` and sign in with `NUXT_SITE_TOKEN`
+2. Open **Dashboard → Links** once (one-time storage setup)
+3. Create a link
+
+::: tip First open of Links
+Until storage setup finishes, creating links may fail with “storage not ready” (HTTP 423).
+:::
+
+Manual [backups](/features/backups) work on Pages; automatic daily backups are configured for Workers only in this repo.

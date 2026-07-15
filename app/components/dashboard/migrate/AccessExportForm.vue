@@ -106,13 +106,7 @@ function updateCustomDateRange(value: DateRange) {
             {{ $t('migrate.access_export.date_range') }}
           </FieldLabel>
           <Select :model-value="currentDatePreset" @update:model-value="onPresetChange">
-            <SelectTrigger
-              id="access-export-date-range"
-              class="
-                min-h-11
-                lg:min-h-9
-              "
-            >
+            <SelectTrigger id="access-export-date-range">
               <SelectValue v-if="currentDatePreset" />
               <div v-else>
                 {{ dateRangeLabel }}
@@ -175,10 +169,6 @@ function updateCustomDateRange(value: DateRange) {
 
     <Button
       type="submit"
-      class="
-        min-h-11
-        lg:min-h-9
-      "
       :disabled="isExporting"
       :aria-busy="isExporting"
     >

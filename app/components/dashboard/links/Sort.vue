@@ -12,10 +12,6 @@ const linksStore = useDashboardLinksStore()
           <DropdownMenuTrigger as-child>
             <Button
               variant="outline"
-              class="
-                min-h-11
-                lg:min-h-9
-              "
               :aria-label="$t(`links.sort.${linksStore.sortBy}`)"
             >
               <ArrowUpDown

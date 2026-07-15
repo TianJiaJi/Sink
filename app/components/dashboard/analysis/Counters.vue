@@ -56,10 +56,7 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
       <Button
         type="button"
         variant="link"
-        class="
-          h-11 px-3 text-destructive
-          lg:h-auto lg:min-h-0 lg:p-0
-        "
+        class="h-auto p-0 text-destructive"
         @click="retryKey++"
       >
         {{ $t('common.try_again') }}
@@ -77,7 +74,7 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
   >
     <Card class="gap-0">
       <CardHeader
-        class="flex flex-row items-center justify-between space-y-0 pb-2"
+        class="flex flex-row items-center justify-between pb-2"
       >
         <CardTitle class="text-sm font-medium">
           <h2>{{ $t('dashboard.visits') }}</h2>
@@ -93,7 +90,7 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
     </Card>
     <Card class="gap-0">
       <CardHeader
-        class="flex flex-row items-center justify-between space-y-0 pb-2"
+        class="flex flex-row items-center justify-between pb-2"
       >
         <CardTitle class="text-sm font-medium">
           <h2>{{ $t('dashboard.visitors') }}</h2>
@@ -107,7 +104,7 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
     </Card>
     <Card class="gap-0">
       <CardHeader
-        class="flex flex-row items-center justify-between space-y-0 pb-2"
+        class="flex flex-row items-center justify-between pb-2"
       >
         <CardTitle class="text-sm font-medium">
           <h2>{{ $t('dashboard.referers') }}</h2>

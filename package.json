@@ -26,7 +26,7 @@
     "lint-staged": "lint-staged",
     "types:check": "nuxt typecheck",
     "wrangler": "wrangler",
-    "gen:types": "wrangler types",
+    "gen:types": "wrangler types --env-file .env.example",
     "deploy:config": "node scripts/cloudflare-deploy-config.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply sink --local",

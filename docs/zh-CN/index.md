@@ -1,12 +1,12 @@
 ---
 layout: home
 title: Sink 文档
-description: 部署、配置、运维和集成 Sink——一款面向 Cloudflare 的自托管短链接与访问分析平台。
+description: A Simple / Speedy / Secure Link Shortener with Analytics, 100% run on Cloudflare.
 
 hero:
   name: Sink
-  text: Cloudflare 上的自托管短链接服务
-  tagline: 使用 D1 权威存储、KV 缓存、访问分析、路由和可选的 Workers AI 管理短链接。
+  text: 简洁 / 快速 / 安全
+  tagline: A Simple / Speedy / Secure Link Shortener with Analytics, 100% run on Cloudflare.
   actions:
     - theme: brand
       text: 快速开始
@@ -19,13 +19,13 @@ hero:
       link: /zh-CN/api/
 
 features:
-  - title: Cloudflare 原生
+  - title: 跑在 Cloudflare 上
     icon: ☁️
-    details: 使用必须的 D1 和 KV、推荐的 Analytics Engine，以及可选的 R2 和 Workers AI 部署到 Workers 或 Pages。
+    details: 可部署到 Workers 或 Pages。需要数据库（D1）和快速缓存（KV）；访问分析、文件存储和 AI 为可选。
   - title: 链接管理
     icon: 🔗
-    details: 按需添加过期时间、密码、警告、元数据、标签以及设备或地域路由。
+    details: 按需添加过期时间、密码、警告、标签，以及按设备或国家/地区跳转。
   - title: 访问分析
     icon: 📊
-    details: 通过仪表盘报表、日志、筛选条件和近实时视图了解访问情况。
+    details: 在仪表盘查看报表、日志、筛选和近实时视图。
 ---

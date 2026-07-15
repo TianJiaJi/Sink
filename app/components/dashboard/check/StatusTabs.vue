@@ -35,36 +35,23 @@ const statusItems = computed(() => {
 
 <template>
   <Tabs v-model="selected" class="w-full">
-    <TabsList
-      class="h-auto max-w-full justify-start overflow-x-auto p-1"
-    >
-      <TabsTrigger
-        value="abnormal" class="
-          min-h-11 shrink-0
-          sm:min-h-8
-        "
-      >
-        {{ $t('check.tabs.abnormal', { count: abnormalCount }) }}
-      </TabsTrigger>
-      <TabsTrigger
-        v-for="item in statusItems"
-        :key="item.value"
-        :value="item.value"
-        class="
-          min-h-11 shrink-0
-          sm:min-h-8
-        "
-      >
-        {{ $t('check.tabs.status', { status: item.status, count: item.count }) }}
-      </TabsTrigger>
-      <TabsTrigger
-        value="all" class="
-          min-h-11 shrink-0
-          sm:min-h-8
-        "
-      >
-        {{ $t('check.tabs.all', { count: results.length }) }}
-      </TabsTrigger>
-    </TabsList>
+    <div class="max-w-full overflow-x-auto p-1">
+      <TabsList class="min-w-max justify-start">
+        <TabsTrigger value="abnormal" class="shrink-0">
+          {{ $t('check.tabs.abnormal', { count: abnormalCount }) }}
+        </TabsTrigger>
+        <TabsTrigger
+          v-for="item in statusItems"
+          :key="item.value"
+          :value="item.value"
+          class="shrink-0"
+        >
+          {{ $t('check.tabs.status', { status: item.status, count: item.count }) }}
+        </TabsTrigger>
+        <TabsTrigger value="all" class="shrink-0">
+          {{ $t('check.tabs.all', { count: results.length }) }}
+        </TabsTrigger>
+      </TabsList>
+    </div>
   </Tabs>
 </template>

@@ -136,12 +136,7 @@ function handleCloseAutoFocus(event: Event) {
   >
     <template v-if="!isEdit" #trigger>
       <slot>
-        <Button
-          class="
-            min-h-11
-            lg:min-h-9
-          "
-        >
+        <Button>
           {{ $t('links.create') }}
         </Button>
       </slot>
@@ -162,8 +157,8 @@ function handleCloseAutoFocus(event: Event) {
         type="button"
         variant="secondary"
         class="
-          min-h-11 flex-1
-          sm:min-h-9 sm:flex-none
+          flex-1
+          sm:flex-none
         "
         :disabled="isSubmitting"
         @click="handleClose"
@@ -176,8 +171,8 @@ function handleCloseAutoFocus(event: Event) {
         :disabled="isSubmitting || (isEdit && !isDirty)"
         :aria-busy="isSubmitting"
         class="
-          min-h-11 flex-1
-          sm:min-h-9 sm:flex-none
+          flex-1
+          sm:flex-none
         "
       >
         <Loader2 v-if="isSubmitting" class="motion-safe:animate-spin" aria-hidden="true" />

@@ -79,10 +79,7 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
         <Button
           type="button"
           variant="link"
-          class="
-            h-11 px-3 text-destructive
-            lg:h-auto lg:min-h-0 lg:p-0
-          "
+          class="h-auto p-0 text-destructive"
           @click="retryKey++"
         >
           {{ $t('common.try_again') }}

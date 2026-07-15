@@ -36,10 +36,7 @@ watch(() => route.path, () => {
           as-child
           :tooltip="t(item.title)"
           :data-active="item.isActive"
-          class="
-            min-h-11
-            focus-visible:ring-3 focus-visible:ring-sidebar-ring/50
-          "
+          class="data-active:rounded-4xl"
         >
           <NuxtLink :to="item.url">
             <component :is="item.icon" aria-hidden="true" />
@@ -58,10 +55,7 @@ watch(() => route.path, () => {
           as-child
           :tooltip="t(item.title)"
           :data-active="item.isActive"
-          class="
-            min-h-11
-            focus-visible:ring-3 focus-visible:ring-sidebar-ring/50
-          "
+          class="data-active:rounded-4xl"
         >
           <NuxtLink :to="item.url">
             <component :is="item.icon" aria-hidden="true" />

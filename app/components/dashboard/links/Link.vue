@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from 'vue'
 import type { DashboardLink } from '@/types/dashboard-links'
-import { CalendarPlus2, Copy, CopyCheck, Eraser, Flame, Hourglass, Link as LinkIcon, MousePointerClick, QrCode, ShieldAlert, SquareChevronDown, SquarePen, Users } from '@lucide/vue'
-import { useClipboard } from '@vueuse/core'
+import { CalendarPlus2, Copy, CopyCheck, Ellipsis, Eraser, Flame, Hourglass, Link as LinkIcon, MousePointerClick, QrCode, ShieldAlert, SquarePen, Users } from '@lucide/vue'
+import { useClipboard, useMediaQuery } from '@vueuse/core'
 import { parseURL } from 'ufo'
 import { toast } from 'vue-sonner'
 
@@ -12,9 +12,16 @@ const props = defineProps<{
 
 const { t, locale } = useI18n()
 const editPopoverOpen = shallowRef(false)
+const qrDialogOpen = shallowRef(false)
 const editDialogOpen = shallowRef(false)
 const deleteDialogOpen = shallowRef(false)
 const actionsTriggerRef = useTemplateRef<ComponentPublicInstance>('actionsTrigger')
+const isDesktop = useMediaQuery('(min-width: 640px)')
+
+function openQrDialog() {
+  qrDialogOpen.value = true
+  editPopoverOpen.value = false
+}
 
 function openEditDialog() {
   editDialogOpen.value = true
@@ -27,7 +34,7 @@ function openDeleteDialog() {
 }
 
 function handlePopoverCloseAutoFocus(event: Event) {
-  if (editDialogOpen.value || deleteDialogOpen.value)
+  if (qrDialogOpen.value || editDialogOpen.value || deleteDialogOpen.value)
     event.preventDefault()
 }
 
@@ -42,13 +49,13 @@ function handleDialogCloseAutoFocus(event: Event) {
 
     const fallback = document.querySelector('[data-link-actions-trigger]')
     if (fallback instanceof HTMLElement && fallback.isConnected) {
-      fallback.focus({ preventScroll: true })
+      fallback.focus()
       return
     }
 
     const searchTrigger = document.querySelector('[data-link-search-trigger]')
     if (searchTrigger instanceof HTMLElement && searchTrigger.isConnected)
-      searchTrigger.focus({ preventScroll: true })
+      searchTrigger.focus()
   })
 }
 
@@ -85,20 +92,15 @@ function copyLink() {
 </script>
 
 <template>
-  <Card class="relative isolate h-full min-w-0">
+  <Card size="sm" class="relative isolate h-full min-w-0">
     <CardContent
       class="flex h-full min-w-0 flex-1 flex-col gap-3"
     >
       <div
-        class="
-          flex min-w-0 flex-col gap-2
-          sm:flex-row sm:items-start
-        "
+        class="flex min-w-0 items-start gap-2"
       >
         <div
-          class="
-            group flex w-full min-w-0 flex-1 cursor-pointer items-center gap-3
-          "
+          class="group flex min-w-0 flex-1 cursor-pointer items-center gap-3"
         >
           <Avatar>
             <AvatarImage
@@ -132,7 +134,13 @@ function copyLink() {
                       "
                       :to="getDashboardLinkDetailLocation(link.slug)"
                     >
-                      {{ host }}/{{ link.slug }}
+                      <span class="sm:hidden">{{ link.slug }}</span>
+                      <span
+                        class="
+                          hidden
+                          sm:inline
+                        "
+                      >{{ host }}/{{ link.slug }}</span>
                     </NuxtLink>
                   </TooltipTrigger>
                   <TooltipContent class="max-w-[90svw] break-all">
@@ -150,7 +158,13 @@ function copyLink() {
                 "
                 :to="getDashboardLinkDetailLocation(link.slug)"
               >
-                {{ host }}/{{ link.slug }}
+                <span class="sm:hidden">{{ link.slug }}</span>
+                <span
+                  class="
+                    hidden
+                    sm:inline
+                  "
+                >{{ host }}/{{ link.slug }}</span>
               </NuxtLink>
               <TooltipProvider v-if="link.unsafe">
                 <Tooltip>
@@ -189,17 +203,13 @@ function copyLink() {
 
         <div
           class="
-            relative z-20 flex w-full shrink-0 items-center justify-end
-            sm:w-auto
+            relative z-20 flex shrink-0 items-center justify-end gap-1
+            sm:gap-0
           "
         >
           <Button
             variant="ghost"
-            size="icon"
-            class="
-              size-11
-              sm:size-9
-            "
+            :size="isDesktop ? 'icon' : 'icon-lg'"
             :aria-label="copied ? $t('links.copy_success') : shortLink"
             @click="copyLink"
           >
@@ -207,34 +217,25 @@ function copyLink() {
             <Copy v-else aria-hidden="true" class="size-4" />
           </Button>
 
-          <Button
-            as-child variant="ghost" size="icon" class="
-              size-11
-              sm:size-9
-            "
-          >
+          <Button as-child variant="ghost" :size="isDesktop ? 'icon' : 'icon-lg'">
             <a
               :href="link.url"
               target="_blank"
               rel="noopener noreferrer"
               :aria-label="link.url"
             >
-              <LinkIcon aria-hidden="true" class="size-5" />
+              <LinkIcon aria-hidden="true" />
             </a>
           </Button>
 
-          <Popover>
+          <Popover v-if="isDesktop">
             <PopoverTrigger as-child>
               <Button
                 variant="ghost"
                 size="icon"
-                class="
-                  size-11
-                  sm:size-9
-                "
                 :aria-label="$t('links.download_qr_code')"
               >
-                <QrCode aria-hidden="true" class="size-5" />
+                <QrCode aria-hidden="true" />
               </Button>
             </PopoverTrigger>
             <PopoverContent>
@@ -245,59 +246,49 @@ function copyLink() {
             </PopoverContent>
           </Popover>
 
-          <Popover v-model:open="editPopoverOpen">
-            <PopoverTrigger as-child>
+          <DropdownMenu v-model:open="editPopoverOpen">
+            <DropdownMenuTrigger as-child>
               <Button
                 ref="actionsTrigger"
                 data-link-actions-trigger
                 variant="ghost"
-                size="icon"
-                class="
-                  size-11
-                  sm:size-9
-                "
-                :aria-label="`${$t('common.edit')} / ${$t('common.delete')}`"
+                :size="isDesktop ? 'icon' : 'icon-lg'"
+                :aria-label="`${$t('links.download_qr_code')} / ${$t('common.edit')} / ${$t('common.delete')}`"
               >
-                <SquareChevronDown aria-hidden="true" class="size-5" />
+                <Ellipsis aria-hidden="true" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              class="w-44 gap-0 p-1"
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
               :hide-when-detached="false"
               @close-auto-focus="handlePopoverCloseAutoFocus"
             >
-              <Button
-                type="button"
-                variant="ghost"
-                class="h-11 w-full justify-start rounded-sm px-2"
-                @click="openEditDialog"
+              <DropdownMenuItem
+                v-if="!isDesktop"
+                @select="openQrDialog"
               >
-                <SquarePen
-                  aria-hidden="true"
-                  class="mr-2 size-5"
-                />
+                <QrCode aria-hidden="true" />
+                {{ $t('links.download_qr_code') }}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                @select="openEditDialog"
+              >
+                <SquarePen aria-hidden="true" />
                 {{ $t('common.edit') }}
-              </Button>
+              </DropdownMenuItem>
 
-              <Separator class="my-1" />
+              <DropdownMenuSeparator />
 
-              <Button
-                type="button"
-                variant="ghost"
-                class="
-                  h-11 w-full justify-start rounded-sm px-2 text-destructive
-                  hover:text-destructive
-                "
-                @click="openDeleteDialog"
+              <DropdownMenuItem
+                variant="destructive"
+                @select="openDeleteDialog"
               >
-                <Eraser
-                  aria-hidden="true"
-                  class="mr-2 size-5"
-                />
+                <Eraser aria-hidden="true" />
                 {{ $t('common.delete') }}
-              </Button>
-            </PopoverContent>
-          </Popover>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <div class="mt-auto flex flex-col space-y-3">
@@ -418,6 +409,12 @@ function copyLink() {
       </div>
     </CardContent>
 
+    <DashboardLinksQRCodeDialog
+      v-model:open="qrDialogOpen"
+      :data="shortLink"
+      :image="linkIcon"
+      @close-auto-focus="handleDialogCloseAutoFocus"
+    />
     <DashboardLinksEditor
       v-model:open="editDialogOpen"
       :link="link"

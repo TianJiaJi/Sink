@@ -27,7 +27,6 @@ const openSections = defineModel<string[]>('openSections', { default: () => [] }
 
 const datePickerOpen = ref(false)
 const { t, locale } = useI18n()
-const accordionTriggerClass = 'hover:no-underline'
 
 type GeoRoute = DashboardLinkFormData['geo'][number]
 
@@ -83,7 +82,7 @@ async function aiOg() {
 <template>
   <Accordion v-model="openSections" type="multiple" class="w-full">
     <AccordionItem value="link_settings">
-      <AccordionTrigger :class="accordionTriggerClass">
+      <AccordionTrigger>
         {{ $t('links.form.link_settings') }}
       </AccordionTrigger>
       <AccordionContent class="px-1">
@@ -123,7 +122,7 @@ async function aiOg() {
               <FieldLabel :for="`${idPrefix}-${field.name}`">
                 {{ $t('links.form.expiration') }}
               </FieldLabel>
-              <FieldDescription class="text-xs">
+              <FieldDescription>
                 {{ $t('links.form.expiration_description') }}
               </FieldDescription>
               <Popover v-model:open="datePickerOpen">
@@ -132,7 +131,7 @@ async function aiOg() {
                     :id="`${idPrefix}-${field.name}`"
                     variant="outline"
                     :class="cn(
-                      'w-full justify-start text-left font-normal',
+                      'w-full justify-start text-left',
                       !field.state.value && 'text-muted-foreground',
                     )"
                   >
@@ -163,10 +162,6 @@ async function aiOg() {
                 type="button"
                 variant="ghost"
                 size="sm"
-                class="
-                  min-h-11
-                  sm:min-h-8
-                "
                 @click="field.handleChange(undefined)"
               >
                 {{ $t('links.form.clear_expiration') }}
@@ -183,7 +178,7 @@ async function aiOg() {
               <FieldLabel :for="`${idPrefix}-${field.name}`">
                 {{ $t('links.form.password_label') }}
               </FieldLabel>
-              <FieldDescription class="text-xs">
+              <FieldDescription>
                 {{ $t('links.form.password_description') }}
               </FieldDescription>
               <Input
@@ -203,7 +198,7 @@ async function aiOg() {
     </AccordionItem>
 
     <AccordionItem value="og">
-      <AccordionTrigger :class="accordionTriggerClass">
+      <AccordionTrigger>
         {{ $t('links.form.og_settings') }}
       </AccordionTrigger>
       <AccordionContent class="px-1">
@@ -218,10 +213,6 @@ async function aiOg() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  class="
-                    size-11
-                    sm:size-9
-                  "
                   :aria-label="$t('links.form.ai_og_generate')"
                   :disabled="aiOgPending"
                   @click="aiOg"
@@ -270,7 +261,7 @@ async function aiOg() {
     </AccordionItem>
 
     <AccordionItem value="device">
-      <AccordionTrigger :class="accordionTriggerClass">
+      <AccordionTrigger>
         {{ $t('links.form.device_redirect') }}
       </AccordionTrigger>
       <AccordionContent class="px-1">
@@ -313,7 +304,7 @@ async function aiOg() {
     </AccordionItem>
 
     <AccordionItem value="geo">
-      <AccordionTrigger :class="accordionTriggerClass">
+      <AccordionTrigger>
         {{ $t('links.form.geo_routing') }}
       </AccordionTrigger>
       <AccordionContent class="px-1">
@@ -362,10 +353,6 @@ async function aiOg() {
                   type="button"
                   variant="ghost"
                   size="icon"
-                  class="
-                    size-11
-                    sm:size-9
-                  "
                   :aria-label="$t('common.delete')"
                   @click="field.handleChange(removeGeoRoute(field.state.value, i))"
                 >

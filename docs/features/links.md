@@ -1,42 +1,64 @@
 ---
 title: Link Features
-description: Manage Sink links with custom slugs, routing, expiration, passwords, safety checks, metadata, cloaking, tags, and redirect options.
+description: Custom short codes, routing, expiration, passwords, safety checks, social previews, cloaking, tags, health checks, and redirects.
 ---
 
 # Link Features
 
-Create and manage links from the dashboard or authenticated API. A link needs a destination URL; every other behavior is optional.
+Create links in the dashboard or via the API. A link needs a destination URL; everything else is optional.
 
-## Slugs and tags
+## Short codes (slugs) and tags
 
-Omit a slug to generate a lowercase random value. Case-sensitive mode only changes how **custom** slugs are normalized and matched: it can make `Docs` and `docs` distinct, but generated random slugs remain lowercase.
+Leave the short code empty to generate a random lowercase one. Case-sensitive mode only affects **custom** codes: `Docs` and `docs` can be different. Auto-generated codes stay lowercase.
 
-Tags are normalized to lowercase and deduplicated. Each link supports up to 10 tags of 1–32 characters.
+Tags are lowercased. Up to 10 tags per link, 1–32 characters each.
 
 ## Expiration and preview mode
 
-Newly created or edited links require a future expiration timestamp when one is supplied. Once expired, a link no longer resolves as active. Import is different: it intentionally permits already-expired records so portable history is not discarded.
+If you set an expiration, it must be in the future. Expired links stop working. Import allows already-expired records on purpose (to keep history).
 
-Preview mode is an instance-wide demonstration setting. It limits created links to a five-minute lifetime and prevents editing or deleting them. Enable it only on disposable public demos.
+::: warning Preview mode
+Instance-wide demo switch. New links last five minutes and cannot be edited or deleted. Use only on throwaway public demos.
+:::
 
 ## Passwords and unsafe warnings
 
-Password-protected browser visitors see a password form. API-style redirect clients can send `x-link-password`. Passwords set through current create and edit flows are protected before storage, and exports convert stored password values to a portable protected form. KV-to-D1 migration is the exception: it preserves legacy password values exactly as stored, so an older migrated record may contain plaintext in D1 until the password is edited.
+Password-protected links show a form in the browser. API clients can send the password in the `x-link-password` header.
 
-Set `unsafe` on a link to control the warning explicitly. If safe browsing is configured, Sink performs its DNS-over-HTTPS check only when `unsafe` was **not supplied**. A blocked `0.0.0.0` answer marks the link unsafe; lookup failures fail open. An unsafe link without a password requires a `POST` with `confirm=true`; a `GET` header cannot confirm it. For programmatic access to an unsafe password-protected link, clients can send both `x-link-password` and `x-link-confirm: true`.
+Passwords set in the dashboard/API are stored protected. Exception: very old links migrated from KV may keep legacy password values until you edit them.
 
-## Destination routing
+The `unsafe` flag controls the warning page:
 
-- **Query forwarding:** append incoming query parameters globally or override that choice per link.
-- **Geo routing:** map two-letter country codes to alternate URLs using Cloudflare request metadata.
-- **Device routing:** set Apple or Android destinations. A matching device destination takes precedence over the default or geo destination.
+- Set it yourself to force the warning on or off
+- If safe browsing is configured and you leave `unsafe` unset, Sink checks the domain over secure DNS
+- A blocked answer marks the link unsafe
 
-## OpenGraph and cloaking
+::: tip Safe browsing fails open
+If the DNS check fails, Sink allows the link instead of blocking it.
+:::
 
-Custom title, description, and image values provide link previews to recognized social crawlers. OpenGraph images can be uploaded to the configured R2 bucket.
+Visitors must confirm unsafe links without a password via `POST` with `confirm=true`. For password + unsafe, send both `x-link-password` and `x-link-confirm: true`.
 
-Cloaking renders an HTTPS destination in a full-page iframe while retaining the short URL in the address bar. It is not a privacy feature: the destination remains visible to browsers and developer tools. Sites with restrictive `X-Frame-Options` or `Content-Security-Policy: frame-ancestors` will refuse to load, and sensitive flows such as OAuth or payments may reject framing.
+## Smart routing
 
-## Instance-wide redirect options
+- **Query params:** optionally append the visitor’s `?…` to the target URL
+- **By country:** map country codes (for example `US`, `JP`) to different URLs
+- **By device:** Apple / Android targets win over default or country targets
 
-Sink can change the normal redirect status, attach no-store headers, redirect the homepage, and redirect missing slugs. These settings affect the entire instance; review their exact defaults and activation rules in [configuration](/configuration/#advanced-defaults).
+## Social previews (OpenGraph), bots, and cloaking
+
+Custom title, description, and image control how the link looks when shared on social apps. With R2 configured you can upload images (JPEG/PNG/WebP/GIF, max 5 MB).
+
+When a social bot visits a link that has preview fields, Sink returns a preview page instead of redirecting.
+
+::: warning Cloaking is not privacy
+Cloaking shows the target site inside the page while the address bar still shows the short link. Browsers and developer tools still see the real URL. Sites that block embedding (and most OAuth/payment pages) will not load.
+:::
+
+## Health check
+
+**Dashboard → Check** (and `/api/link/check`) probes target URLs from the server (up to 10 at a time, 1–30s timeout). Private/local addresses are blocked.
+
+## Site-wide redirect options
+
+You can change the default redirect code (default `301`), ask browsers not to cache redirects, redirect the homepage (`NUXT_HOME_URL`), and redirect unknown short codes (`NUXT_NOT_FOUND_REDIRECT`, always **302**). See [configuration](/configuration/#advanced-defaults).

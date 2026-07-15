@@ -17,7 +17,9 @@ npx skills add miantiao-me/sink
 
 ## OpenAPI to MCP
 
-Sink does not ship a native MCP server. An OpenAPI proxy can expose selected routes to an MCP client:
+Sink does not ship a native MCP server. An OpenAPI proxy can expose selected routes to an MCP client.
+
+Requires [`uv`](https://github.com/astral-sh/uv) so the `uvx` command is available:
 
 ```json
 {

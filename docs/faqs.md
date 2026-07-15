@@ -1,15 +1,17 @@
 ---
 title: Troubleshooting
-description: Diagnose common Sink deployment, authentication, analytics, redirect, import, backup, and optional-feature failures.
+description: Fix common deploy, login, analytics, redirect, import, backup, and feature problems.
 ---
 
 # Troubleshooting
 
-## I cannot create or resolve links
+## I cannot create or open short links
 
-Confirm that D1 and KV are bound with the exact names `DB` and `KV`, then redeploy the latest `master` branch so required D1 updates are applied.
+1. Confirm D1 and KV are bound with the exact names `DB` and `KV`
+2. Redeploy the latest `master` branch
+3. Open **Dashboard → Links** once (one-time storage setup)
 
-If this is an upgrade from an older instance that stored links only in KV, open **Dashboard → Links** to start or continue the [KV-to-D1 migration](/storage/kv-to-d1).
+If you see **“storage not ready” (HTTP 423)**, step 3 is missing. New installs only need that one open. Very old KV-only installs need [storage migration](/storage/kv-to-d1).
 
 <details>
   <summary><b>KV binding screenshot</b></summary>
@@ -18,47 +20,64 @@ If this is an upgrade from an older instance that stored links only in KV, open 
 
 ## I cannot sign in or call the API
 
-Check that the supplied bearer value exactly matches `NUXT_SITE_TOKEN`. If using Cloudflare Access, verify that both Access settings are present, the AUD belongs to the application, and the signed application cookie reaches `/api`. Strict Access policies also require non-browser clients to pass the edge policy.
+The password must match `NUXT_SITE_TOKEN` exactly (no extra spaces). Use at least 8 characters. If you never set the token, a random build-time password may have been used — set an explicit secret and redeploy.
+
+If you use Cloudflare Access:
+
+- Both `NUXT_CF_ACCESS_TEAM_DOMAIN` and `NUXT_CF_ACCESS_AUD` are set
+- The AUD value is from this Access application
+- The Access cookie can reach `/api` (do not limit Cookie Path to `/dashboard` only)
 
 ## Analytics is empty
 
-Confirm all of the following:
+Check all of these:
 
-1. Analytics Engine is enabled and bound as `ANALYTICS`.
-2. The configured dataset name matches the bound dataset.
-3. The account ID belongs to the deployment account.
-4. The API token has Account Analytics access.
-5. Bot filtering or the selected dashboard filters are not excluding the traffic.
+1. Analytics Engine is bound as `ANALYTICS`
+2. Dataset name matches (`sink` by default, or the same as `NUXT_DATASET`)
+3. `NUXT_CF_ACCOUNT_ID` is the account that hosts this app
+4. `NUXT_CF_API_TOKEN` is a Custom Token with **Account → Account Analytics → Read**
+5. Bot filtering or dashboard filters are not hiding the traffic
+
+Full steps: [Analytics](/features/analytics).
 
 <details>
   <summary><b>Analytics Engine binding screenshot</b></summary>
   <img alt="Analytics Engine binding settings in Cloudflare" src="./images/faqs-Analytics_engine.png">
 </details>
 
-## Realtime events arrive in bursts or appear delayed
+## Realtime events arrive in bursts or feel delayed
 
-This is expected within bounds: the dashboard polls every 10 seconds and replays queued events at about one per second. Verify that the view is not paused, the tab is visible, and analytics queries are working. It is not an SSE or WebSocket stream.
+Expected. The page refreshes about every 10 seconds and plays events at about one per second. It is not a live WebSocket stream. Also check that the view is not paused and the tab is visible.
 
-## Custom slugs do not preserve uppercase characters
+## Custom short codes lose uppercase letters
 
-Enable the case-sensitive setting and redeploy. It affects custom slug normalization; generated random slugs intentionally remain lowercase. Existing slugs are not renamed automatically.
+Set `NUXT_CASE_SENSITIVE=true` and redeploy. This only affects **custom** codes; auto-generated codes stay lowercase. Existing codes are not renamed.
 
-## A cloaked destination is blank or refuses to load
+## Cloaked page is blank or refuses to load
 
-The destination likely blocks iframe embedding through `X-Frame-Options` or `Content-Security-Policy: frame-ancestors`. Disable cloaking or change the destination policy if you control it. OAuth and payment pages commonly reject framing.
+The target site likely blocks embedding. Turn off cloaking, or change the target site if you control it. OAuth and payment pages usually refuse embedding.
 
-## Safe browsing did not change a link's unsafe flag
+## Safe browsing did not change the unsafe flag
 
-Automatic detection runs only when a create or relevant edit request omits `unsafe`. An explicitly supplied `true` or `false` wins. Also verify the DoH URL and note that lookup errors fail open.
+Auto-check runs only when create/edit leaves `unsafe` unset. An explicit `true` or `false` always wins. If the DNS check fails, Sink allows the link.
 
 ## Import skips or rejects records
 
-Check the per-item result. Active slug conflicts are skipped, while malformed records fail validation or processing. Expired records are allowed. Keep each request within half the configured export batch size and use portable password hashes rather than dashboard-masked placeholders.
+- Active short-code conflicts are skipped
+- Invalid records fail validation
+- Expired records are allowed on purpose
 
-## A backup was not created
+Keep each request within half the export page size. Use protected passwords from export — not the masked placeholders in the dashboard UI.
 
-Verify that `R2` is bound. If this is a legacy KV-only upgrade, complete the [KV-to-D1 migration](/storage/kv-to-d1) first. For scheduled backups, confirm the automatic-backup setting and the Workers cron. Pages has no automatic scheduled trigger in this repository; use the dashboard's manual backup action instead.
+## Backup was not created
 
-## Redirect changes appear stale
+1. Confirm `R2` is bound
+2. Open **Dashboard → Links** once if storage is not ready yet (backup returns 423 until then)
+3. Workers scheduled backups: check `NUXT_DISABLE_AUTO_BACKUP` and Cron
+4. Pages: use manual backup only in this repo
 
-KV and browser or CDN caching can delay visible changes. Review the link cache lifetime and redirect no-store setting in [configuration](/configuration/#advanced-defaults), then confirm the current link in the dashboard.
+## Redirect still looks old
+
+Browser, CDN, or KV cache can delay what you see. Check `NUXT_LINK_CACHE_TTL` and `NUXT_REDIRECT_NO_STORE` in [configuration](/configuration/#advanced-defaults), then confirm the link in the dashboard.
+
+Unknown short codes (`NUXT_NOT_FOUND_REDIRECT`) always use **302**, even when normal redirects use `301`.

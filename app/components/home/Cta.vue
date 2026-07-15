@@ -12,7 +12,7 @@ const { documentation } = useAppConfig()
     <div class="mx-auto max-w-6xl px-6">
       <Card
         class="
-          mx-auto max-w-3xl rounded-2xl py-10
+          mx-auto max-w-3xl py-10
           md:py-12
         "
       >
@@ -30,7 +30,6 @@ const { documentation } = useAppConfig()
             <Button
               as-child
               size="lg"
-              class="min-h-11"
             >
               <a
                 :href="`${documentation}/guide/getting-started`"
@@ -46,7 +45,6 @@ const { documentation } = useAppConfig()
               as-child
               size="lg"
               variant="outline"
-              class="min-h-11"
             >
               <NuxtLink to="/dashboard" :title="$t('dashboard.title')">
                 {{ $t('dashboard.title') }}

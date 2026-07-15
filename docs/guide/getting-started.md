@@ -5,37 +5,57 @@ description: Prepare Cloudflare resources, deploy Sink, and create your first sh
 
 # Getting Started
 
-Sink is a self-hosted link shortener and analytics application for Cloudflare.
+Sink is a self-hosted short-link app with visit analytics. It runs on Cloudflare (no VPS required).
 
 ## 1. Fork Sink
 
 Create a [fork of the Sink repository](https://github.com/miantiao-me/Sink/fork) in your GitHub account.
 
-## 2. Choose a deployment target
+## 2. Choose where to deploy
 
-- [Cloudflare Workers](/deployment/workers) is the recommended Git-integrated option.
-- [Cloudflare Pages](/deployment/pages) is also supported.
+- [Cloudflare Workers](/deployment/workers) — recommended
+- [Cloudflare Pages](/deployment/pages) — also supported
 
-## 3. Prepare Cloudflare resources
+Both use Git: Cloudflare builds from your fork and publishes the app.
 
-| Binding     | Status      | Purpose                                         |
-| ----------- | ----------- | ----------------------------------------------- |
-| `DB` (D1)   | Required    | Stores links and related data.                  |
-| `KV`        | Required    | Speeds up link redirects.                       |
-| `ANALYTICS` | Recommended | Records visits for analytics and logs.          |
-| `R2`        | Optional    | Recommended for backups and OpenGraph images.   |
-| `AI`        | Optional    | Recommended for AI-assisted slugs and metadata. |
+## 3. Create Cloudflare resources
 
-For the complete Sink experience, enable all five resources.
+In the [Cloudflare dashboard](https://dash.cloudflare.com/), create the services Sink will use. Later you will **bind** them to the project — binding means “connect this database/storage to Sink under a fixed name”.
 
-## 4. Configure the deployment
+| Binding name | Cloudflare product | Required? | What it is |
+| ------------ | ------------------ | --------- | ---------- |
+| `DB` | **D1** (database) | Yes | Stores your links |
+| `KV` | **KV** (key-value store) | Yes | Speeds up redirects |
+| `ANALYTICS` | **Analytics Engine** | Recommended | Visit stats and logs |
+| `R2` | **R2** (object storage) | Optional | Backups and social preview images |
+| `AI` | **Workers AI** | Optional | AI-suggested short codes and titles |
 
-Follow the guide for your chosen target to connect the fork, add the resources, and configure a stable, strong `NUXT_SITE_TOKEN`. Review the [configuration reference](/configuration/) for analytics and other features.
+For the full experience, create all five. You can add analytics later — see [Analytics and Realtime](/features/analytics).
 
-## 5. Deploy
+After creating D1 and KV, open each resource’s detail page and copy its **ID** (you will paste it into deploy settings).
 
-Start the Git deployment from Cloudflare and wait for it to finish.
+## 4. Configure and deploy
 
-## 6. Create your first link
+Follow the Workers or Pages guide to connect the fork, add bindings, and set variables.
 
-Open `/dashboard` on your deployed hostname, sign in with `NUXT_SITE_TOKEN`, and create a link.
+::: warning Set `NUXT_SITE_TOKEN` yourself
+This is your **dashboard login password** and the password used by API tools. Use a long random string (at least 8 characters) and keep it stable — changing it signs everyone out.
+
+If you skip it, Sink may invent a random password at build time that can change on the next deploy, and you will not be able to log in reliably.
+:::
+
+Other settings: [configuration reference](/configuration/).
+
+## 5. First login and first link
+
+1. Open `https://your-domain/dashboard`
+2. Sign in with the `NUXT_SITE_TOKEN` you set
+3. Open **Dashboard → Links** once
+
+::: tip Why open Links once?
+The first open finishes a one-time storage setup. Until then, creating links or backups may fail with “storage not ready” (HTTP 423). New installs only need a quick empty check; older KV-only installs migrate data here — see [storage setup / migration](/storage/kv-to-d1).
+:::
+
+4. Create your first short link
+
+The dashboard supports multiple languages. Docs are available in English and Simplified Chinese.

@@ -1,7 +1,6 @@
 {
   "layouts": {
     "footer": {
-      "copyright": "Sản phẩm của HTML.ZONE",
       "social": {
         "email": "Email",
         "telegram": "Telegram",
@@ -40,6 +39,7 @@
     "export": "Xuất",
     "coffee": "Mua cho tôi một ly cà phê",
     "github": "GitHub",
+    "releases": "Bản phát hành",
     "stars": "Stars",
     "update": "Phiên bản mới {version} có sẵn (hiện tại: {current})"
   }

@@ -20,7 +20,7 @@ function routeFromRelativePath(relativePath: string): string {
 
 export default defineConfig({
   title: 'Sink Documentation',
-  description: 'Deploy, configure, and use Sink, a link shortener and analytics platform built on Cloudflare.',
+  description: 'A Simple / Speedy / Secure Link Shortener with Analytics, 100% run on Cloudflare.',
   cleanUrls: true,
   lastUpdated: true,
   sitemap: {
@@ -68,6 +68,7 @@ export default defineConfig({
             { text: 'Operations', items: [
               { text: 'Import and Export', link: '/features/import-export' },
               { text: 'Link Backups', link: '/features/backups' },
+              { text: 'Storage setup / migration', link: '/storage/kv-to-d1' },
             ] },
             { text: 'Integrations', items: [
               { text: 'Integrations', link: '/integrations/' },
@@ -90,7 +91,7 @@ export default defineConfig({
       lang: 'zh-CN',
       link: '/zh-CN/',
       title: 'Sink 文档',
-      description: '部署、配置并使用 Sink——运行于 Cloudflare 的短链接与访问分析平台。',
+      description: 'A Simple / Speedy / Secure Link Shortener with Analytics, 100% run on Cloudflare.',
       themeConfig: {
         nav: [
           { text: '指南', link: '/zh-CN/guide/getting-started' },
@@ -126,6 +127,7 @@ export default defineConfig({
             { text: '运维', items: [
               { text: '导入与导出', link: '/zh-CN/features/import-export' },
               { text: '链接备份', link: '/zh-CN/features/backups' },
+              { text: '存储初始化 / 迁移', link: '/zh-CN/storage/kv-to-d1' },
             ] },
             { text: '集成', items: [
               { text: '集成', link: '/zh-CN/integrations/' },

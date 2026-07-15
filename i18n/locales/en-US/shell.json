@@ -1,7 +1,6 @@
 {
   "layouts": {
     "footer": {
-      "copyright": "Products of HTML.ZONE",
       "social": {
         "email": "Email",
         "telegram": "Telegram",
@@ -40,6 +39,7 @@
     "export": "Export",
     "coffee": "Buy me a coffee",
     "github": "GitHub",
+    "releases": "Releases",
     "stars": "Stars",
     "update": "New version {version} available (current: {current})"
   }

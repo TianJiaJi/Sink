@@ -1,29 +1,31 @@
 ---
 title: Architecture
-description: Understand how Sink handles dashboard, API, redirect, storage, and analytics traffic.
+description: How Sink handles the dashboard, API, redirects, storage, and analytics.
 ---
 
 # Architecture
 
-Sink runs its dashboard, API, and short-link redirects on Cloudflare Workers or Pages.
+Sink runs the dashboard, API, and short-link redirects on Cloudflare Workers or Pages.
 
-## Request flow
+## What happens when someone opens a short link
 
-1. Visitors open a short link on your Sink hostname.
-2. Sink reads the link and returns the configured redirect or link page.
-3. The dashboard and external clients use the authenticated `/api/**` routes to manage links.
-4. When analytics is enabled, visits are recorded for dashboard reports and logs.
+1. A visitor opens a short link on your domain
+2. Sink looks up the link and redirects (or shows a password/warning page)
+3. You manage links in the dashboard or via the API (both require login)
+4. If analytics is enabled, visits show up in reports and logs
 
-## Cloudflare services
+## Cloudflare services Sink uses
 
-| Binding     | Status      | Purpose                                 |
-| ----------- | ----------- | --------------------------------------- |
-| `DB` (D1)   | Required    | Stores links and related data.          |
-| `KV`        | Required    | Speeds up link redirects.               |
-| `ANALYTICS` | Recommended | Records visits for analytics and logs.  |
-| `R2`        | Optional    | Stores backups and OpenGraph images.    |
-| `AI`        | Optional    | Generates suggested slugs and metadata. |
+| Binding name | Product | Required? | Plain meaning |
+| ------------ | ------- | --------- | ------------- |
+| `DB` | D1 | Yes | Main database — the real home of your links |
+| `KV` | KV | Yes | Fast cache for redirects + one-time setup flag |
+| `ANALYTICS` | Analytics Engine | Recommended | Visit events for charts and logs |
+| `R2` | R2 | Optional | File storage for backups and social images |
+| `AI` | Workers AI | Optional | Suggests short codes and titles |
 
-D1 stores the primary link data, while KV provides fast redirect lookups. Link changes made through the dashboard or API are saved to D1 and reflected in KV.
+**D1** is where links are really stored. **KV** is a fast copy used for redirects. After you save a link, Sink updates the cache; if the cache is wrong, it is dropped and reloaded from D1.
 
-R2 and Workers AI are independent enhancements. Sink continues to manage and redirect links without them. For deployment requirements, start with [Getting Started](./getting-started).
+After the first deploy, open **Dashboard → Links** once so Sink can finish storage setup. Until then, most link APIs fail with “storage not ready” (HTTP 423). See [storage setup / migration](/storage/kv-to-d1).
+
+R2 and AI are optional extras. Start with [Getting Started](./getting-started).

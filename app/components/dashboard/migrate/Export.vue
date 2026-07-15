@@ -73,10 +73,6 @@ async function handleExport() {
     </CardHeader>
     <CardContent>
       <Button
-        class="
-          min-h-11
-          lg:min-h-9
-        "
         :disabled="isExporting"
         :aria-busy="isExporting"
         @click="handleExport"

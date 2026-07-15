@@ -292,10 +292,7 @@ defineExpose({ initializeRandomSlug })
                 type="button"
                 variant="ghost"
                 size="sm"
-                class="
-                  min-h-11 px-3 text-xs font-medium
-                  sm:min-h-8
-                "
+                class="px-3 text-xs"
                 :aria-label="$t('links.form.utm_builder')"
                 @click="utmBuilderOpen = true"
               >
@@ -352,10 +349,6 @@ defineExpose({ initializeRandomSlug })
                   type="button"
                   variant="ghost"
                   size="icon"
-                  class="
-                    size-11
-                    sm:size-9
-                  "
                   :aria-label="$t('links.form.generate_random_slug')"
                   @click="randomSlug"
                 >
@@ -365,10 +358,6 @@ defineExpose({ initializeRandomSlug })
                   type="button"
                   variant="ghost"
                   size="icon"
-                  class="
-                    size-11
-                    sm:size-9
-                  "
                   :aria-label="$t('links.form.generate_ai_slug')"
                   :disabled="aiSlugPending"
                   @click="aiSlug"

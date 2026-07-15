@@ -7,48 +7,65 @@ description: 通过 Git 集成和仪表盘管理的绑定将 Sink 部署到 Clou
 
 ## 1. 创建 Pages 项目
 
-[Fork Sink 仓库](https://github.com/miantiao-me/Sink/fork)。在 Cloudflare 仪表盘中创建 Pages 应用，导入该 Fork，并配置：
+[Fork Sink 仓库](https://github.com/miantiao-me/Sink/fork)。在 Cloudflare 仪表盘中创建 **Pages** 项目，导入该 Fork，并设置：
 
 - **生产分支：** `master`
 - **框架预设：** Nuxt
 - **构建命令：** `pnpm build`
 - **构建输出目录：** `dist`
 
-创建项目以进入项目设置。如果配置完成前已开始首次部署，请取消该部署。
+先创建项目，才能进入设置。
 
-## 2. 准备资源和绑定
+::: tip 必要时取消首次自动部署
+如果绑定和变量还没配完就已开始部署，请打开部署列表点 **Cancel**，配完后再重新部署。
+:::
 
-创建需要使用的资源，然后在 **Settings → Bindings** 中添加：
+## 2. 创建资源并绑定
 
-| 绑定        | 状态 | 用途                                       |
-| ----------- | ---- | ------------------------------------------ |
-| `DB`（D1）  | 必需 | 存储链接及相关数据。                       |
-| `KV`        | 必需 | 加速链接重定向。                           |
-| `ANALYTICS` | 推荐 | 记录访问数据，用于分析和日志。             |
-| `R2`        | 可选 | 使用备份和 OpenGraph 图片功能时推荐启用。  |
-| `AI`        | 可选 | 使用 AI 辅助生成 Slug 和元数据时推荐启用。 |
+创建需要的 Cloudflare 资源，然后打开 Pages 项目 → **Settings → Bindings** 添加。绑定 = 把资源用固定名称接到 Sink。
 
-如需完整的 Sink 使用体验，建议启用以上五项资源。为生产环境和预览环境添加 `nodejs_compat` 兼容性标志。
+| 绑定名称 | 产品 | 是否必需 | 是什么 |
+| -------- | ---- | -------- | ------ |
+| `DB` | D1 | 必需 | 保存链接 |
+| `KV` | KV | 必需 | 加速跳转 |
+| `ANALYTICS` | Analytics Engine | 推荐 | 访问统计 |
+| `R2` | R2 | 可选 | 备份与社交图片 |
+| `AI` | Workers AI | 可选 | AI 建议 |
 
-## 3. 配置变量和密钥
+访问分析是可选的。启用步骤见[访问分析与近实时视图](/zh-CN/features/analytics)。
 
-在 **Settings → Variables and Secrets** 中添加以下值。Pages 只有这一套设置，构建和 Functions 运行时都会使用它。
+::: warning 必须加兼容性标志
+在 **Settings → Functions → Compatibility Flags** 中，为 **Production** 和 **Preview** 都添加 `nodejs_compat`。Pages 上运行 Sink 需要这个标志。
+:::
 
-| 变量                     | 状态 | 类型     | 值或用途                                         |
-| ------------------------ | ---- | -------- | ------------------------------------------------ |
-| `DEPLOY_D1_DATABASE_ID`  | 必需 | 变量     | D1 数据库 ID。                                   |
-| `DEPLOY_KV_NAMESPACE_ID` | 必需 | 变量     | KV 命名空间 ID。                                 |
-| `NUXT_SITE_TOKEN`        | 必需 | 加密密钥 | 用于仪表盘和 Bearer 身份认证的高强度、稳定令牌。 |
-| `NUXT_CF_ACCOUNT_ID`     | 推荐 | 变量     | Cloudflare 账户 ID，供仪表盘访问分析使用。       |
-| `NUXT_CF_API_TOKEN`      | 推荐 | 加密密钥 | 具有 Account Analytics 访问权限的 API Token。    |
-| `NUXT_PUBLIC_*`          | 可选 | 变量     | 仅在覆盖默认值时配置；每次修改后都需要重新构建。 |
+## 3. 变量和密钥
 
-其他可选设置请查看[配置参考](/zh-CN/configuration/)。R2 只能通过 **Settings → Bindings** 配置。
+在 **Settings → Variables and Secrets** 中添加：
 
-## 4. 部署
+| 变量 | 类型 | 填什么 |
+| ---- | ---- | ------ |
+| `DEPLOY_D1_DATABASE_ID` | 变量 | D1 数据库 ID（在 D1 详情页） |
+| `DEPLOY_KV_NAMESPACE_ID` | 变量 | KV 命名空间 ID（在 KV 详情页） |
+| `NUXT_SITE_TOKEN` | 加密密钥 | 仪表盘登录密码和 API 密码（高强度、稳定，至少 8 个字符） |
+| `NUXT_CF_ACCOUNT_ID` | 变量 | Cloudflare 账户 ID（访问分析用） |
+| `NUXT_CF_API_TOKEN` | 加密密钥 | 仅含 **Account → Account Analytics → Read** 的 Custom Token |
 
-从 `master` 分支启动部署并等待完成。
+创建访问分析令牌：Cloudflare 仪表盘 → 右上角头像 → **My Profile** → **API Tokens** → **Create Token** → **Custom Token** → 权限选 **Account → Account Analytics → Read**。
 
-首次部署后，打开 `/dashboard`，登录并创建链接。
+Pages 的构建和运行共用这一套变量。R2 只能在 **Bindings** 里添加。更多选项见[配置参考](/zh-CN/configuration/)。
 
-Pages 支持手动创建 [R2 链接快照](/zh-CN/features/backups)，但本仓库没有配置 Pages 计划触发器。
+`master` 分支构建成功后，Pages 还会自动更新 D1 数据库结构。
+
+## 4. 部署并首次使用
+
+从 `master` 启动部署并等待完成。
+
+1. 打开 `/dashboard`，用 `NUXT_SITE_TOKEN` 登录
+2. 打开一次 **Dashboard → Links**（一次性存储初始化）
+3. 创建链接
+
+::: tip 必须先打开一次 Links
+存储初始化完成前，创建链接可能失败，并提示「存储未就绪」（HTTP 423）。
+:::
+
+Pages 支持手动[备份](/zh-CN/features/backups)；本仓库里每日自动备份只为 Workers 配置。

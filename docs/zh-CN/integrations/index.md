@@ -17,7 +17,9 @@ npx skills add miantiao-me/sink
 
 ## OpenAPI 转 MCP
 
-Sink 不提供原生 MCP Server。OpenAPI 代理可以向 MCP 客户端公开选定的路由：
+Sink 不提供原生 MCP Server。OpenAPI 代理可以向 MCP 客户端公开选定的路由。
+
+需要先安装 [`uv`](https://github.com/astral-sh/uv)，以便使用 `uvx` 命令：
 
 ```json
 {

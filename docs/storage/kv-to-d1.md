@@ -1,41 +1,53 @@
 ---
-title: KV-to-D1 Migration
-description: Move links from an existing legacy KV-only Sink instance to D1.
+title: Storage setup and KV migration
+description: One-time storage setup for every install, and how to move links from older KV-only Sink instances into D1.
 ---
 
-# KV-to-D1 Migration
+# Storage setup and KV migration
 
-::: warning Legacy deployments only
-This page applies only to existing Sink instances from older releases that stored links in KV. Do not use this process for a new deployment.
+::: warning Who needs this page?
+- **New installs:** after the first deploy, open **Dashboard → Links** once. Sink finishes a quick empty check and marks storage ready. You do not need to export anything.
+- **Old installs (links only in KV):** follow the full steps below. Older Sink versions stored links in KV; this copies them into the D1 database.
 :::
 
-## Before you begin
+## Why open Links once?
 
-- Keep the original KV namespace and its data in Cloudflare.
-- Make sure the upgraded deployment uses the original KV namespace as `KV` and a D1 database as `DB`.
-- Avoid changing links until migration and verification are complete.
+Sink needs a one-time “storage ready” flag before normal link management works.
 
-## Migrate links
+::: danger Before storage is ready
+Creating or editing links via the API fails with **“storage not ready” (HTTP 423)**. Backups also refuse to run. Opening **Dashboard → Links** starts or continues the setup automatically.
+:::
 
-1. Preserve or export the original KV data using Cloudflare's tools.
-2. [Upgrade Sink](/deployment/upgrading) and deploy the updated `master` branch. Deployment prepares D1 automatically.
-3. Sign in and open **Dashboard → Links**. This automatically starts or continues the migration.
-4. Open **Dashboard → Migrate → D1** to view status and progress.
-5. When migration completes, verify several links and their redirects before resuming normal changes.
+After that, normal link management works.
 
-The D1 panel shows migration status and supports recovery. It is not the normal migration start button; opening **Links** starts or continues the standard process.
+## Old installs only — before you migrate
 
-## Record handling
+- Keep the original KV data in Cloudflare
+- Bind that same KV as `KV` and D1 as `DB` on the upgraded deploy
+- Avoid editing links until migration finishes
+- Optionally export KV first with the Cloudflare dashboard or [Wrangler](https://developers.cloudflare.com/kv/api/read-key-value-pairs/) (Cloudflare’s CLI)
+
+## Old installs only — migrate links
+
+1. Keep or export the original KV data
+2. [Upgrade Sink](/deployment/upgrading) and deploy the new `master` branch
+3. Sign in and open **Dashboard → Links** — migration starts or continues here
+4. Open **Dashboard → Migrate → D1** to watch progress
+5. When done, test several short links before normal editing
+
+The D1 panel shows status and recovery tools. It is not the main start button — open **Links** to start or continue.
+
+## What happens to each record
 
 During migration, Sink:
 
-- skips expired links;
-- does not overwrite links that already exist in D1;
-- does not restore links already recorded as deleted;
-- keeps successfully migrated links when another record fails.
+- skips expired links
+- does not overwrite links already in D1
+- does not restore links that were already deleted
+- keeps successfully migrated links if another record fails
 
-## Recover from a failure
+## If something fails
 
-The migration can be retried safely. Fix or remove the reported invalid record in the original KV data, then return to **Dashboard → Links** and retry. Existing D1 links are not overwritten.
+You can retry safely. Fix or remove the bad record in the original KV data, then open **Dashboard → Links** again. Existing D1 links are not overwritten.
 
-Use **Dashboard → Migrate → D1** to review the result. Its force rescan action is for controlled recovery or verification after the normal migration has run. A force rescan still does not overwrite existing or deleted D1 links.
+Use **Dashboard → Migrate → D1** for results. Force rescan is only for controlled recovery after a normal run; it still does not overwrite existing or deleted D1 links.

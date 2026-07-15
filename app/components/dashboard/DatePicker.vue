@@ -46,12 +46,7 @@ function onPresetChange(value: string | number | bigint | Record<string, any> | 
 
 <template>
   <Select :model-value="analysisStore.datePreset" @update:model-value="onPresetChange">
-    <SelectTrigger
-      class="
-        min-h-11
-        lg:min-h-9
-      " :aria-label="$t('dashboard.date_range')"
-    >
+    <SelectTrigger :aria-label="$t('dashboard.date_range')">
       <SelectValue v-if="analysisStore.datePreset" />
       <div v-else>
         {{ shortDate(analysisStore.dateRange.startAt, locale) }} - {{ shortDate(analysisStore.dateRange.endAt, locale) }}
@@ -98,25 +93,14 @@ function onPresetChange(value: string | number | bigint | Record<string, any> | 
       default-value="range"
     >
       <div class="flex justify-center">
-        <TabsList
-          class="
-            h-auto min-h-11
-            lg:h-9 lg:min-h-0
-          "
-        >
+        <TabsList>
           <TabsTrigger
-            value="date" class="
-              min-h-11
-              lg:min-h-0
-            "
+            value="date"
           >
             {{ $t('dashboard.date_picker.single_date') }}
           </TabsTrigger>
           <TabsTrigger
-            value="range" class="
-              min-h-11
-              lg:min-h-0
-            "
+            value="range"
           >
             {{ $t('dashboard.date_picker.date_range') }}
           </TabsTrigger>

@@ -1,7 +1,6 @@
 {
   "layouts": {
     "footer": {
-      "copyright": "Products of HTML.ZONE",
       "social": {
         "email": "이메일",
         "telegram": "텔레그램",
@@ -40,6 +39,7 @@
     "export": "내보내기",
     "coffee": "커피 한 잔 사주기",
     "github": "GitHub",
+    "releases": "릴리스",
     "stars": "스타",
     "update": "새 버전 {version}을(를) 사용할 수 있습니다 (현재: {current})"
   }

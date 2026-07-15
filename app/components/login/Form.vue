@@ -102,10 +102,8 @@ async function handleSubmit() {
     </Alert>
 
     <Button
-      class="
-        min-h-11 w-full
-        lg:min-h-9
-      " type="submit"
+      class="w-full"
+      type="submit"
       :disabled="isSubmitting"
       :aria-busy="isSubmitting"
     >

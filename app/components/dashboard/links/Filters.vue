@@ -92,10 +92,15 @@ linksStore.onLinkUpdate(() => void fetchTags())
         </SelectContent>
       </Select>
       <Button
-        v-if="error" type="button" variant="ghost" size="sm" class="
-          min-h-11 w-full
-          md:min-h-8 md:w-auto
-        " @click="fetchTags"
+        v-if="error"
+        type="button"
+        variant="ghost"
+        size="sm"
+        class="
+          w-full
+          md:w-auto
+        "
+        @click="fetchTags"
       >
         {{ $t('common.try_again') }}
       </Button>

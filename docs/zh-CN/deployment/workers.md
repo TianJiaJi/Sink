@@ -5,48 +5,68 @@ description: 通过 Git 集成将 Sink 部署到 Cloudflare Workers。
 
 # 部署到 Cloudflare Workers
 
-## 1. Fork Sink 并准备资源
+## 1. Fork Sink 并创建资源
 
-[Fork Sink 仓库](https://github.com/miantiao-me/Sink/fork)，然后准备以下 Cloudflare 资源：
+[Fork Sink 仓库](https://github.com/miantiao-me/Sink/fork)。在 [Cloudflare 仪表盘](https://dash.cloudflare.com/) 中创建：
 
-| 绑定        | 状态 | 用途                                       |
-| ----------- | ---- | ------------------------------------------ |
-| `DB`（D1）  | 必需 | 存储链接及相关数据。                       |
-| `KV`        | 必需 | 加速链接重定向。                           |
-| `ANALYTICS` | 推荐 | 记录访问数据，用于分析和日志。             |
-| `R2`        | 可选 | 使用备份和 OpenGraph 图片功能时推荐启用。  |
-| `AI`        | 可选 | 使用 AI 辅助生成 Slug 和元数据时推荐启用。 |
+| 绑定名称 | 产品 | 是否必需 | 是什么 |
+| -------- | ---- | -------- | ------ |
+| `DB` | D1 数据库 | 必需 | 保存链接 |
+| `KV` | KV 命名空间 | 必需 | 加速跳转 |
+| `ANALYTICS` | Analytics Engine 数据集 | 推荐 | 访问统计 |
+| `R2` | R2 存储桶 | 可选 | 备份与社交图片 |
+| `AI` | Workers AI | 可选 | AI 建议 |
 
-如需完整的 Sink 使用体验，建议启用以上五项资源。
+在 D1、KV 各自的详情页复制 **数据库 ID** 和 **命名空间 ID**。
 
-## 2. 连接 Workers Builds
+访问分析是可选的——不配也能用短链。启用步骤见[访问分析与近实时视图](/zh-CN/features/analytics)。
 
-在 Cloudflare 仪表盘中创建采用 Git 集成的 Worker，并连接你的 Fork。使用以下设置：
+## 2. 连接 Git（Workers Builds）
+
+在 Cloudflare 仪表盘中创建带 **Git 集成** 的 Worker，并连接你的 Fork：
 
 - **生产分支：** `master`
 - **构建命令：** `pnpm build`
 - **部署命令：** `pnpm deploy:worker`
 
-添加以下构建变量：
+添加这些**构建变量**（**不要**把生产环境 ID 写进仓库里的 `wrangler.jsonc` — 请用 `DEPLOY_*`）：
 
-| 变量                     | 设置条件                         |
-| ------------------------ | -------------------------------- |
-| `DEPLOY_D1_DATABASE_ID`  | 必需，填写 D1 数据库 ID。        |
-| `DEPLOY_KV_NAMESPACE_ID` | 必需，填写 KV 命名空间 ID。      |
-| `DEPLOY_R2_BUCKET_NAME`  | 使用 R2 时设置，填写存储桶名称。 |
+| 变量 | 填什么 |
+| ---- | ------ |
+| `DEPLOY_D1_DATABASE_ID` | D1 数据库 ID（在 D1 详情页） |
+| `DEPLOY_KV_NAMESPACE_ID` | KV 命名空间 ID（在 KV 详情页）→ `kv_namespaces[].id` |
+| `DEPLOY_KV_PREVIEW_NAMESPACE_ID` | 可选 Wrangler 预览 KV → `preview_id`（默认等于 `DEPLOY_KV_NAMESPACE_ID`） |
+| `DEPLOY_R2_BUCKET_NAME` | R2 存储桶名称（仅在使用 R2 时；不填则生成配置里不含 R2）→ `bucket_name` |
+| `DEPLOY_R2_PREVIEW_BUCKET_NAME` | 可选 Wrangler 预览 R2 → `preview_bucket_name`（默认等于 `DEPLOY_R2_BUCKET_NAME`） |
+| `DEPLOY_D1_DATABASE_NAME` | 可选；默认 `sink` |
+| `DEPLOY_ANALYTICS_DATASET` | 可选；默认 `sink`（若改了，请与 `NUXT_DATASET` 保持一致） |
 
-连接仓库后，Workers Builds 会使用 Cloudflare 自动生成的部署令牌，无需添加其他凭据。
+`pnpm deploy:worker` 会根据这些值生成被 gitignore 的 `wrangler.deploy.jsonc`，更新 D1 结构后部署。连接仓库时 Cloudflare 会生成部署令牌 — 不用再单独粘贴部署密钥。
 
-## 3. 配置应用设置
+## 3. 应用设置（登录密码等）
 
-在 **Settings → Variables and Secrets** 中，将稳定且高强度的 `NUXT_SITE_TOKEN` 设置为加密的运行时密钥。按照[配置参考](/zh-CN/configuration/)添加所需的公开设置和可选设置。
+在 **Settings → Variables and Secrets** 中添加：
 
-如需在仪表盘中查询访问分析，请按照[推荐配置](/zh-CN/configuration/#推荐配置)配置 `NUXT_CF_ACCOUNT_ID`、加密的 `NUXT_CF_API_TOKEN` 和 `NUXT_DATASET`。
+| 变量 | 类型 | 用途 |
+| ---- | ---- | ---- |
+| `NUXT_SITE_TOKEN` | 加密密钥 | 仪表盘登录密码和 API 密码（至少 8 个字符，保持稳定） |
+| `NUXT_CF_ACCOUNT_ID` | 变量 | 访问分析推荐 |
+| `NUXT_CF_API_TOKEN` | 加密密钥 | 访问分析推荐 |
 
-确认已启用资源的绑定名称分别为 `DB`、`KV`、`ANALYTICS`、`R2` 和 `AI`。
+访问分析细节见[访问分析与近实时视图](/zh-CN/features/analytics)。完整列表见[配置参考](/zh-CN/configuration/)。
 
-## 4. 部署
+确认绑定名称正好是 `DB`、`KV`、`ANALYTICS`、`R2`、`AI`。
 
-启动 Workers 构建并等待 Sink 发布完成。
+## 4. 部署并首次使用
 
-首次部署后，打开 `/dashboard`，登录并创建链接。后续发布请按照[升级 Sink](./upgrading)操作。
+从 `master` 启动构建，等待完成。
+
+1. 打开 `/dashboard`，用 `NUXT_SITE_TOKEN` 登录
+2. 打开一次 **Dashboard → Links**（一次性存储初始化）
+3. 创建链接
+
+::: tip 必须先打开一次 Links
+存储初始化完成前，创建链接可能失败，并提示「存储未就绪」（HTTP 423）。
+:::
+
+后续升级见[升级 Sink](./upgrading)。

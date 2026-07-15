@@ -124,10 +124,6 @@ function getNumberInputChangeValue(event: Event) {
     <div class="flex flex-wrap gap-2">
       <Button
         type="submit"
-        class="
-          min-h-11
-          sm:min-h-9
-        "
         :disabled="checking || loadingLinks || !hasLinks"
       >
         {{ checking ? $t('check.actions.checking') : $t('check.actions.start') }}
@@ -135,10 +131,6 @@ function getNumberInputChangeValue(event: Event) {
       <Button
         type="button"
         variant="destructive"
-        class="
-          min-h-11
-          sm:min-h-9
-        "
         :disabled="!checking"
         @click="emit('stop')"
       >
@@ -147,10 +139,6 @@ function getNumberInputChangeValue(event: Event) {
       <Button
         type="button"
         variant="outline"
-        class="
-          min-h-11
-          sm:min-h-9
-        "
         :disabled="checking || loadingLinks"
         @click="emit('reload')"
       >
@@ -159,10 +147,6 @@ function getNumberInputChangeValue(event: Event) {
       <Button
         type="button"
         variant="destructive"
-        class="
-          min-h-11
-          sm:min-h-9
-        "
         :disabled="checking || !hasResults"
         @click="clearDialogOpen = true"
       >
@@ -171,10 +155,6 @@ function getNumberInputChangeValue(event: Event) {
       <Button
         type="button"
         variant="outline"
-        class="
-          min-h-11
-          sm:min-h-9
-        "
         :disabled="exportDisabled"
         @click="emit('export')"
       >

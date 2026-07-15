@@ -71,10 +71,6 @@ function handleCloseAutoFocus(event: Event) {
 <template>
   <AlertDialog :open="open" @update:open="updateOpen">
     <AlertDialogContent
-      class="
-        max-h-[95svh] max-w-[95svw] grid-rows-[auto_minmax(0,1fr)_auto]
-        md:max-w-lg
-      "
       @close-auto-focus="handleCloseAutoFocus"
       @escape-key-down="handleEscapeKeyDown"
     >

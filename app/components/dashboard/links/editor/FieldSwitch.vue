@@ -17,7 +17,7 @@ const emit = defineEmits<{
       <FieldLabel :for="id">
         {{ label }}
       </FieldLabel>
-      <FieldDescription v-if="description" class="text-xs">
+      <FieldDescription v-if="description">
         {{ description }}
       </FieldDescription>
     </FieldContent>

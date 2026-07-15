@@ -106,10 +106,11 @@ function tooltipTemplate(d: any): string {
   data.displayName = getRegionName(data.name, locale.value)
 
   const div = document.createElement('div')
+  // ChartTooltipContent.x is typed as number | Date; use labelKey for region names.
   const vnode = h(ChartTooltipContent, {
-    payload: { count: data.count },
+    payload: { count: data.count, name: data.displayName },
     config: chartConfig.value,
-    x: data.displayName,
+    labelKey: 'name',
   })
   render(vnode, div)
   const html = div.innerHTML
@@ -142,10 +143,7 @@ function tooltipTemplate(d: any): string {
           <Button
             type="button"
             variant="link"
-            class="
-              h-11 px-3 text-destructive
-              lg:h-auto lg:min-h-0 lg:p-0
-            "
+            class="h-auto p-0 text-destructive"
             :aria-label="`${$t('common.try_again')}: ${$t('dashboard.locations')}`"
             @click="getWorldMapJSON"
           >
@@ -157,10 +155,7 @@ function tooltipTemplate(d: any): string {
           <Button
             type="button"
             variant="link"
-            class="
-              h-11 px-3 text-destructive
-              lg:h-auto lg:min-h-0 lg:p-0
-            "
+            class="h-auto p-0 text-destructive"
             :aria-label="`${$t('common.try_again')}: ${$t('dashboard.metrics.country')}`"
             @click="metricsRetryKey++"
           >

@@ -81,11 +81,9 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
       variant="outline"
       size="sm"
       class="
-        relative min-h-11 min-w-0 flex-1 justify-start bg-background
-        text-muted-foreground
-        sm:w-32 sm:flex-none
+        relative min-w-0 flex-1 justify-start text-muted-foreground
+        sm:w-32 sm:flex-none sm:pr-10
         md:w-48
-        lg:min-h-9
       "
     >
       <span
@@ -100,16 +98,14 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
           md:hidden
         "
       >{{ $t('common.search') }}</span>
-      <kbd
+      <Kbd
         class="
-          pointer-events-none absolute top-1/2 right-[0.3rem] hidden h-5
-          -translate-y-1/2 items-center gap-1 rounded-sm border bg-muted px-1.5
-          font-mono text-[10px] font-medium opacity-100 select-none
+          absolute top-1/2 right-[0.3rem] hidden -translate-y-1/2
           sm:flex
         "
       >
-        <span class="text-xs">⌘</span>K
-      </kbd>
+        <span>⌘</span>K
+      </Kbd>
     </Button>
   </TriggerTemplate>
   <SearchTemplate>
@@ -148,7 +144,7 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
         </CommandEmpty>
         <CommandGroup v-if="!loading && links.length" :heading="$t('links.group_title')">
           <CommandItem
-            v-for="link in links" :key="link.slug" class="cursor-pointer"
+            v-for="link in links" :key="link.slug"
             :value="link" @select="selectLink(link)"
           >
             <div class="w-full min-w-0 space-y-1">
@@ -190,7 +186,7 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
     <DialogTrigger as-child>
       <TriggerComponent />
     </DialogTrigger>
-    <DialogContent class="gap-0 overflow-hidden p-0 shadow-lg" :show-close-button="false">
+    <DialogContent class="gap-0 overflow-hidden p-0" :show-close-button="false">
       <DialogHeader class="sr-only">
         <DialogTitle>{{ $t('links.search_placeholder') }}</DialogTitle>
       </DialogHeader>

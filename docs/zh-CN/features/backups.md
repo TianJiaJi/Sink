@@ -1,36 +1,35 @@
 ---
 title: 链接备份
-description: 创建权威 D1 链接的 R2 JSON 快照，并了解其内容、计划执行方式和恢复限制。
+description: 把链接快照存到 R2、包含什么、如何计划执行，以及恢复限制。
 ---
 
 # 链接备份
 
-Sink 备份是写入 `R2` 绑定的**权威 D1 链接**逻辑 JSON 快照。它们不是完整的 D1 数据库备份，也不是 KV 兼容性备份。
+Sink 备份是存在 **R2**（Cloudflare 文件存储）里的**链接 JSON 快照**。它不是完整数据库转储。
 
-## 要求与操作
+## 需要什么
 
-创建任何快照前，都必须存在 KV 到 D1 数据迁移标记。缺少标记时，已认证的备份 API 会返回 `423`。手动快照使用该 API。自动快照需要配置计划 Worker，并可通过[配置参考](/zh-CN/configuration/#高级默认值)禁用。
+1. 绑定 **R2**
+2. 完成一次性存储初始化：部署后打开 **Dashboard → Links**。在此之前备份会失败，并提示「存储未就绪」（HTTP 423）。见[存储初始化](/zh-CN/storage/kv-to-d1)
+3. 在仪表盘或通过 `POST /api/backup` 创建快照
 
-本仓库的 Workers Cron 每天 **UTC 00:00** 运行。Cloudflare Pages 可以创建手动快照，但本仓库不提供 Pages 计划触发器，也不保证自动 Cron 会在那里运行。
+每日自动备份需要 Workers 定时任务（本仓库：**UTC 00:00**）。可用 `NUXT_DISABLE_AUTO_BACKUP=true` 关闭。Pages 只支持**手动**快照。
 
-自动对象使用 `backups/links-<timestamp>.json`；手动对象使用 `backups/manual-links-<timestamp>.json`。
+文件名：
 
-## 快照内容
+- 自动：`backups/links-<timestamp>.json`
+- 手动：`backups/manual-links-<timestamp>.json`
 
-快照包含所有权威 D1 链接记录，包括过期链接和密码凭据材料。通过当前创建和编辑流程设置的密码会先进行保护再存储。但是，KV 到 D1 数据迁移会原样保留每个旧版密码值，因此较旧的迁移记录可能包含明文密码。
+## 里面有什么
 
-请将每个 R2 链接快照视为敏感数据，并严格限制存储桶和对象的访问权限。
+D1 里的全部链接记录，包括过期链接和密码材料。请把每个快照当作**机密**。
 
-快照不包含：
+::: warning 快照是敏感数据
+严格限制谁能读 R2 桶。快照可能包含密码材料和完整目标 URL。
+:::
 
-- D1 架构或迁移
-- 链接墓碑记录
-- KV 到 D1 数据迁移运行记录或游标
-- 存储在 KV 中的数据迁移标记
-- Analytics Engine 数据或其他数据库状态
+不包含：数据库结构、删除标记、迁移历史、访问分析数据。
 
 ## 恢复限制
 
-Sink 未实现保留清理、快照轮换或一键精确恢复。你需要自行管理 R2 生命周期和访问策略。快照可为正常导入流程提供链接记录，但仍需遵循导入验证和冲突处理规则，且不会精确复现原始数据库。
-
-对于数据库级恢复，Cloudflare D1 还提供 [Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/)。这是 Cloudflare 的另一项独立功能，有自己的保留和恢复语义。
+Sink 不会自动清理旧快照，也不提供一键完整恢复。你可以从快照[导入](./import-export)记录（仍走普通导入规则）。数据库级恢复见 Cloudflare D1 [Time Travel](https://developers.cloudflare.com/d1/reference/time-travel/)。

@@ -42,19 +42,12 @@ function logOut() {
         type="button"
         variant="ghost"
         size="icon-lg"
-        class="size-11"
         :aria-label="$t('logout.action')"
       >
         <LogOut aria-hidden="true" />
       </Button>
     </AlertDialogTrigger>
-    <AlertDialogContent
-      class="
-        max-h-[95svh] max-w-[95svw] grid-rows-[auto_minmax(0,1fr)_auto]
-        md:max-w-lg
-      "
-      @close-auto-focus="emit('closeAutoFocus', $event)"
-    >
+    <AlertDialogContent @close-auto-focus="emit('closeAutoFocus', $event)">
       <AlertDialogHeader>
         <AlertDialogTitle>{{ $t('logout.title') }}</AlertDialogTitle>
         <AlertDialogDescription>

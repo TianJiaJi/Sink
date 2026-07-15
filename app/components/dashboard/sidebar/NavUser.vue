@@ -60,8 +60,6 @@ watch(userEmail, async (email, _previousEmail, onCleanup) => {
             size="lg"
             :aria-label="user.name"
             class="
-              min-h-11
-              focus-visible:ring-3 focus-visible:ring-sidebar-ring/50
               data-[state=open]:bg-sidebar-accent
               data-[state=open]:text-sidebar-accent-foreground
             "
@@ -80,12 +78,12 @@ watch(userEmail, async (email, _previousEmail, onCleanup) => {
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          class="w-[--reka-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+          class="w-[--reka-dropdown-menu-trigger-width] min-w-56"
           :side="isMobile ? 'bottom' : 'right'"
           align="end"
           :side-offset="4"
         >
-          <DropdownMenuLabel class="p-0 font-normal">
+          <DropdownMenuLabel class="p-0">
             <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
               <Avatar class="size-8 rounded-full">
                 <AvatarImage v-if="avatarURL" :src="avatarURL" alt="" />
@@ -102,10 +100,9 @@ watch(userEmail, async (email, _previousEmail, onCleanup) => {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
-            class="min-h-11 cursor-pointer"
             @select.prevent="openLogoutDialog"
           >
-            <LogOut aria-hidden="true" class="mr-2 size-4" />
+            <LogOut aria-hidden="true" />
             {{ $t('logout.action') }}
           </DropdownMenuItem>
         </DropdownMenuContent>

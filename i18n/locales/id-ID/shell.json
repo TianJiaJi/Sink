@@ -1,7 +1,6 @@
 {
   "layouts": {
     "footer": {
-      "copyright": "Sebuah produk dari HTML.ZONE",
       "social": {
         "email": "Email",
         "telegram": "Telegram",
@@ -40,6 +39,7 @@
     "export": "Ekspor",
     "coffee": "Traktir Kopi",
     "github": "GitHub",
+    "releases": "Rilis",
     "stars": "Bintang",
     "update": "Versi baru {version} tersedia (saat ini: {current})"
   }

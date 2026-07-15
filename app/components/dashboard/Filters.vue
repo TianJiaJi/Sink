@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Link } from '@/types'
 import type { DashboardSlugFilters } from '@/utils/dashboard-query'
-import { Check, ChevronsUpDown, Search } from '@lucide/vue'
+import { Check, ChevronsUpDown } from '@lucide/vue'
 import { createReusableTemplate, useMediaQuery, watchDebounced } from '@vueuse/core'
 import { VList } from 'virtua/vue'
 import { cn } from '@/lib/utils'
@@ -44,6 +44,11 @@ watch(() => props.filters?.slug, (newSlug) => {
   if (JSON.stringify(newValue) !== JSON.stringify(selectedLinks.value)) {
     selectedLinks.value = newValue
   }
+})
+
+watch(isOpen, (open) => {
+  if (!open)
+    searchTerm.value = ''
 })
 
 async function getLinks() {
@@ -100,9 +105,8 @@ else {
       :aria-label="ariaLabelledby ? undefined : (ariaLabel ?? $t('dashboard.realtime.filter_label'))"
       :aria-labelledby="ariaLabelledby"
       class="
-        flex min-h-11 w-full justify-between px-3
+        flex w-full justify-between px-3
         sm:w-48
-        lg:min-h-9
       "
     >
       <div
@@ -116,20 +120,17 @@ else {
     </Button>
   </TriggerTemplate>
   <FilterTemplate>
-    <Command v-model="selectedLinks" :aria-busy="isLoading" multiple>
-      <div class="flex h-9 items-center gap-2 border-b px-3">
-        <Search aria-hidden="true" class="size-4 shrink-0 opacity-50" />
-        <Input
-          v-model="searchTerm"
-          :aria-label="$t('dashboard.realtime.filter_search_label')"
-          :placeholder="selectedLinks.length ? selectedLinks.join(', ') : $t('dashboard.filter_placeholder')"
-          autocomplete="off"
-          class="
-            h-11 border-0 bg-transparent px-0 shadow-none
-            focus-visible:ring-0
-          "
-        />
-      </div>
+    <Command
+      v-model="selectedLinks"
+      :aria-busy="isLoading"
+      multiple
+    >
+      <CommandInput
+        v-model="searchTerm"
+        :aria-label="$t('dashboard.realtime.filter_search_label')"
+        :placeholder="selectedLinks.length ? selectedLinks.join(', ') : $t('dashboard.filter_placeholder')"
+        autocomplete="off"
+      />
       <div
         v-if="isLoading"
         aria-live="polite"
@@ -174,6 +175,7 @@ else {
             <CommandItem
               :value="link.slug"
               class="py-2"
+              @select="searchTerm = ''"
             >
               <Check
                 aria-hidden="true"

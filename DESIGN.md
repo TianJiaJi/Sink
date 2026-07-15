@@ -115,16 +115,24 @@ Base surfaces establish depth with semantic backgrounds, borders, and rings. Dia
 
 The base radius is `0.625rem`. Derived CSS radii are `sm = calc(var(--radius) - 4px)`, `md = calc(var(--radius) - 2px)`, `lg = var(--radius)`, and `xl = calc(var(--radius) + 4px)`. Utilities such as `rounded-2xl` and `rounded-4xl` are local component choices, not global design tokens.
 
+Generous component radii coexist with compact density; a larger radius does not imply a larger control.
+
 ## Components
 
 - Buttons provide default, outline, secondary, ghost, destructive, and link variants, multiple text and icon sizes, focus/invalid rings, active movement, and disabled treatment.
 - Inputs and select triggers use input surfaces and borders with placeholder, hover where implemented, focus, invalid, and disabled states; select content uses popover colors and floating-content treatment.
-- Cards pair card background and foreground colors, use a subtle ring, and provide default and small density variants.
+- Cards pair card background and foreground colors, use a subtle ring, and provide default and small density variants. Use small density for repeated dashboard collections and default density for standalone sections, forms, and empty states.
 - Standard dialogs use popover colors, an overlay, open/closed motion, and a subtle ring. The scrollable dialog variant instead uses the background role, a border, and a local shadow; other floating content follows its own implementation.
-- Tabs provide default filled and line variants with active, hover, focus, disabled, horizontal, and vertical states.
-- The sidebar uses its dedicated background, foreground, accent, border, and ring roles across responsive, collapsible, floating, and inset variants. Sidebar primary roles are defined but are not currently consumed by these components.
+- Tabs provide default filled and line variants with active, hover, focus, disabled, horizontal, and vertical states. When a horizontal list does not fit, scrolling belongs to an outer wrapper, focus-ring clearance is preserved, and the active trigger remains visible.
+- The sidebar uses its dedicated background, foreground, accent, border, and ring roles across responsive, collapsible, floating, and inset variants. Use the default shape for primary navigation and reserve a stronger pill treatment for the active item. Secondary utilities are compact icon-only controls and rely on native collapsed behavior. Sidebar primary roles are defined but are not currently consumed by these components.
 
 Components expose stable `data-slot` attributes for composition and styling. Reuse the existing UI components and their variants; do not hand-edit generated components under `app/components/ui/**`.
+
+## Interaction
+
+- Mobile keeps registry control sizes by default and uses larger official variants only when context needs a larger touch target.
+- Use menus for compact contextual action lists and popovers for richer anchored content.
+- When an overlay opens another, focus moves directly into the new surface and returns to the initiating control when the flow ends.
 
 ## Do's and Don'ts
 

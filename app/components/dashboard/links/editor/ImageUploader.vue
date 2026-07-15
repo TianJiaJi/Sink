@@ -156,10 +156,7 @@ function openFilePicker() {
         type="button"
         variant="destructive"
         size="icon"
-        class="
-          absolute top-2 right-2 size-11
-          sm:size-9
-        "
+        class="absolute top-2 right-2"
         :aria-label="`${$t('common.delete')}: ${$t('links.form.image_preview')}`"
         @click="clearImage"
       >

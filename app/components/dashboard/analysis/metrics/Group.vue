@@ -10,24 +10,17 @@ defineProps<{
     :default-value="rawTabs[0]"
     class="flex flex-col"
   >
-    <TabsList
-      class="
-        min-h-11 w-fit
-        lg:min-h-8
-      "
-    >
-      <TabsTrigger
-        v-for="(tab, index) in tabs"
-        :key="tab"
-        :value="rawTabs[index]!"
-        class="
-          min-h-11
-          lg:min-h-0
-        "
-      >
-        {{ tab }}
-      </TabsTrigger>
-    </TabsList>
+    <div class="max-w-full overflow-x-auto p-1">
+      <TabsList class="min-w-max">
+        <TabsTrigger
+          v-for="(tab, index) in tabs"
+          :key="tab"
+          :value="rawTabs[index]!"
+        >
+          {{ tab }}
+        </TabsTrigger>
+      </TabsList>
+    </div>
     <TabsContent
       v-for="(tab, index) in tabs"
       :key="tab"

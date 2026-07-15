@@ -1,43 +1,56 @@
 ---
 title: REST API 参考
-description: 查找 Sink 自动生成的 OpenAPI 文档、身份认证和 CORS 要求，以及端点分类索引。
+description: Sink 的 OpenAPI 文档、身份认证、CORS 与端点索引。
 ---
 
 # REST API 参考
 
-## OpenAPI 文档
+## 交互式文档
 
-每个 Sink 实例都会在以下位置发布自动生成的 API 描述和交互式参考：
+每个 Sink 实例都会发布 API 文档：
 
-- `https://your-domain/_docs/openapi.json` — OpenAPI JSON
-- `https://your-domain/_docs/scalar` — Scalar UI
-- `https://your-domain/_docs/swagger` — Swagger UI
+- `https://your-domain/_docs/openapi.json` — 机器可读的 OpenAPI
+- `https://your-domain/_docs/scalar` — 更友好的界面
+- `https://your-domain/_docs/swagger` — 经典 Swagger 界面
 
-请使用自己的域名，因为不同部署版本的路由可能不同。公开演示位于 [https://sink.cool/_docs/scalar](https://sink.cool/_docs/scalar)。
+请用你自己的域名。公开演示：[https://sink.cool/_docs/scalar](https://sink.cool/_docs/scalar)。
 
 ## 身份认证
 
-将配置的站点令牌作为 Bearer 凭据发送：
+在请求头里发送站点密码：
 
 ```http
 Authorization: Bearer YOUR_SITE_TOKEN
 ```
 
-启用 [Cloudflare Access](/zh-CN/configuration/cloudflare-access) 后，受支持的浏览器和服务令牌请求也可以改用经过验证的 Access 应用 JWT 进行身份认证。
+（`Bearer` 的意思是「后面是令牌」。）必须与 `NUXT_SITE_TOKEN` 完全一致（至少 8 个字符）。启用 [Cloudflare Access](/zh-CN/configuration/cloudflare-access) 后，浏览器也可以用已验证的 Access 登录访问 API。
 
 ## CORS
 
-API CORS 需要在构建时选择启用，并应用于 `/api/**`。详见[配置参考](/zh-CN/configuration/#可选配置)。启用 CORS 不会取消身份认证要求。
+可选。构建时设置 `NUXT_API_CORS=true`，允许其他网站的浏览器调用 `/api/**`。仍需要登录。见[配置参考](/zh-CN/configuration/#可选配置)。
 
-## 端点分类索引
+## 调用链接 API 前
 
-请使用自动生成的 OpenAPI 文档查看方法、参数、请求体和响应。
+::: warning 存储必须就绪
+部署后若还没打开过 **Dashboard → Links**，大多数 `/api/link/**` 会失败，并提示 **「存储未就绪」（HTTP 423）**。见[存储初始化](/zh-CN/storage/kv-to-d1)。
+:::
 
-| 分类           | 路由与用途                                                                                                   |
-| -------------- | ------------------------------------------------------------------------------------------------------------ |
-| 链接管理       | `/api/link/create`、`edit`、`upsert`、`delete`、`query`、`search`、`list`、`check` 和 `tags`                 |
-| 可移植性       | `/api/link/import` 和 `/api/link/export`；详见[导入/导出](/zh-CN/features/import-export)                     |
-| 存储数据迁移   | `/api/link/migration/status` 和 `/api/link/migration/run`；详见 [KV 到 D1 数据迁移](/zh-CN/storage/kv-to-d1) |
-| AI 辅助        | `/api/link/ai` 和 `/api/link/og-ai`；详见 [Workers AI](/zh-CN/features/ai)                                   |
-| 访问分析与日志 | `/api/stats/**` 和 `/api/logs/**`；详见[访问分析与近实时视图](/zh-CN/features/analytics)                     |
-| 实用工具       | `/api/verify`、`/api/location`、`/api/upload/image` 和 `/api/backup`                                         |
+- `upsert` 空闲时创建；短链码已存在则返回已有记录且 `status: "existing"`（**不**覆盖）
+- `search` 匹配短链码、URL、备注和标签
+- `check` 从服务端探测目标 URL
+- `verify` 检查当前如何登录
+- `location` 在 Cloudflare 提供时返回大致坐标
+- 图片上传需要 R2（JPEG/PNG/WebP/GIF，最大 5 MB）
+
+## 端点分组
+
+完整请求/响应请看 OpenAPI 界面。
+
+| 分组 | 路由 |
+| ---- | ---- |
+| 链接 | `/api/link/create`、`edit`、`upsert`、`delete`、`query`、`search`、`list`、`check`、`tags` |
+| 导入/导出 | `/api/link/import`、`/api/link/export` — [导入/导出](/zh-CN/features/import-export) |
+| 存储初始化 | `/api/link/migration/status`、`/api/link/migration/run` — [存储初始化](/zh-CN/storage/kv-to-d1) |
+| AI | `/api/link/ai`、`/api/link/og-ai` — [Workers AI](/zh-CN/features/ai) |
+| 访问分析 | `/api/stats/**`、`/api/logs/**` — [访问分析](/zh-CN/features/analytics) |
+| 实用工具 | `/api/verify`、`/api/location`、`/api/upload/image`、`/api/backup` |

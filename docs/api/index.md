@@ -1,43 +1,56 @@
 ---
 title: REST API
-description: Find Sink's generated OpenAPI documents, authentication and CORS requirements, and endpoint category index.
+description: OpenAPI docs, authentication, CORS, and endpoint index for Sink.
 ---
 
 # REST API
 
-## OpenAPI documents
+## Interactive docs
 
-Every Sink instance publishes its generated API description and interactive references at:
+Every Sink instance publishes API docs at:
 
-- `https://your-domain/_docs/openapi.json` — OpenAPI JSON
-- `https://your-domain/_docs/scalar` — Scalar UI
-- `https://your-domain/_docs/swagger` — Swagger UI
+- `https://your-domain/_docs/openapi.json` — machine-readable OpenAPI
+- `https://your-domain/_docs/scalar` — friendly UI
+- `https://your-domain/_docs/swagger` — classic Swagger UI
 
-Use your own hostname because routes can differ by deployed version. The public demo is available at [https://sink.cool/_docs/scalar](https://sink.cool/_docs/scalar).
+Use your own domain. Public demo: [https://sink.cool/_docs/scalar](https://sink.cool/_docs/scalar).
 
 ## Authentication
 
-Send the configured site token as a bearer credential:
+Send your site password in the `Authorization` header:
 
 ```http
 Authorization: Bearer YOUR_SITE_TOKEN
 ```
 
-When [Cloudflare Access](/configuration/cloudflare-access) is enabled, supported browser and service-token requests can instead authenticate with a verified Access application JWT.
+(`Bearer` means “here is the token”.) It must match `NUXT_SITE_TOKEN` exactly (at least 8 characters). With [Cloudflare Access](/configuration/cloudflare-access) enabled, browsers can also authenticate with a verified Access login.
 
 ## CORS
 
-API CORS is opt-in at build time and applies to `/api/**`. See [configuration](/configuration/#optional-configuration). Enabling CORS does not remove authentication requirements.
+Optional. Set `NUXT_API_CORS=true` at build time to allow browser apps on other sites to call `/api/**`. Login is still required. See [configuration](/configuration/#optional).
 
-## Endpoint category index
+## Before you call link APIs
 
-Use the generated OpenAPI document for methods, parameters, request bodies, and responses.
+::: warning Storage must be ready
+Until you open **Dashboard → Links** once after deploy, most `/api/link/**` calls fail with **“storage not ready” (HTTP 423)**. See [storage setup](/storage/kv-to-d1).
+:::
 
-| Category           | Routes and purpose                                                                                      |
-| ------------------ | ------------------------------------------------------------------------------------------------------- |
-| Link management    | `/api/link/create`, `edit`, `upsert`, `delete`, `query`, `search`, `list`, `check`, and `tags`          |
-| Portability        | `/api/link/import` and `/api/link/export`; see [Import and Export](/features/import-export)             |
-| Storage migration  | `/api/link/migration/status` and `/api/link/migration/run`; see [KV-to-D1 Migration](/storage/kv-to-d1) |
-| AI assistance      | `/api/link/ai` and `/api/link/og-ai`; see [Workers AI](/features/ai)                                    |
-| Analytics and logs | `/api/stats/**` and `/api/logs/**`; see [Analytics and Realtime](/features/analytics)                   |
-| Utilities          | `/api/verify`, `/api/location`, `/api/upload/image`, and `/api/backup`                                  |
+- `upsert` creates when free; if the short code exists, returns it with `status: "existing"` (does **not** overwrite)
+- `search` matches short code, URL, comment, and tags
+- `check` probes target URLs from the server
+- `verify` checks how you are authenticated
+- `location` returns approximate coordinates when Cloudflare provides them
+- Image upload needs R2 (JPEG/PNG/WebP/GIF, max 5 MB)
+
+## Endpoint groups
+
+Use the OpenAPI UI for full request/response details.
+
+| Group | Routes |
+| ----- | ------ |
+| Links | `/api/link/create`, `edit`, `upsert`, `delete`, `query`, `search`, `list`, `check`, `tags` |
+| Import/export | `/api/link/import`, `/api/link/export` — [Import and Export](/features/import-export) |
+| Storage setup | `/api/link/migration/status`, `/api/link/migration/run` — [storage setup](/storage/kv-to-d1) |
+| AI | `/api/link/ai`, `/api/link/og-ai` — [Workers AI](/features/ai) |
+| Analytics | `/api/stats/**`, `/api/logs/**` — [Analytics](/features/analytics) |
+| Utilities | `/api/verify`, `/api/location`, `/api/upload/image`, `/api/backup` |

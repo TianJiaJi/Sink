@@ -26,10 +26,10 @@ onMounted(() => {
       </Teleport>
 
       <DashboardLinksFilters />
-      <TabsContent value="active" class="mt-0">
+      <TabsContent value="active">
         <DashboardLinks />
       </TabsContent>
-      <TabsContent value="expired" class="mt-0">
+      <TabsContent value="expired">
         <DashboardLinks />
       </TabsContent>
     </main>

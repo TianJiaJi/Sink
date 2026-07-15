@@ -60,7 +60,7 @@ function updateOpen(value: boolean) {
       <div class="overflow-y-auto overscroll-contain">
         <slot />
       </div>
-      <DialogFooter v-if="slots.footer" class="flex-wrap">
+      <DialogFooter v-if="slots.footer">
         <slot name="footer" />
       </DialogFooter>
     </DialogContent>
@@ -92,15 +92,12 @@ function updateOpen(value: boolean) {
       >
         <slot />
       </div>
-      <DrawerFooter
-        v-if="slots.footer"
-        class="flex-row flex-wrap justify-end gap-2"
-      >
+      <DrawerFooter v-if="slots.footer">
         <slot name="footer" />
       </DrawerFooter>
       <DrawerFooter v-else>
         <DrawerClose as-child>
-          <Button type="button" variant="secondary" class="min-h-11" :disabled="preventClose">
+          <Button type="button" variant="secondary" :disabled="preventClose">
             {{ $t('common.close') }}
           </Button>
         </DrawerClose>

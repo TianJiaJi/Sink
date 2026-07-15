@@ -79,7 +79,6 @@ function selectCountry(code: string) {
               v-for="country in countries"
               :key="country.code"
               :value="`${country.name} ${country.code}`"
-              class="cursor-pointer"
               @select="selectCountry(country.code)"
             >
               <Check

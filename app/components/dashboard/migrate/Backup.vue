@@ -34,10 +34,6 @@ async function handleBackup() {
     </CardHeader>
     <CardContent>
       <Button
-        class="
-          min-h-11
-          lg:min-h-9
-        "
         :disabled="isBackingUp"
         :aria-busy="isBackingUp"
         @click="handleBackup"

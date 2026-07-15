@@ -51,7 +51,7 @@ const typedTestimonials = testimonials as Testimonial[]
                 hover:shadow-md
               "
             >
-              <CardContent class="grid grid-cols-[auto_1fr] gap-3 px-4 py-0">
+              <CardContent class="grid grid-cols-[auto_1fr] gap-3 px-4">
                 <Avatar class="size-9">
                   <AvatarImage
                     :alt="testimonial.name"

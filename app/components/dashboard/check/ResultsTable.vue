@@ -23,7 +23,7 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
 </script>
 
 <template>
-  <div class="overflow-x-auto rounded-md border">
+  <div class="overflow-x-auto">
     <Table class="min-w-6xl table-fixed">
       <TableHeader>
         <TableRow>
@@ -98,10 +98,6 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
                 as="a"
                 variant="outline"
                 size="sm"
-                class="
-                  min-h-11
-                  sm:min-h-8
-                "
                 :href="result.url"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -113,10 +109,6 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
                 as="a"
                 variant="outline"
                 size="sm"
-                class="
-                  min-h-11
-                  sm:min-h-8
-                "
                 :href="getDashboardLinkDetailUrl(result.slug)"
                 target="_blank"
                 rel="noopener noreferrer"

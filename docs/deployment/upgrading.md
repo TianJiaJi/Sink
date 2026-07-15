@@ -5,24 +5,25 @@ description: Upgrade Sink by syncing your GitHub fork and redeploying.
 
 # Upgrading Sink
 
-## Before upgrading
+## Before you upgrade
 
-1. Review the upstream release notes.
-2. Preserve your Cloudflare bindings, secrets, and environment settings.
-3. If R2 is configured, consider creating a manual [link snapshot](/features/backups).
+1. Skim the upstream release notes
+2. Do not delete your Cloudflare bindings, secrets, or env vars
+3. If R2 is set up, consider a manual [backup](/features/backups)
 
-## Upgrade a D1 deployment
+## Normal upgrade (current D1 installs)
 
-1. Use GitHub to sync your fork with the upstream `master` branch. Resolve any conflicts caused by your own changes.
-2. Redeploy the updated `master` branch through Workers Builds or Pages.
-3. Wait for the deployment to finish.
+1. On GitHub, open your fork → click **Sync fork** to pull the latest `master`. If you changed files yourself, resolve conflicts first
+2. In Cloudflare (Workers Builds or Pages), redeploy the updated `master` branch
+3. Wait for the deploy to finish (database updates run as part of deploy)
 
-## Upgrade a legacy KV-only deployment
+## Upgrading a very old install (links only in KV)
 
-If the existing instance stored links only in KV, preserve the original KV data in Cloudflare and follow the separate [KV-to-D1 migration guide](/storage/kv-to-d1).
+If your instance stored links only in KV (older Sink versions), keep that KV data and follow [storage setup / migration](/storage/kv-to-d1).
 
-## Verify
+## After upgrade — quick check
 
-- Open the dashboard and confirm that sign-in works.
-- Create, open, edit, and delete a test link.
-- Check analytics and other optional features that you have enabled.
+- Sign in to the dashboard
+- Open **Dashboard → Links** once (finishes storage setup if needed)
+- Create, open, edit, and delete a test link
+- Check analytics if you use it

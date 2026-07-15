@@ -1,22 +1,27 @@
 ---
 title: Workers AI 辅助
-description: 为 Sink 启用可选的 Workers AI 辅助，以生成 Slug 建议和 OpenGraph 元数据。
+description: 可选的 AI 帮助：建议短链码和社交预览文案。
 ---
 
 # Workers AI 辅助
 
-Sink 可以使用 Cloudflare Workers AI 绑定来建议 Slug，并生成 OpenGraph 标题和描述。此功能可选，不影响正常的链接创建或重定向。
+Sink 可以使用 Cloudflare **Workers AI** 建议短链码和社交预览标题/描述。可选 — 不用 AI 也能正常创建链接。
 
-## 启用 AI 辅助
+## 启用
 
-将 Workers AI 目录绑定为 `AI`。之后可以通过[配置参考](/zh-CN/configuration/#高级默认值)选择模型或替换提示词。自定义 Slug 提示词必须保留 `{slugRegex}` 占位符，以便 Sink 提供实例的 Slug 规则。
+将 Workers AI 绑定为 `AI`。可在[配置参考](/zh-CN/configuration/#高级默认值)中改模型或提示词。自定义短链提示词必须保留 `{slugRegex}` 占位符。
 
-如果绑定不可用，AI 端点会返回 `501 AI not enabled`。除非每个部署环境都提供该绑定，否则不要让集成依赖 AI。
+如果没有绑定 AI，相关接口会返回 **501**（未启用）。
 
-## 行为与限制
+## 行为
 
-对于请求的 URL，Sink 会尝试获取页面内容，并请求配置的模型返回结构化输出。Slug 结果会根据自定义 Slug 的大小写设置进行规范化。元数据生成支持指定首选语言区域。
+对于一个 URL，Sink 会尽量读取页面内容，并让模型返回结构化结果：
 
-如果 AI 请求开始后模型执行或输出解析失败，Sink 会返回基于 URL 的确定性回退结果。建议仍可能与现有 Slug 冲突或包含不合适的措辞；保存前请进行检查。
+- `/api/link/ai` — 短链码建议
+- `/api/link/og-ai` — 标题与描述；可用 `locale` 查询参数指定语言
 
-页面内容和目标 URL 可能会发送到 Cloudflare Workers AI。使用此功能前，请考虑目标页面的敏感性及其适用策略。
+模型失败时，Sink 会回退到基于 URL 的简单建议。保存前请人工检查。
+
+::: warning 会向 Workers AI 发送数据
+页面内容和目标 URL 可能会发送到 Cloudflare Workers AI。使用前请确认敏感性和策略。
+:::

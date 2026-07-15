@@ -16,26 +16,15 @@ const analysisStore = useDashboardAnalysisStore()
   </h2>
   <DashboardAnalysisCounters />
   <Tabs v-model="analysisStore.viewMode" default-value="trend">
-    <div class="mb-4 flex items-center justify-between">
-      <TabsList
-        class="
-          min-h-11
-          lg:min-h-8
-        "
-      >
+    <div class="mb-4 flex flex-wrap items-center gap-2">
+      <TabsList>
         <TabsTrigger
-          value="trend" class="
-            min-h-11
-            lg:min-h-0
-          "
+          value="trend"
         >
           {{ $t('dashboard.trend') }}
         </TabsTrigger>
         <TabsTrigger
-          value="heatmap" class="
-            min-h-11
-            lg:min-h-0
-          "
+          value="heatmap"
         >
           {{ $t('dashboard.weekly_trend') }}
         </TabsTrigger>
@@ -43,10 +32,7 @@ const analysisStore = useDashboardAnalysisStore()
 
       <Select v-if="analysisStore.viewMode === 'heatmap'" v-model="analysisStore.heatmapMetric">
         <SelectTrigger
-          class="
-            h-11 min-h-11 w-[120px]
-            lg:h-8 lg:min-h-8
-          "
+          class="w-[120px]"
           :aria-label="`${$t('dashboard.weekly_trend')}: ${$t('dashboard.visits')} / ${$t('dashboard.visitors')}`"
         >
           <SelectValue />
@@ -61,10 +47,10 @@ const analysisStore = useDashboardAnalysisStore()
         </SelectContent>
       </Select>
     </div>
-    <TabsContent value="trend" class="mt-0">
+    <TabsContent value="trend">
       <DashboardAnalysisViews v-if="analysisStore.viewMode === 'trend'" />
     </TabsContent>
-    <TabsContent value="heatmap" class="mt-0">
+    <TabsContent value="heatmap">
       <DashboardAnalysisHeatmap v-if="analysisStore.viewMode === 'heatmap'" :metric="analysisStore.heatmapMetric" />
     </TabsContent>
   </Tabs>

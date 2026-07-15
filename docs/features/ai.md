@@ -1,22 +1,27 @@
 ---
 title: Workers AI
-description: Enable optional Workers AI assistance for slug suggestions and OpenGraph metadata generation in Sink.
+description: Optional AI help for short-code suggestions and social preview text.
 ---
 
 # Workers AI
 
-Sink can use a Cloudflare Workers AI binding to suggest slugs and generate OpenGraph titles and descriptions. It is optional and does not affect normal link creation or redirects.
+Sink can use Cloudflare **Workers AI** to suggest short codes and social preview titles/descriptions. Optional — normal links work without it.
 
-## Enable AI assistance
+## Enable
 
-Bind the Workers AI catalog as `AI`. You may then select a model or replace the prompts through [configuration](/configuration/#advanced-defaults). A custom slug prompt must retain the `{slugRegex}` placeholder so Sink can provide the instance's slug rules.
+Bind Workers AI as `AI`. You can change the model or prompts in [configuration](/configuration/#advanced-defaults). A custom short-code prompt must keep the `{slugRegex}` placeholder.
 
-If the binding is unavailable, AI endpoints return `501 AI not enabled`. Do not make integrations depend on AI unless every deployment environment has the binding.
+If AI is not bound, AI endpoints return **501** (“not enabled”).
 
-## Behavior and limits
+## Behavior
 
-For a requested URL, Sink attempts to obtain page content and asks the configured model for structured output. The slug result is normalized according to custom-slug case settings. Metadata generation accepts a preferred locale.
+For a URL, Sink tries to read the page and ask the model for structured output:
 
-If model execution or output parsing fails after the AI request begins, Sink returns a deterministic fallback based on the URL. Suggestions can still conflict with existing slugs or contain unsuitable wording; review them before saving.
+- `/api/link/ai` — short-code suggestion
+- `/api/link/og-ai` — title and description; optional `locale` query for preferred language
 
-Page content and the destination URL can be sent to Cloudflare Workers AI. Consider the sensitivity and policy of target pages before using this feature.
+If the model fails after the request starts, Sink falls back to a simple URL-based suggestion. Always review before saving.
+
+::: warning Data is sent to Workers AI
+Page content and the destination URL may be sent to Cloudflare Workers AI. Check sensitivity and policy first.
+:::

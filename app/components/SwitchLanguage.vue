@@ -18,7 +18,6 @@ const { setLocale, locales } = useI18n()
       <DropdownMenuItem
         v-for="locale in locales"
         :key="locale.code"
-        class="cursor-pointer"
         @click="setLocale(locale.code)"
       >
         <span class="mr-1">

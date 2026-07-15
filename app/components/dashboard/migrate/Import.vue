@@ -233,10 +233,7 @@ function reset() {
           name="links-import-file"
           type="file"
           accept=".json"
-          class="
-            min-h-11 cursor-pointer
-            lg:min-h-9
-          "
+          class="cursor-pointer"
           @change="handleFileSelect"
         />
       </div>
@@ -257,10 +254,7 @@ function reset() {
           <Button
             variant="outline"
             size="sm"
-            class="
-              mt-3 min-h-11
-              lg:min-h-8
-            "
+            class="mt-3"
             @click="reset"
           >
             {{ $t('common.try_again') }}
@@ -282,10 +276,6 @@ function reset() {
             <Button
               variant="ghost"
               size="icon"
-              class="
-                min-h-11 min-w-11
-                lg:min-h-9 lg:min-w-9
-              "
               :aria-label="$t('migrate.import.import_more')"
               @click="reset"
             >
@@ -308,10 +298,7 @@ function reset() {
 
         <Button
           v-else
-          class="
-            min-h-11 w-full
-            lg:min-h-9
-          "
+          class="w-full"
           @click="handleImport"
         >
           <Upload aria-hidden="true" class="mr-2 size-4" />
@@ -347,10 +334,6 @@ function reset() {
         <div class="flex flex-wrap gap-2">
           <Button
             variant="outline"
-            class="
-              min-h-11
-              lg:min-h-9
-            "
             @click="reset"
           >
             {{ $t('migrate.import.import_more') }}
@@ -358,10 +341,6 @@ function reset() {
           <Button
             v-if="importResult.success > 0"
             variant="default"
-            class="
-              min-h-11
-              lg:min-h-9
-            "
             @click="downloadSuccessItems"
           >
             <Download aria-hidden="true" class="mr-2 size-4" />
@@ -370,10 +349,6 @@ function reset() {
           <Button
             v-if="importResult.skipped > 0"
             variant="secondary"
-            class="
-              min-h-11
-              lg:min-h-9
-            "
             @click="downloadSkippedItems"
           >
             <Download aria-hidden="true" class="mr-2 size-4" />
@@ -382,10 +357,6 @@ function reset() {
           <Button
             v-if="importResult.failed > 0"
             variant="outline"
-            class="
-              min-h-11
-              lg:min-h-9
-            "
             @click="downloadFailedItems"
           >
             <Download aria-hidden="true" class="mr-2 size-4" />

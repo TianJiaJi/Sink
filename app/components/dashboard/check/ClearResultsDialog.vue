@@ -13,12 +13,7 @@ function confirmClear() {
 
 <template>
   <AlertDialog v-model:open="open">
-    <AlertDialogContent
-      class="
-        max-w-[95svw]
-        md:max-w-lg
-      "
-    >
+    <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>{{ $t('check.dialogs.clear.title') }}</AlertDialogTitle>
         <AlertDialogDescription>

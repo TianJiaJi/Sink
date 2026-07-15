@@ -30,10 +30,6 @@ function handleFilterChange(type: string, value: string) {
       <Button
         type="button"
         variant="outline"
-        class="
-          min-h-11
-          lg:min-h-9
-        "
         :aria-label="$t(isPaused ? 'dashboard.realtime.resume' : 'dashboard.realtime.pause')"
         :aria-pressed="isPaused"
         @click="isPaused = !isPaused"

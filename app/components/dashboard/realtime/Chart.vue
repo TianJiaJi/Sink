@@ -68,7 +68,7 @@ watch([
   >
     <div class="h-24">
       <CardHeader
-        class="flex flex-row items-center justify-between space-y-0 px-0 py-2"
+        class="flex flex-row items-center justify-between px-0 py-2"
       >
         <h2 class="flex items-center gap-2 text-sm font-medium">
           <span
@@ -109,7 +109,7 @@ watch([
       </CardContent>
     </div>
     <DashboardAnalysisViews
-      class="h-40 w-full border-none p-0! shadow-none"
+      class="h-40 w-full p-0!"
       mode="simple"
       chart-type="bar"
       :start-at="realtimeStore.timeRange.startAt"

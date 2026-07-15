@@ -213,7 +213,7 @@ linksStore.onLinkUpdate(({ link, type }) => {
     role="status"
     aria-live="polite"
   >
-    <Card v-for="index in 6" :key="index" class="h-48">
+    <Card v-for="index in 6" :key="index" size="sm" class="h-48">
       <CardContent class="flex h-full flex-col gap-4">
         <div class="flex items-center gap-3">
           <Skeleton class="size-10 rounded-full" />
@@ -243,10 +243,7 @@ linksStore.onLinkUpdate(({ link, type }) => {
   >
     {{ $t('links.no_more') }}
   </div>
-  <Card
-    v-if="!listLoading && listComplete && links.length === 0"
-    class="border-dashed"
-  >
+  <Card v-if="!listLoading && listComplete && links.length === 0">
     <CardContent
       class="
         flex min-h-48 flex-col items-center justify-center gap-3 text-center
@@ -267,7 +264,7 @@ linksStore.onLinkUpdate(({ link, type }) => {
     <AlertCircle aria-hidden="true" />
     <AlertTitle>{{ $t('links.load_failed') }}</AlertTitle>
     <AlertDescription>
-      <Button variant="link" class="h-11 px-0 text-destructive" @click="getLinks">
+      <Button variant="link" class="h-auto p-0 text-destructive" @click="getLinks">
         {{ $t('common.try_again') }}
       </Button>
     </AlertDescription>

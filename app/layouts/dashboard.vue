@@ -50,26 +50,8 @@ useSeoMeta({
               sm:w-auto
             "
           >
-            <SidebarTrigger
-              class="
-                -ml-1 size-11
-                lg:size-8
-              "
-            />
-            <div
-              class="
-                flex h-11 items-center
-                lg:h-8
-              "
-            >
-              <Separator
-                orientation="vertical"
-                class="
-                  h-4
-                  data-[orientation=vertical]:self-auto
-                "
-              />
-            </div>
+            <SidebarTrigger class="-ml-1" />
+            <Separator orientation="vertical" class="mr-2 h-4" />
             <DashboardPageBreadcrumb :title="$t(pageTitle ?? 'dashboard.title')" />
           </div>
 
