@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import type { DashboardLink, DashboardLinkFormData } from '@/types/dashboard-links'
+import type { DashboardLink } from '@/types/dashboard-links'
 import { ExternalLink, Shuffle, Sparkles } from '@lucide/vue'
 import { useForm } from '@tanstack/vue-form'
 import { useDebounceFn } from '@vueuse/core'
 import { toast } from 'vue-sonner'
 import { z } from 'zod'
 import { nanoid, SlugSchema, UrlSchema } from '#shared/schemas/link'
-import { isMaskedLinkPassword } from '#shared/utils/link-password'
 
 const props = defineProps<{
   link: Partial<DashboardLink>
@@ -31,67 +30,13 @@ const optionalUrlValidator = z.string().trim().url().max(2048).optional().or(z.l
 
 const generateSlug = nanoid()
 
-function getPasswordSubmitValue(password: string): string | undefined {
-  if (isMaskedLinkPassword(password))
-    return undefined
-
-  if (password === '')
-    return props.isEdit ? '' : undefined
-
-  return password
-}
-
-const defaultValues: DashboardLinkFormData = {
-  url: props.link.url ?? '',
-  slug: props.link.slug ?? '',
-  comment: props.link.comment ?? '',
-  tags: props.link.tags ?? [],
-  expiration: props.link.expiration
-    ? unix2date(props.link.expiration)
-    : undefined,
-  google: props.link.google ?? '',
-  apple: props.link.apple ?? '',
-  title: props.link.title ?? '',
-  description: props.link.description ?? '',
-  image: props.link.image ?? '',
-  cloaking: props.link.cloaking ?? false,
-  redirectWithQuery: props.link.redirectWithQuery ?? false,
-  password: props.link.password ?? '',
-  unsafe: props.link.unsafe ?? false,
-  geo: props.link.geo ? Object.entries(props.link.geo).map(([country, url]) => ({ country, url })) : [],
-}
+const defaultValues = createLinkFormInitialValues(props.link)
 
 const form = useForm({
   defaultValues,
   onSubmit: async ({ value }) => {
     try {
-      const geoRecord: Record<string, string> = {}
-      value.geo?.forEach((g) => {
-        const country = g.country.trim().toUpperCase()
-        const url = g.url.trim()
-        if (country && url) {
-          geoRecord[country] = url
-        }
-      })
-      const linkData = {
-        url: value.url,
-        slug: value.slug,
-        comment: value.comment || undefined,
-        tags: value.tags,
-        expiration: value.expiration
-          ? date2unix(value.expiration, 'end')
-          : undefined,
-        google: value.google || undefined,
-        apple: value.apple || undefined,
-        title: value.title || undefined,
-        description: value.description || undefined,
-        image: value.image || undefined,
-        cloaking: value.cloaking,
-        redirectWithQuery: value.redirectWithQuery,
-        password: getPasswordSubmitValue(value.password),
-        unsafe: props.isEdit ? value.unsafe : value.unsafe || undefined,
-        geo: Object.keys(geoRecord).length > 0 ? geoRecord : undefined,
-      }
+      const linkData = normalizeLinkFormSubmitPayload(value, props.isEdit)
       const { link: newLink } = await useAPI<{ link: DashboardLink }>(
         props.isEdit ? '/api/link/edit' : '/api/link/create',
         {
@@ -302,10 +247,11 @@ defineExpose({ initializeRandomSlug })
             <Input
               :id="`${formId}-${field.name}`"
               :name="field.name"
+              inputmode="url"
               :model-value="field.state.value"
               :aria-invalid="getAriaInvalid(field)"
               placeholder="https://example.com"
-              autocomplete="url"
+              autocomplete="off"
               @blur="field.handleBlur"
               @input="field.handleChange(($event.target as HTMLInputElement).value)"
             />
@@ -324,7 +270,7 @@ defineExpose({ initializeRandomSlug })
                   hover:text-primary
                 "
               >
-                <ExternalLink class="size-4" />
+                <ExternalLink aria-hidden="true" class="size-4" />
               </NuxtLink>
             </FieldDescription>
             <FieldError
@@ -352,7 +298,7 @@ defineExpose({ initializeRandomSlug })
                   :aria-label="$t('links.form.generate_random_slug')"
                   @click="randomSlug"
                 >
-                  <Shuffle class="size-4" />
+                  <Shuffle aria-hidden="true" class="size-4" />
                 </Button>
                 <Button
                   type="button"
@@ -363,6 +309,7 @@ defineExpose({ initializeRandomSlug })
                   @click="aiSlug"
                 >
                   <Sparkles
+                    aria-hidden="true"
                     class="size-4"
                     :class="{ 'motion-safe:animate-bounce': aiSlugPending }"
                   />
@@ -377,6 +324,8 @@ defineExpose({ initializeRandomSlug })
               :aria-invalid="getAriaInvalid(field)"
               placeholder="my-short-link"
               autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
               @blur="field.handleBlur"
               @input="field.handleChange(($event.target as HTMLInputElement).value)"
             />
@@ -424,7 +373,7 @@ defineExpose({ initializeRandomSlug })
     </fieldset>
   </form>
 
-  <DashboardLinksEditorUtmBuilder
+  <DashboardLinksEditorUtmBuilderModal
     v-model:open="utmBuilderOpen"
     :id-prefix="formId"
     :url="currentUrl"

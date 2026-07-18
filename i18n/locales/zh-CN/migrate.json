@@ -66,7 +66,6 @@
       "errors": {
         "invalid_json": "无效的 JSON 文件",
         "invalid_format": "文件格式无效，请使用从 Sink 导出的文件",
-        "no_links": "文件中未找到链接",
         "parse_error": "文件解析失败",
         "batch_failed": "此批链接导入失败。"
       }

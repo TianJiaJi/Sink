@@ -6,9 +6,10 @@ description: One-time storage setup for every install, and how to move links fro
 # Storage setup and KV migration
 
 ::: warning Who needs this page?
+
 - **New installs:** after the first deploy, open **Dashboard → Links** once. Sink finishes a quick empty check and marks storage ready. You do not need to export anything.
 - **Old installs (links only in KV):** follow the full steps below. Older Sink versions stored links in KV; this copies them into the D1 database.
-:::
+  :::
 
 ## Why open Links once?
 

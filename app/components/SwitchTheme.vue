@@ -7,18 +7,18 @@ const colorMode = useColorMode()
 <template>
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
-      <Button variant="ghost">
+      <Button variant="ghost" size="icon" :aria-label="$t('theme.toggle')">
         <Sun
           aria-hidden="true"
           class="
-            absolute size-5 scale-100 transition-[transform,opacity]
+            absolute scale-100 transition-[transform,opacity]
             dark:scale-0
           "
         />
         <Moon
           aria-hidden="true"
           class="
-            size-5 scale-0 transition-[transform,opacity]
+            scale-0 transition-[transform,opacity]
             dark:scale-100
           "
         />
@@ -31,19 +31,19 @@ const colorMode = useColorMode()
       <DropdownMenuItem
         @click="colorMode.preference = 'light'"
       >
-        <Sun aria-hidden="true" class="mr-1 size-4" />
+        <Sun aria-hidden="true" />
         {{ $t('theme.light') }}
       </DropdownMenuItem>
       <DropdownMenuItem
         @click="colorMode.preference = 'dark'"
       >
-        <Moon aria-hidden="true" class="mr-1 size-4" />
+        <Moon aria-hidden="true" />
         {{ $t('theme.dark') }}
       </DropdownMenuItem>
       <DropdownMenuItem
         @click="colorMode.preference = 'system'"
       >
-        <Laptop aria-hidden="true" class="mr-1 size-4" />
+        <Laptop aria-hidden="true" />
         {{ $t('theme.system') }}
       </DropdownMenuItem>
     </DropdownMenuContent>

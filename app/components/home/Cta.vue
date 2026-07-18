@@ -11,12 +11,14 @@ const { documentation } = useAppConfig()
   >
     <div class="mx-auto max-w-6xl px-6">
       <Card
-        class="
-          mx-auto max-w-3xl py-10
-          md:py-12
-        "
+        class="mx-auto max-w-3xl"
       >
-        <CardContent class="text-center">
+        <CardContent
+          class="
+            py-4 text-center
+            md:py-6
+          "
+        >
           <h2
             class="text-3xl font-semibold text-balance"
           >

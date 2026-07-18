@@ -135,8 +135,7 @@
       "newest": "Les plus récents",
       "oldest": "Les plus anciens",
       "az": "Slug A-Z",
-      "za": "Slug Z-A",
-      "tip": "Essai : uniquement pour les liens chargés"
+      "za": "Slug Z-A"
     },
     "update_failed": "Échec de la mise à jour du lien",
     "create_failed": "Échec de la création du lien",

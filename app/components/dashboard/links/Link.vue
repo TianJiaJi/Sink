@@ -166,26 +166,15 @@ function copyLink() {
                   "
                 >{{ host }}/{{ link.slug }}</span>
               </NuxtLink>
-              <TooltipProvider v-if="link.unsafe">
-                <Tooltip>
-                  <TooltipTrigger as-child>
-                    <NuxtLink
-                      :to="getDashboardLinkDetailLocation(link.slug)"
-                      :aria-label="$t('links.unsafe')"
-                      class="
-                        relative z-20 ml-1 inline-flex shrink-0 rounded-sm
-                        text-destructive outline-none
-                        focus-visible:ring-2 focus-visible:ring-ring/50
-                      "
-                    >
-                      <ShieldAlert aria-hidden="true" class="size-4" />
-                    </NuxtLink>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{{ $t('links.unsafe') }}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <span
+                v-if="link.unsafe"
+                role="img"
+                :aria-label="$t('links.unsafe')"
+                :title="$t('links.unsafe')"
+                class="ml-1 inline-flex shrink-0 text-destructive"
+              >
+                <ShieldAlert aria-hidden="true" class="size-4" />
+              </span>
               <Badge
                 v-if="isExpired"
                 variant="destructive"
@@ -296,16 +285,17 @@ function copyLink() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger as-child>
-                <NuxtLink
-                  tabindex="-1"
+                <button
+                  type="button"
                   class="
-                    relative z-20 inline-flex items-center leading-5
-                    whitespace-nowrap
+                    relative z-20 inline-flex items-center rounded-sm leading-5
+                    whitespace-nowrap outline-none
+                    focus-visible:ring-2 focus-visible:ring-ring/50
                   "
-                  :to="getDashboardLinkDetailLocation(link.slug)"
+                  :aria-label="$t('links.created_at')"
                 >
                   <CalendarPlus2 aria-hidden="true" class="mr-1 size-4" /> {{ shortDate(link.createdAt, locale) }}
-                </NuxtLink>
+                </button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>{{ $t('links.created_at') }}: {{ longDate(link.createdAt, locale) }}</p>
@@ -318,16 +308,17 @@ function copyLink() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger as-child>
-                  <NuxtLink
-                    tabindex="-1"
+                  <button
+                    type="button"
                     class="
-                      relative z-20 inline-flex items-center leading-5
-                      whitespace-nowrap
+                      relative z-20 inline-flex items-center rounded-sm
+                      leading-5 whitespace-nowrap outline-none
+                      focus-visible:ring-2 focus-visible:ring-ring/50
                     "
-                    :to="getDashboardLinkDetailLocation(link.slug)"
+                    :aria-label="$t('links.expires_at')"
                   >
                     <Hourglass aria-hidden="true" class="mr-1 size-4" /> {{ shortDate(link.expiration, locale) }}
-                  </NuxtLink>
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{{ $t('links.expires_at') }}: {{ longDate(link.expiration, locale) }}</p>
@@ -415,7 +406,7 @@ function copyLink() {
       :image="linkIcon"
       @close-auto-focus="handleDialogCloseAutoFocus"
     />
-    <DashboardLinksEditor
+    <DashboardLinksEditorModal
       v-model:open="editDialogOpen"
       :link="link"
       @close-auto-focus="handleDialogCloseAutoFocus"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CounterData, Link } from '@/types'
+import type { Link } from '@/types'
 import { AlertCircle, Inbox } from '@lucide/vue'
 
 definePageMeta({
@@ -18,50 +18,18 @@ const loadError = shallowRef(false)
 const id = computed(() => link.value?.id)
 let requestController: AbortController | undefined
 
-const countersMap = ref<Record<string, CounterData>>({})
-const counterErrorIds = ref<Set<string>>(new Set())
-const defaultCounters: CounterData = Object.freeze({ visits: 0, visitors: 0, referers: 0 })
-let counterRequestVersion = 0
+const { countersMap, counterErrorIds, fetchCounters, resetCounters } = useLinkCounters()
 
 provide(LINK_ID_KEY, id)
 provide(LINKS_COUNTERS_MAP_KEY, countersMap)
 provide(LINKS_COUNTER_ERROR_IDS_KEY, counterErrorIds)
-provide(RETRY_LINK_COUNTERS_KEY, (counterId: string) => void fetchCounters(counterId))
-
-async function fetchCounters(counterId: string) {
-  const version = ++counterRequestVersion
-  counterErrorIds.value = new Set([...counterErrorIds.value].filter(item => item !== counterId))
-  try {
-    const result = await useAPI<{ data: (CounterData & { id: string })[] }>('/api/stats/counters', {
-      query: { id: counterId },
-    })
-    if (version !== counterRequestVersion)
-      return
-
-    countersMap.value[counterId] = { ...defaultCounters }
-    for (const item of result.data ?? []) {
-      countersMap.value[item.id] = {
-        visits: item.visits,
-        visitors: item.visitors,
-        referers: item.referers,
-      }
-    }
-  }
-  catch (error) {
-    if (version !== counterRequestVersion)
-      return
-    console.error('Failed to fetch counters:', error)
-    counterErrorIds.value = new Set([...counterErrorIds.value, counterId])
-  }
-}
+provide(RETRY_LINK_COUNTERS_KEY, (counterId: string) => void fetchCounters([counterId]))
 
 async function loadLink(currentSlug = slug.value) {
   requestController?.abort()
   link.value = null
   loadError.value = false
-  countersMap.value = {}
-  counterErrorIds.value = new Set()
-  counterRequestVersion++
+  resetCounters()
   if (!currentSlug) {
     await navigateTo('/dashboard/links', { replace: true })
     return
@@ -93,7 +61,7 @@ async function loadLink(currentSlug = slug.value) {
 watch(slug, currentSlug => void loadLink(currentSlug), { immediate: true })
 watch(id, (currentId) => {
   if (currentId)
-    void fetchCounters(currentId)
+    void fetchCounters([currentId])
 })
 onBeforeUnmount(() => requestController?.abort())
 
@@ -143,7 +111,7 @@ linksStore.onLinkUpdate(({ link: updatedLink, type }) => {
       <AlertCircle aria-hidden="true" />
       <AlertTitle>{{ $t('links.load_failed') }}</AlertTitle>
       <AlertDescription>
-        <Button variant="link" class="h-auto p-0 text-destructive" @click="loadLink()">
+        <Button variant="link" size="sm" class="text-destructive" @click="loadLink()">
           {{ $t('common.try_again') }}
         </Button>
       </AlertDescription>

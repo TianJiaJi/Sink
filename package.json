@@ -24,6 +24,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "lint-staged": "lint-staged",
+    "locales:check": "node scripts/check-locales.js",
     "types:check": "nuxt typecheck",
     "wrangler": "wrangler",
     "gen:types": "wrangler types --env-file .env.example",

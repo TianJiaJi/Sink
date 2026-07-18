@@ -36,7 +36,7 @@ const statusItems = computed(() => {
 <template>
   <Tabs v-model="selected" class="w-full">
     <div class="max-w-full overflow-x-auto p-1">
-      <TabsList class="min-w-max justify-start">
+      <TabsList class="min-w-max justify-start tabular-nums">
         <TabsTrigger value="abnormal" class="shrink-0">
           {{ $t('check.tabs.abnormal', { count: abnormalCount }) }}
         </TabsTrigger>

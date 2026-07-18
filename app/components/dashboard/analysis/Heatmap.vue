@@ -173,158 +173,158 @@ watch([effectiveTimeRange, effectiveFilters, retryKey], async (_values, _oldValu
 </script>
 
 <template>
-  <Card
-    class="
-      p-4
-      md:p-10
-    "
-  >
-    <div
-      v-if="loading && !hasLoaded"
-      role="status"
-      aria-busy="true"
-      class="aspect-4/1 w-full overflow-x-auto rounded-sm"
-    >
-      <span class="sr-only">{{ $t('dashboard.loading') }}</span>
-      <div aria-hidden="true" class="flex h-full min-w-[600px] flex-col">
-        <div class="mb-2 ml-12 grid flex-none grid-cols-12 gap-2">
-          <Skeleton
-            v-for="hour in 12"
-            :key="hour"
-            class="h-1.5 w-full rounded-sm"
-          />
-        </div>
-        <div class="flex flex-1 flex-col gap-3">
-          <div
-            v-for="weekday in weekdayIndices"
-            :key="weekday"
-            class="flex flex-1 items-center gap-3"
-          >
-            <Skeleton class="h-2 w-9 shrink-0 rounded-sm" />
-            <Skeleton class="h-full flex-1 rounded-sm" />
+  <Card>
+    <CardContent>
+      <div
+        v-if="loading && !hasLoaded"
+        role="status"
+        aria-busy="true"
+        class="aspect-4/1 w-full overflow-x-auto rounded-sm"
+      >
+        <span class="sr-only">{{ $t('dashboard.loading') }}</span>
+        <div aria-hidden="true" class="flex h-full min-w-[600px] flex-col">
+          <div class="mb-2 ml-12 grid flex-none grid-cols-12 gap-2">
+            <Skeleton
+              v-for="hour in 12"
+              :key="hour"
+              class="h-1.5 w-full rounded-sm"
+            />
+          </div>
+          <div class="flex flex-1 flex-col gap-3">
+            <div
+              v-for="weekday in weekdayIndices"
+              :key="weekday"
+              class="flex flex-1 items-center gap-3"
+            >
+              <Skeleton class="h-2 w-9 shrink-0 rounded-sm" />
+              <Skeleton class="h-full flex-1 rounded-sm" />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div
-      v-else-if="error"
-      role="alert"
-      class="
-        flex aspect-4/1 items-center justify-center gap-2 text-sm
-        text-destructive
-      "
-    >
-      {{ $t('dashboard.realtime.stats_error') }}
-      <Button
-        type="button"
-        variant="link"
-        class="h-auto p-0 text-destructive"
-        @click="retryKey++"
+      <div
+        v-else-if="error"
+        role="alert"
+        class="
+          flex aspect-4/1 items-center justify-center gap-2 text-sm
+          text-destructive
+        "
       >
-        {{ $t('common.try_again') }}
-      </Button>
-    </div>
-    <div
-      v-else-if="hasLoaded && !heatmapData.length"
-      role="status"
-      class="
-        flex aspect-4/1 items-center justify-center text-sm
-        text-muted-foreground
-      "
-    >
-      {{ $t('dashboard.no_data') }}
-    </div>
-    <div
-      v-else
-      class="
-        aspect-4/1 w-full overflow-x-auto rounded-sm transition-opacity
-        duration-500 ease-out
-        motion-reduce:transition-none
-      "
-      :class="loading ? 'opacity-60' : 'opacity-100'"
-    >
-      <div class="flex h-full min-w-[600px] flex-col">
-        <div
-          class="
-            mb-2 ml-12 grid flex-none grid-cols-24 gap-2 text-[10px]
-            text-muted-foreground
-          "
+        {{ $t('dashboard.realtime.stats_error') }}
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          class="text-destructive"
+          @click="retryKey++"
         >
-          <div v-for="hour in hours" :key="hour" class="text-center">
-            {{ hour }}
-          </div>
-        </div>
-
-        <div
-          class="flex flex-1 flex-col gap-3"
-          role="grid"
-          :aria-busy="loading"
-          :aria-label="chartSummary"
-          :aria-colcount="hours.length"
-          :aria-rowcount="weekdayIndices.length"
-        >
+          {{ $t('common.try_again') }}
+        </Button>
+      </div>
+      <div
+        v-else-if="hasLoaded && !heatmapData.length"
+        role="status"
+        class="
+          flex aspect-4/1 items-center justify-center text-sm
+          text-muted-foreground
+        "
+      >
+        {{ $t('dashboard.no_data') }}
+      </div>
+      <div
+        v-else
+        class="
+          aspect-4/1 w-full overflow-x-auto rounded-sm transition-opacity
+          duration-500 ease-out
+          motion-reduce:transition-none
+        "
+        :class="loading ? 'opacity-60' : 'opacity-100'"
+      >
+        <div class="flex h-full min-w-[600px] flex-col">
           <div
-            v-for="(weekdayIdx, arrayIdx) in weekdayIndices"
-            :key="weekdayIdx"
-            class="flex flex-1 items-center gap-3"
-            role="row"
+            class="
+              mb-2 ml-12 grid flex-none grid-cols-24 gap-2 text-[10px]
+              text-muted-foreground
+            "
+          >
+            <div v-for="hour in hours" :key="hour" class="text-center">
+              {{ hour }}
+            </div>
+          </div>
+
+          <div
+            class="flex flex-1 flex-col gap-3"
+            role="grid"
+            :aria-busy="loading"
+            :aria-label="chartSummary"
+            :aria-colcount="hours.length"
+            :aria-rowcount="weekdayIndices.length"
           >
             <div
-              class="w-9 shrink-0 text-right text-[10px] text-muted-foreground"
-              role="rowheader"
+              v-for="(weekdayIdx, arrayIdx) in weekdayIndices"
+              :key="weekdayIdx"
+              class="flex flex-1 items-center gap-3"
+              role="row"
             >
-              {{ weekdays[arrayIdx] }}
-            </div>
-            <div class="grid h-full flex-1 grid-cols-24 gap-2">
               <div
-                v-for="hour in hours"
-                :key="hour"
-                class="size-full"
-                role="gridcell"
+                class="
+                  w-9 shrink-0 text-right text-[10px] text-muted-foreground
+                "
+                role="rowheader"
               >
-                <Tooltip
-                  :open="openTooltipIndex === arrayIdx * hours.length + hour"
-                  disable-closing-trigger
-                  @update:open="setTooltipOpen(arrayIdx * hours.length + hour, $event)"
+                {{ weekdays[arrayIdx] }}
+              </div>
+              <div class="grid h-full flex-1 grid-cols-24 gap-2">
+                <div
+                  v-for="hour in hours"
+                  :key="hour"
+                  class="size-full"
+                  role="gridcell"
                 >
-                  <TooltipTrigger as-child>
-                    <button
-                      :ref="element => setCellButton(element, arrayIdx * hours.length + hour)"
-                      type="button"
-                      class="
-                        relative block size-full rounded-sm border-0 p-0
-                        transition-[background-color,box-shadow] duration-300
-                        hover:ring-1 hover:ring-foreground/10
-                        focus-visible:z-10 focus-visible:ring-2
-                        focus-visible:ring-ring focus-visible:outline-none
-                        motion-reduce:transition-none
-                      "
-                      :style="{
-                        backgroundColor: getCellColor(weekdayIdx, hour),
-                      }"
-                      :tabindex="activeCellIndex === arrayIdx * hours.length + hour ? 0 : -1"
-                      :aria-label="getCellLabel(arrayIdx, weekdayIdx, hour)"
-                      @click="activateCell(arrayIdx * hours.length + hour)"
-                      @focus="activeCellIndex = arrayIdx * hours.length + hour"
-                      @keydown="handleCellKeydown($event, arrayIdx * hours.length + hour)"
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p class="font-medium">
-                      {{ weekdays[arrayIdx] }} {{ hour }}:00
-                    </p>
-                    <p class="text-muted-foreground">
-                      {{ metric === 'visits' ? $t('dashboard.visits') : $t('dashboard.visitors') }}:
-                      {{ formatNumber(getCellValue(weekdayIdx, hour), locale) }}
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
+                  <Tooltip
+                    :open="openTooltipIndex === arrayIdx * hours.length + hour"
+                    disable-closing-trigger
+                    @update:open="setTooltipOpen(arrayIdx * hours.length + hour, $event)"
+                  >
+                    <TooltipTrigger as-child>
+                      <button
+                        :ref="element => setCellButton(element, arrayIdx * hours.length + hour)"
+                        type="button"
+                        class="
+                          relative block size-full rounded-sm border-0 p-0
+                          transition-[background-color,box-shadow] duration-300
+                          hover:ring-1 hover:ring-foreground/10
+                          focus-visible:z-10 focus-visible:ring-2
+                          focus-visible:ring-ring focus-visible:outline-none
+                          motion-reduce:transition-none
+                        "
+                        :style="{
+                          backgroundColor: getCellColor(weekdayIdx, hour),
+                        }"
+                        :tabindex="activeCellIndex === arrayIdx * hours.length + hour ? 0 : -1"
+                        :aria-label="getCellLabel(arrayIdx, weekdayIdx, hour)"
+                        @click="activateCell(arrayIdx * hours.length + hour)"
+                        @focus="activeCellIndex = arrayIdx * hours.length + hour"
+                        @keydown="handleCellKeydown($event, arrayIdx * hours.length + hour)"
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p class="font-medium">
+                        {{ weekdays[arrayIdx] }} {{ hour }}:00
+                      </p>
+                      <p class="text-muted-foreground">
+                        {{ metric === 'visits' ? $t('dashboard.visits') : $t('dashboard.visitors') }}:
+                        {{ formatNumber(getCellValue(weekdayIdx, hour), locale) }}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </CardContent>
   </Card>
 </template>
 

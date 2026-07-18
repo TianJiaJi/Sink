@@ -11,8 +11,8 @@
         lg:gap-4
       "
     >
-      <Card v-for="index in 3" :key="index" class="gap-0">
-        <CardHeader class="flex flex-row items-center justify-between pb-2">
+      <Card v-for="index in 3" :key="index" size="sm">
+        <CardHeader class="flex flex-row items-center justify-between">
           <Skeleton class="h-4 w-20" />
           <Skeleton class="size-4 rounded-md" />
         </CardHeader>
@@ -26,13 +26,10 @@
       <div class="mb-4 flex items-center">
         <Skeleton class="h-9 w-44 rounded-md" />
       </div>
-      <Card
-        class="
-          p-4
-          md:p-10
-        "
-      >
-        <Skeleton class="aspect-4/1 w-full" />
+      <Card>
+        <CardContent>
+          <Skeleton class="aspect-4/1 w-full" />
+        </CardContent>
       </Card>
     </div>
   </div>

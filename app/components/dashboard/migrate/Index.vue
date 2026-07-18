@@ -106,7 +106,7 @@ watch(
       force-mount
       :hidden="activeTab !== 'links-import'"
     >
-      <DashboardMigrateImport />
+      <DashboardMigrateImportForm />
     </TabsContent>
     <TabsContent
       value="access-export"

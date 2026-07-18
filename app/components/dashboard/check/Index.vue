@@ -155,8 +155,8 @@ onMounted(() => {
         lg:grid-cols-5
       "
     >
-      <Card>
-        <CardHeader class="pb-2">
+      <Card size="sm">
+        <CardHeader>
           <CardDescription>{{ $t('check.stats.total') }}</CardDescription>
           <CardTitle class="tabular-nums">
             <h3 :aria-label="`${$t('check.stats.total')}: ${totalCount}`">
@@ -165,8 +165,8 @@ onMounted(() => {
           </CardTitle>
         </CardHeader>
       </Card>
-      <Card>
-        <CardHeader class="pb-2">
+      <Card size="sm">
+        <CardHeader>
           <CardDescription>{{ $t('check.stats.checked') }}</CardDescription>
           <CardTitle class="tabular-nums">
             <h3 :aria-label="`${$t('check.stats.checked')}: ${checkedCount}`">
@@ -175,8 +175,8 @@ onMounted(() => {
           </CardTitle>
         </CardHeader>
       </Card>
-      <Card>
-        <CardHeader class="pb-2">
+      <Card size="sm">
+        <CardHeader>
           <CardDescription>{{ $t('check.stats.normal') }}</CardDescription>
           <CardTitle class="tabular-nums">
             <h3 :aria-label="`${$t('check.stats.normal')}: ${normalCount}`">
@@ -185,8 +185,8 @@ onMounted(() => {
           </CardTitle>
         </CardHeader>
       </Card>
-      <Card>
-        <CardHeader class="pb-2">
+      <Card size="sm">
+        <CardHeader>
           <CardDescription>{{ $t('check.stats.abnormal') }}</CardDescription>
           <CardTitle class="tabular-nums">
             <h3 :aria-label="`${$t('check.stats.abnormal')}: ${abnormalCount}`">
@@ -195,8 +195,13 @@ onMounted(() => {
           </CardTitle>
         </CardHeader>
       </Card>
-      <Card>
-        <CardHeader class="pb-2">
+      <Card
+        size="sm" class="
+          col-span-2
+          lg:col-span-1
+        "
+      >
+        <CardHeader>
           <CardDescription>{{ $t('check.stats.network_error') }}</CardDescription>
           <CardTitle class="tabular-nums">
             <h3 :aria-label="`${$t('check.stats.network_error')}: ${networkErrorCount}`">
@@ -210,7 +215,7 @@ onMounted(() => {
     <Card>
       <CardHeader>
         <CardTitle><h2>{{ $t('check.progress.title') }}</h2></CardTitle>
-        <CardDescription :role="checking ? 'status' : undefined" :aria-live="checking ? 'polite' : undefined">
+        <CardDescription class="tabular-nums" :role="checking ? 'status' : undefined" :aria-live="checking ? 'polite' : undefined">
           {{ wasStopped ? $t('check.progress.stopped') : $t('check.progress.description', { checked: checkedCount, total: totalCount }) }}
         </CardDescription>
       </CardHeader>

@@ -22,13 +22,13 @@ Both use Git: Cloudflare builds from your fork and publishes the app.
 
 In the [Cloudflare dashboard](https://dash.cloudflare.com/), create the services Sink will use. Later you will **bind** them to the project — binding means “connect this database/storage to Sink under a fixed name”.
 
-| Binding name | Cloudflare product | Required? | What it is |
-| ------------ | ------------------ | --------- | ---------- |
-| `DB` | **D1** (database) | Yes | Stores your links |
-| `KV` | **KV** (key-value store) | Yes | Speeds up redirects |
-| `ANALYTICS` | **Analytics Engine** | Recommended | Visit stats and logs |
-| `R2` | **R2** (object storage) | Optional | Backups and social preview images |
-| `AI` | **Workers AI** | Optional | AI-suggested short codes and titles |
+| Binding name | Cloudflare product       | Required?   | What it is                          |
+| ------------ | ------------------------ | ----------- | ----------------------------------- |
+| `DB`         | **D1** (database)        | Yes         | Stores your links                   |
+| `KV`         | **KV** (key-value store) | Yes         | Speeds up redirects                 |
+| `ANALYTICS`  | **Analytics Engine**     | Recommended | Visit stats and logs                |
+| `R2`         | **R2** (object storage)  | Optional    | Backups and social preview images   |
+| `AI`         | **Workers AI**           | Optional    | AI-suggested short codes and titles |
 
 For the full experience, create all five. You can add analytics later — see [Analytics and Realtime](/features/analytics).
 

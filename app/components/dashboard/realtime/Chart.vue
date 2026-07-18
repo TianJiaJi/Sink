@@ -61,14 +61,15 @@ watch([
 
 <template>
   <Card
+    size="sm"
     class="
-      flex h-72 flex-col gap-0 p-4
+      h-72
       lg:m-2 lg:w-80
     "
   >
     <div class="h-24">
       <CardHeader
-        class="flex flex-row items-center justify-between px-0 py-2"
+        class="flex flex-row items-center justify-between"
       >
         <h2 class="flex items-center gap-2 text-sm font-medium">
           <span
@@ -85,7 +86,7 @@ watch([
           class="size-4 text-muted-foreground"
         />
       </CardHeader>
-      <CardContent class="px-0 pb-4">
+      <CardContent>
         <div v-if="loading && !hasData" role="status" aria-busy="true">
           <Skeleton class="h-8 w-20" aria-hidden="true" />
           <span class="sr-only">{{ $t('dashboard.loading') }}</span>
@@ -98,7 +99,7 @@ watch([
         >
           {{ $t('dashboard.realtime.stats_error') }}
           <Button
-            type="button" variant="link" class="h-auto p-0 text-destructive" @click="retryKey++"
+            type="button" variant="link" size="sm" class="text-destructive" @click="retryKey++"
           >
             {{ $t('common.try_again') }}
           </Button>
@@ -109,13 +110,15 @@ watch([
         <NumberFlow v-else class="text-2xl font-bold tabular-nums" :value="stats.visits" aria-live="polite" />
       </CardContent>
     </div>
-    <DashboardAnalysisViews
-      class="h-40 w-full p-0!"
-      mode="simple"
-      chart-type="bar"
-      :start-at="realtimeStore.timeRange.startAt"
-      :end-at="realtimeStore.timeRange.endAt"
-      :filters="realtimeStore.filters"
-    />
+    <CardContent class="min-h-0 flex-1">
+      <DashboardAnalysisChartBody
+        class="size-full"
+        mode="simple"
+        chart-type="bar"
+        :start-at="realtimeStore.timeRange.startAt"
+        :end-at="realtimeStore.timeRange.endAt"
+        :filters="realtimeStore.filters"
+      />
+    </CardContent>
   </Card>
 </template>

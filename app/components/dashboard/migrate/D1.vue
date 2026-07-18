@@ -94,7 +94,7 @@ function runAgain() {
         </div>
         <div
           class="
-            grid grid-cols-2 gap-2 text-sm
+            grid grid-cols-2 gap-2 text-sm tabular-nums
             sm:grid-cols-3
           "
         >
@@ -134,11 +134,11 @@ function runAgain() {
       >
         <Loader
           v-if="migration.running.value" aria-hidden="true" class="
-            mr-2 size-4
+            size-4
             motion-safe:animate-spin
           "
         />
-        <RefreshCw v-else aria-hidden="true" class="mr-2 size-4" />
+        <RefreshCw v-else aria-hidden="true" class="size-4" />
         {{ $t(migration.running.value ? 'migrate.d1.running' : 'migrate.d1.run_again') }}
       </Button>
     </CardContent>

@@ -135,8 +135,7 @@
       "newest": "Mais recentes primeiro",
       "oldest": "Mais antigos primeiro",
       "az": "Slug A-Z",
-      "za": "Slug Z-A",
-      "tip": "Experiência: Apenas para links carregados"
+      "za": "Slug Z-A"
     },
     "update_failed": "Falha ao atualizar link",
     "create_failed": "Falha ao criar link",

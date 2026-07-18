@@ -62,8 +62,9 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
 
 <template>
   <Card
+    size="sm"
     class="
-      flex flex-col gap-0 p-0 transition-opacity
+      min-h-0 transition-opacity
       motion-reduce:transition-none
     "
     :class="loading && hasLoaded ? 'opacity-60' : 'opacity-100'"
@@ -72,15 +73,16 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
     <template v-if="error">
       <CardContent
         class="
-          flex min-h-40 flex-col items-center justify-center gap-2 text-sm
-          text-destructive
+          flex min-h-40 flex-1 flex-col items-center justify-center gap-2
+          text-sm text-destructive
         " role="alert"
       >
         <span>{{ $t('dashboard.realtime.stats_error') }}</span>
         <Button
           type="button"
           variant="link"
-          class="h-auto p-0 text-destructive"
+          size="sm"
+          class="text-destructive"
           @click="retryKey++"
         >
           {{ $t('common.try_again') }}
@@ -88,36 +90,36 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
       </CardContent>
     </template>
     <template v-else-if="loading && !hasLoaded">
-      <div class="flex h-12 items-center justify-between px-4">
-        <Skeleton class="h-4 w-32 rounded-full" />
-        <Skeleton class="h-4 w-20 rounded-full" />
-      </div>
-      <CardContent class="h-[342px] overflow-hidden p-0">
-        <div
-          v-for="index in 7"
-          :key="index"
-          class="space-y-2 border-b px-4 py-2"
-        >
-          <div class="flex items-center justify-between gap-3">
-            <Skeleton class="h-4 w-2/5" />
-            <Skeleton class="h-4 w-20 shrink-0" />
-          </div>
-          <Skeleton class="h-2 w-full rounded-full" />
+      <div class="h-[364px] overflow-hidden">
+        <div class="flex h-12 items-center justify-between px-4">
+          <Skeleton class="h-4 w-32 rounded-full" />
+          <Skeleton class="h-4 w-20 rounded-full" />
         </div>
-      </CardContent>
-      <CardFooter class="py-2">
+        <div class="h-[316px] overflow-hidden">
+          <div
+            v-for="index in 7"
+            :key="index"
+            class="space-y-2 border-b px-4 py-2"
+          >
+            <div class="flex items-center justify-between gap-3">
+              <Skeleton class="h-4 w-2/5" />
+              <Skeleton class="h-4 w-20 shrink-0" />
+            </div>
+            <Skeleton class="h-2 w-full rounded-full" />
+          </div>
+        </div>
+      </div>
+      <CardFooter>
         <Skeleton class="h-9 w-full rounded-md" />
       </CardFooter>
     </template>
     <template v-else-if="metrics.length">
-      <CardContent class="p-0">
-        <DashboardAnalysisMetricsList
-          class="flex-1"
-          :metrics="top10"
-          :type="type"
-        />
-      </CardContent>
-      <CardFooter class="py-2">
+      <DashboardAnalysisMetricsList
+        :metrics="top10"
+        :type="type"
+        :viewport-height="316"
+      />
+      <CardFooter>
         <DashboardAnalysisMetricsMetricDetailsDialog
           :title="name"
           :metrics="metrics"
@@ -128,7 +130,8 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
     <CardContent
       v-else-if="loading"
       class="
-        flex min-h-40 items-center justify-center text-sm text-muted-foreground
+        flex min-h-40 flex-1 items-center justify-center text-sm
+        text-muted-foreground
       "
       role="status"
     >
@@ -144,7 +147,8 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
     <CardContent
       v-else
       class="
-        flex min-h-40 items-center justify-center text-sm text-muted-foreground
+        flex min-h-40 flex-1 items-center justify-center text-sm
+        text-muted-foreground
       "
       role="status"
     >

@@ -97,7 +97,6 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
       v-bind="sanitizeSlotAttrs(attrs)"
       data-link-search-trigger
       variant="outline"
-      size="sm"
       class="
         min-w-0 flex-1 justify-start text-muted-foreground
         sm:w-32 sm:flex-none

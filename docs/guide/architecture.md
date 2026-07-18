@@ -16,13 +16,13 @@ Sink runs the dashboard, API, and short-link redirects on Cloudflare Workers or 
 
 ## Cloudflare services Sink uses
 
-| Binding name | Product | Required? | Plain meaning |
-| ------------ | ------- | --------- | ------------- |
-| `DB` | D1 | Yes | Main database — the real home of your links |
-| `KV` | KV | Yes | Fast cache for redirects + one-time setup flag |
-| `ANALYTICS` | Analytics Engine | Recommended | Visit events for charts and logs |
-| `R2` | R2 | Optional | File storage for backups and social images |
-| `AI` | Workers AI | Optional | Suggests short codes and titles |
+| Binding name | Product          | Required?   | Plain meaning                                  |
+| ------------ | ---------------- | ----------- | ---------------------------------------------- |
+| `DB`         | D1               | Yes         | Main database — the real home of your links    |
+| `KV`         | KV               | Yes         | Fast cache for redirects + one-time setup flag |
+| `ANALYTICS`  | Analytics Engine | Recommended | Visit events for charts and logs               |
+| `R2`         | R2               | Optional    | File storage for backups and social images     |
+| `AI`         | Workers AI       | Optional    | Suggests short codes and titles                |
 
 **D1** is where links are really stored. **KV** is a fast copy used for redirects. After you save a link, Sink updates the cache; if the cache is wrong, it is dropped and reloaded from D1.
 

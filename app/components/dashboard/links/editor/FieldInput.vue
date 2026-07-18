@@ -6,6 +6,7 @@ defineProps<{
   inputId: string
   label: string
   type?: string
+  inputmode?: string
   placeholder?: string
   autocomplete?: string
   disabled?: boolean
@@ -25,6 +26,7 @@ defineProps<{
       :name="field.name"
       :model-value="field.state.value"
       :type="type"
+      :inputmode="inputmode"
       :disabled="disabled"
       :aria-invalid="ariaInvalid"
       :placeholder="placeholder"

@@ -73,17 +73,18 @@ async function handleExport() {
     </CardHeader>
     <CardContent>
       <Button
+        class="tabular-nums"
         :disabled="isExporting"
         :aria-busy="isExporting"
         @click="handleExport"
       >
         <Loader
           v-if="isExporting" aria-hidden="true" class="
-            mr-2 size-4
+            size-4
             motion-safe:animate-spin
           "
         />
-        <Download v-else aria-hidden="true" class="mr-2 size-4" />
+        <Download v-else aria-hidden="true" class="size-4" />
         <template v-if="isExporting && exportedCount > 0">
           {{ exportedCount }} {{ $t('migrate.export.total_links') }}…
         </template>

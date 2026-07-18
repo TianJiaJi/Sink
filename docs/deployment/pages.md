@@ -24,13 +24,13 @@ If a deploy starts before you finish bindings and variables, open the deployment
 
 Create the Cloudflare resources you need, then open the Pages project → **Settings → Bindings** and add them. Binding = connect a resource to Sink under a fixed name.
 
-| Binding name | Product | Required? | What it is |
-| ------------ | ------- | --------- | ---------- |
-| `DB` | D1 | Yes | Stores links |
-| `KV` | KV | Yes | Speeds up redirects |
-| `ANALYTICS` | Analytics Engine | Recommended | Visit stats |
-| `R2` | R2 | Optional | Backups and social images |
-| `AI` | Workers AI | Optional | AI suggestions |
+| Binding name | Product          | Required?   | What it is                |
+| ------------ | ---------------- | ----------- | ------------------------- |
+| `DB`         | D1               | Yes         | Stores links              |
+| `KV`         | KV               | Yes         | Speeds up redirects       |
+| `ANALYTICS`  | Analytics Engine | Recommended | Visit stats               |
+| `R2`         | R2               | Optional    | Backups and social images |
+| `AI`         | Workers AI       | Optional    | AI suggestions            |
 
 Analytics is optional. Setup: [Analytics and Realtime](/features/analytics).
 
@@ -42,13 +42,13 @@ Under **Settings → Functions → Compatibility Flags**, add `nodejs_compat` fo
 
 Under **Settings → Variables and Secrets**, add:
 
-| Variable | Type | What to put |
-| -------- | ---- | ----------- |
-| `DEPLOY_D1_DATABASE_ID` | Variable | D1 database ID (from the D1 detail page) |
-| `DEPLOY_KV_NAMESPACE_ID` | Variable | KV namespace ID (from the KV detail page) |
-| `NUXT_SITE_TOKEN` | Encrypted secret | Dashboard login password and API password (strong, stable, ≥ 8 chars) |
-| `NUXT_CF_ACCOUNT_ID` | Variable | Cloudflare account ID (for analytics) |
-| `NUXT_CF_API_TOKEN` | Encrypted secret | Custom Token with **Account → Account Analytics → Read** only |
+| Variable                 | Type             | What to put                                                           |
+| ------------------------ | ---------------- | --------------------------------------------------------------------- |
+| `DEPLOY_D1_DATABASE_ID`  | Variable         | D1 database ID (from the D1 detail page)                              |
+| `DEPLOY_KV_NAMESPACE_ID` | Variable         | KV namespace ID (from the KV detail page)                             |
+| `NUXT_SITE_TOKEN`        | Encrypted secret | Dashboard login password and API password (strong, stable, ≥ 8 chars) |
+| `NUXT_CF_ACCOUNT_ID`     | Variable         | Cloudflare account ID (for analytics)                                 |
+| `NUXT_CF_API_TOKEN`      | Encrypted secret | Custom Token with **Account → Account Analytics → Read** only         |
 
 How to create the analytics token: Cloudflare dashboard → profile icon → **My Profile** → **API Tokens** → **Create Token** → **Custom Token** → permission **Account → Account Analytics → Read**.
 

@@ -14,47 +14,43 @@ interface UtmFormValues {
 
 const props = defineProps<{
   url: string
-  idPrefix: string
+  formId: string
 }>()
 
 const emit = defineEmits<{
-  apply: [url: string]
+  'apply': [url: string]
+  'update:canApply': [value: boolean]
 }>()
-
-const open = defineModel<boolean>('open', { default: false })
 
 const { t } = useI18n()
 const isDesktop = useMediaQuery('(min-width: 640px)')
-
-const urlValidator = UrlSchema
 const utmValues = reactive<UtmFormValues>(createEmptyUtmValues())
 
 const validatedUrl = computed(() => {
-  const result = urlValidator.safeParse(props.url)
+  const result = UrlSchema.safeParse(props.url)
   return result.success ? result.data : undefined
 })
-
-const hasValidBaseUrl = computed(() => !!validatedUrl.value)
 
 const previewUrl = computed(() => {
   if (!validatedUrl.value)
     return ''
 
-  return applyUtmValues(validatedUrl.value, utmValues)
+  return withQuery(validatedUrl.value, buildUtmQuery(utmValues))
 })
 
 const validatedPreviewUrl = computed(() => {
   if (!previewUrl.value)
     return undefined
 
-  const result = urlValidator.safeParse(previewUrl.value)
+  const result = UrlSchema.safeParse(previewUrl.value)
   return result.success ? result.data : undefined
 })
 
-watch(open, (value) => {
-  if (value)
-    syncUtmValues(props.url)
-})
+const canApply = computed(() => Boolean(validatedUrl.value && validatedPreviewUrl.value))
+
+watch(canApply, value => emit('update:canApply', value), { immediate: true })
+
+syncUtmValues(props.url)
 
 function createEmptyUtmValues(): UtmFormValues {
   return {
@@ -85,14 +81,10 @@ function buildUtmQuery(values: UtmFormValues) {
   }
 }
 
-function applyUtmValues(url: string, values: UtmFormValues) {
-  return withQuery(url, buildUtmQuery(values))
-}
-
 function syncUtmValues(url: string) {
   Object.assign(utmValues, createEmptyUtmValues())
 
-  const result = urlValidator.safeParse(url)
+  const result = UrlSchema.safeParse(url)
   if (!result.success)
     return
 
@@ -110,27 +102,22 @@ function clearUtmValues() {
   Object.assign(utmValues, createEmptyUtmValues())
 }
 
-function closeBuilder() {
-  open.value = false
-}
-
-function applyBuilder() {
+function submitForm() {
   if (!validatedPreviewUrl.value) {
     toast.error(t('links.form.utm_invalid_url'))
     return
   }
 
   emit('apply', validatedPreviewUrl.value)
-  closeBuilder()
 }
 </script>
 
 <template>
-  <ResponsiveModal
-    v-model:open="open"
-    :title="$t('links.form.utm_builder')"
-    :description="$t('links.form.utm_description')"
-    content-class="md:max-w-xl"
+  <form
+    :id="formId"
+    class="w-full"
+    @submit.prevent="submitForm"
+    @reset.prevent="clearUtmValues"
   >
     <div class="w-full space-y-5 px-1">
       <FieldGroup>
@@ -141,12 +128,13 @@ function applyBuilder() {
           "
         >
           <Field>
-            <FieldLabel :for="`${idPrefix}-utm-source`">
+            <FieldLabel :for="`${formId}-utm-source`">
               {{ $t('links.form.utm_source') }}
             </FieldLabel>
             <Input
-              :id="`${idPrefix}-utm-source`"
+              :id="`${formId}-utm-source`"
               v-model="utmValues.source"
+              name="utm_source"
               :autofocus="isDesktop"
               placeholder="newsletter"
               autocomplete="off"
@@ -154,12 +142,13 @@ function applyBuilder() {
           </Field>
 
           <Field>
-            <FieldLabel :for="`${idPrefix}-utm-medium`">
+            <FieldLabel :for="`${formId}-utm-medium`">
               {{ $t('links.form.utm_medium') }}
             </FieldLabel>
             <Input
-              :id="`${idPrefix}-utm-medium`"
+              :id="`${formId}-utm-medium`"
               v-model="utmValues.medium"
+              name="utm_medium"
               placeholder="email"
               autocomplete="off"
             />
@@ -167,12 +156,13 @@ function applyBuilder() {
         </div>
 
         <Field>
-          <FieldLabel :for="`${idPrefix}-utm-campaign`">
+          <FieldLabel :for="`${formId}-utm-campaign`">
             {{ $t('links.form.utm_campaign') }}
           </FieldLabel>
           <Input
-            :id="`${idPrefix}-utm-campaign`"
+            :id="`${formId}-utm-campaign`"
             v-model="utmValues.campaign"
+            name="utm_campaign"
             placeholder="spring_sale"
             autocomplete="off"
           />
@@ -185,24 +175,26 @@ function applyBuilder() {
           "
         >
           <Field>
-            <FieldLabel :for="`${idPrefix}-utm-term`">
+            <FieldLabel :for="`${formId}-utm-term`">
               {{ $t('links.form.utm_term') }}
             </FieldLabel>
             <Input
-              :id="`${idPrefix}-utm-term`"
+              :id="`${formId}-utm-term`"
               v-model="utmValues.term"
+              name="utm_term"
               placeholder="running-shoes"
               autocomplete="off"
             />
           </Field>
 
           <Field>
-            <FieldLabel :for="`${idPrefix}-utm-content`">
+            <FieldLabel :for="`${formId}-utm-content`">
               {{ $t('links.form.utm_content') }}
             </FieldLabel>
             <Input
-              :id="`${idPrefix}-utm-content`"
+              :id="`${formId}-utm-content`"
               v-model="utmValues.content"
+              name="utm_content"
               placeholder="hero_button"
               autocomplete="off"
             />
@@ -225,30 +217,5 @@ function applyBuilder() {
         </Field>
       </FieldGroup>
     </div>
-
-    <template #footer>
-      <Button
-        type="button"
-        variant="ghost"
-        class="mr-auto"
-        @click="clearUtmValues"
-      >
-        {{ $t('links.form.utm_clear') }}
-      </Button>
-      <Button
-        type="button"
-        variant="secondary"
-        @click="closeBuilder"
-      >
-        {{ $t('common.close') }}
-      </Button>
-      <Button
-        type="button"
-        :disabled="!hasValidBaseUrl || !validatedPreviewUrl"
-        @click="applyBuilder"
-      >
-        {{ $t('links.form.utm_apply') }}
-      </Button>
-    </template>
-  </ResponsiveModal>
+  </form>
 </template>

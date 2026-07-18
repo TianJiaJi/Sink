@@ -23,6 +23,7 @@ defineProps<{
       :model-value="field.state.value"
       :aria-invalid="ariaInvalid"
       :placeholder="placeholder"
+      autocomplete="off"
       @blur="field.handleBlur"
       @input="field.handleChange(($event.target as HTMLTextAreaElement).value)"
     />

@@ -65,7 +65,7 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
               {{ result.url }}
             </div>
           </TableCell>
-          <TableCell>
+          <TableCell class="tabular-nums">
             <Badge :variant="resultVariant(result)">
               {{ result.status }}
             </Badge>
@@ -82,7 +82,7 @@ function resultVariant(result: LinkCheckResult): 'default' | 'secondary' | 'dest
               {{ $t(resultLabel(result)) }}
             </Badge>
           </TableCell>
-          <TableCell class="whitespace-nowrap">
+          <TableCell class="whitespace-nowrap tabular-nums">
             {{ $t('check.duration_ms', { duration: result.duration }) }}
           </TableCell>
           <TableCell class="text-muted-foreground">

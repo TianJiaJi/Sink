@@ -104,7 +104,7 @@ function closeMobileMenu() {
                 </NavigationMenuList>
               </NavigationMenu>
 
-              <Button as-child variant="outline" size="sm">
+              <Button as-child variant="outline">
                 <a
                   :href="github"
                   target="_blank"
@@ -196,7 +196,7 @@ function closeMobileMenu() {
                   </nav>
 
                   <div class="mt-auto flex flex-col items-stretch gap-4">
-                    <Button as-child variant="outline" size="sm">
+                    <Button as-child variant="outline">
                       <a
                         :href="github"
                         target="_blank"

@@ -99,16 +99,20 @@ defineExpose({ commit })
         v-for="(tag, index) in model"
         :key="tag"
         variant="secondary"
-        class="max-w-full gap-1 pr-1"
+        class="
+          h-10 max-w-full gap-1 py-0 pr-1
+          sm:h-5
+        "
       >
         <span class="truncate">{{ tag }}</span>
         <button
           type="button"
           class="
-            inline-flex size-7 items-center justify-center rounded-full
+            inline-flex size-10 items-center justify-center rounded-full
             hover:bg-muted-foreground/20
             focus-visible:ring-2 focus-visible:ring-ring
             focus-visible:outline-none
+            sm:size-5
           "
           :aria-label="$t('links.form.tag_remove', { tag })"
           @click="removeTag(index)"
@@ -120,7 +124,10 @@ defineExpose({ commit })
         :id="inputId"
         v-model="input"
         type="text"
+        name="tags"
         autocomplete="off"
+        autocapitalize="none"
+        spellcheck="false"
         class="
           h-7 min-w-28 flex-1 bg-transparent px-1 text-base outline-none
           placeholder:text-muted-foreground

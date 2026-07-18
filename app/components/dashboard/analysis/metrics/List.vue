@@ -2,10 +2,13 @@
 import type { MetricItem } from '@/types'
 import { VList } from 'virtua/vue'
 
-defineProps<{
+const props = withDefaults(defineProps<{
   metrics: MetricItem[]
   type: string
-}>()
+  viewportHeight?: number
+}>(), {
+  viewportHeight: 342,
+})
 
 const { locale } = useI18n()
 </script>
@@ -37,7 +40,7 @@ const { locale } = useI18n()
     <VList
       v-slot="{ item: metric }"
       :data="metrics"
-      :style="{ height: '342px' }"
+      :style="{ height: `${props.viewportHeight}px` }"
     >
       <div
         class="
@@ -56,7 +59,7 @@ const { locale } = useI18n()
             />
           </div>
           <div
-            class="shrink-0 text-right"
+            class="shrink-0 text-right tabular-nums"
           >
             {{ formatNumber(metric.count, locale) }}
             <span class="text-xs text-muted-foreground">({{ metric.percent }}%)</span>

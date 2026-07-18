@@ -135,8 +135,7 @@
       "newest": "最新",
       "oldest": "最旧",
       "az": "短链(A-Z)",
-      "za": "短链(Z-A)",
-      "tip": "体验功能: 仅对已经加载的链接有效"
+      "za": "短链(Z-A)"
     },
     "update_failed": "更新链接失败",
     "create_failed": "创建链接失败",

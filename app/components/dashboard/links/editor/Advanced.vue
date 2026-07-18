@@ -135,7 +135,7 @@ async function aiOg() {
                       !field.state.value && 'text-muted-foreground',
                     )"
                   >
-                    <CalendarIcon class="mr-2 size-4" />
+                    <CalendarIcon aria-hidden="true" class="mr-2 size-4" />
                     {{
                       field.state.value
                         ? field.state.value.toDate(getTimeZone()).toLocaleDateString(locale)
@@ -218,6 +218,7 @@ async function aiOg() {
                   @click="aiOg"
                 >
                   <Sparkles
+                    aria-hidden="true"
                     class="size-4"
                     :class="{ 'motion-safe:animate-bounce': aiOgPending }"
                   />
@@ -228,6 +229,7 @@ async function aiOg() {
                 :name="field.name"
                 :model-value="field.state.value"
                 :placeholder="$t('links.form.og_title_placeholder')"
+                autocomplete="off"
                 @blur="field.handleBlur"
                 @input="field.handleChange(($event.target as HTMLInputElement).value)"
               />
@@ -276,6 +278,7 @@ async function aiOg() {
               :input-id="`${idPrefix}-${field.name}`"
               :label="$t('links.form.google_play')"
               placeholder="https://play.google.com/store/apps/…"
+              inputmode="url"
               autocomplete="off"
               :invalid="isInvalid(field)"
               :aria-invalid="getAriaInvalid(field)"
@@ -293,6 +296,7 @@ async function aiOg() {
               :input-id="`${idPrefix}-${field.name}`"
               :label="$t('links.form.app_store')"
               placeholder="https://apps.apple.com/app/…"
+              inputmode="url"
               autocomplete="off"
               :invalid="isInvalid(field)"
               :aria-invalid="getAriaInvalid(field)"
@@ -343,9 +347,11 @@ async function aiOg() {
                   </FieldLabel>
                   <Input
                     :id="`${idPrefix}-geo-url-${i}`"
+                    :name="`geo.${i}.url`"
                     :model-value="item.url"
+                    inputmode="url"
                     placeholder="https://..."
-                    autocomplete="url"
+                    autocomplete="off"
                     @input="field.handleChange(updateGeoRoute(field.state.value, i, { url: ($event.target as HTMLInputElement).value }))"
                   />
                 </Field>
@@ -356,11 +362,13 @@ async function aiOg() {
                   :aria-label="$t('common.delete')"
                   @click="field.handleChange(removeGeoRoute(field.state.value, i))"
                 >
-                  <Trash2 class="size-4 text-muted-foreground" />
+                  <Trash2
+                    aria-hidden="true" class="size-4 text-muted-foreground"
+                  />
                 </Button>
               </div>
               <Button type="button" variant="outline" size="sm" @click="field.handleChange([...field.state.value, { country: '', url: '' }])">
-                <Plus class="mr-2 size-4" /> {{ $t('links.form.add_geo_route') }}
+                <Plus aria-hidden="true" class="mr-2 size-4" /> {{ $t('links.form.add_geo_route') }}
               </Button>
             </div>
           </props.form.Field>

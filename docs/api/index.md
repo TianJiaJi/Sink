@@ -46,11 +46,11 @@ Until you open **Dashboard → Links** once after deploy, most `/api/link/**` ca
 
 Use the OpenAPI UI for full request/response details.
 
-| Group | Routes |
-| ----- | ------ |
-| Links | `/api/link/create`, `edit`, `upsert`, `delete`, `query`, `search`, `list`, `check`, `tags` |
-| Import/export | `/api/link/import`, `/api/link/export` — [Import and Export](/features/import-export) |
+| Group         | Routes                                                                                       |
+| ------------- | -------------------------------------------------------------------------------------------- |
+| Links         | `/api/link/create`, `edit`, `upsert`, `delete`, `query`, `search`, `list`, `check`, `tags`   |
+| Import/export | `/api/link/import`, `/api/link/export` — [Import and Export](/features/import-export)        |
 | Storage setup | `/api/link/migration/status`, `/api/link/migration/run` — [storage setup](/storage/kv-to-d1) |
-| AI | `/api/link/ai`, `/api/link/og-ai` — [Workers AI](/features/ai) |
-| Analytics | `/api/stats/**`, `/api/logs/**` — [Analytics](/features/analytics) |
-| Utilities | `/api/verify`, `/api/location`, `/api/upload/image`, `/api/backup` |
+| AI            | `/api/link/ai`, `/api/link/og-ai` — [Workers AI](/features/ai)                               |
+| Analytics     | `/api/stats/**`, `/api/logs/**` — [Analytics](/features/analytics)                           |
+| Utilities     | `/api/verify`, `/api/location`, `/api/upload/image`, `/api/backup`                           |

@@ -25,7 +25,7 @@
       "slug_label": "Slug Filter",
       "slug_description": "Leave empty to export all slugs.",
       "button": "Export CSV",
-      "exporting": "Exporting...",
+      "exporting": "Exporting…",
       "success": "Export successful",
       "failed": "Export failed"
     },
@@ -33,7 +33,7 @@
       "title": "Manual Backup",
       "description": "Trigger a manual backup of all links to the configured R2 bucket",
       "button": "Start Backup",
-      "backing_up": "Backing up...",
+      "backing_up": "Backing up…",
       "success": "Backup successful",
       "failed": "Backup failed"
     },
@@ -51,7 +51,7 @@
       "dropzone": "Drop JSON file here or click to upload",
       "links_found": "{count} links ready to import",
       "button": "Start Import",
-      "importing": "Importing...",
+      "importing": "Importing…",
       "import_more": "Import More",
       "download_success": "Download {count} imported links",
       "download_skipped": "Download {count} skipped links",
@@ -66,7 +66,6 @@
       "errors": {
         "invalid_json": "Invalid JSON file",
         "invalid_format": "Invalid file format. Please use a file exported from Sink.",
-        "no_links": "No links found in file",
         "parse_error": "Failed to parse file",
         "batch_failed": "This import batch failed."
       }

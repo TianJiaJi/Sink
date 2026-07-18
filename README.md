@@ -64,11 +64,10 @@
 
 > [!TIP]
 > **Who is Sink for?**
-> 
+>
 > Sink focuses on **individuals and small teams** who want a simple, self-hosted shortener on Cloudflare.
-> 
+>
 > For professional / business needs (managed service, multi-user, SLA, and more), use **[S.EE](https://sink.cool/see)**.
-
 
 ## 🪧 Demo
 

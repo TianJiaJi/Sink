@@ -11,12 +11,12 @@ Short links stay public either way. Access only affects who can open the dashboa
 
 ## What changes after you enable it
 
-| Path | Without Access | With recommended Access setup |
-| ---- | -------------- | ----------------------------- |
-| Short links (`/abc`) | Public | Still public |
-| Dashboard (`/dashboard`) | Anyone with the site token | Must pass Cloudflare Access first, then use the dashboard |
-| API (`/api/**`) | Site token (`Bearer …`) | Site token **or** a valid Access login (browser cookie / JWT) |
-| API docs (`/_docs`) | Public on your host | Still public unless you protect it separately in Access |
+| Path                     | Without Access             | With recommended Access setup                                 |
+| ------------------------ | -------------------------- | ------------------------------------------------------------- |
+| Short links (`/abc`)     | Public                     | Still public                                                  |
+| Dashboard (`/dashboard`) | Anyone with the site token | Must pass Cloudflare Access first, then use the dashboard     |
+| API (`/api/**`)          | Site token (`Bearer …`)    | Site token **or** a valid Access login (browser cookie / JWT) |
+| API docs (`/_docs`)      | Public on your host        | Still public unless you protect it separately in Access       |
 
 Sink never trusts “there is a cookie”. It verifies the Access **JWT** — think of it as a short-lived electronic pass (signature, issuer, audience, and expiry are all checked).
 
@@ -32,12 +32,12 @@ In Cloudflare Zero Trust, create a **self-hosted** Access application for your S
 
 In the Access application path rules:
 
-| Path | Protect with Access? | Why |
-| ---- | -------------------- | --- |
-| `/dashboard` and children | **Yes** | This is the admin UI |
-| `/api` | **No** (recommended) | Lets site-token clients (scripts, extensions) call the API without going through Access |
-| Short-link paths | **No** | Visitors must open short links freely |
-| `/_docs` | Optional | Protect only if you do not want OpenAPI public |
+| Path                      | Protect with Access? | Why                                                                                     |
+| ------------------------- | -------------------- | --------------------------------------------------------------------------------------- |
+| `/dashboard` and children | **Yes**              | This is the admin UI                                                                    |
+| `/api`                    | **No** (recommended) | Lets site-token clients (scripts, extensions) call the API without going through Access |
+| Short-link paths          | **No**               | Visitors must open short links freely                                                   |
+| `/_docs`                  | Optional             | Protect only if you do not want OpenAPI public                                          |
 
 ### 3. Leave Cookie Path unrestricted
 
@@ -54,10 +54,10 @@ NUXT_CF_ACCESS_TEAM_DOMAIN=https://your-team.cloudflareaccess.com
 NUXT_CF_ACCESS_AUD=paste-application-aud-here
 ```
 
-| Variable | Where to get it |
-| -------- | --------------- |
+| Variable                     | Where to get it                                                                                  |
+| ---------------------------- | ------------------------------------------------------------------------------------------------ |
 | `NUXT_CF_ACCESS_TEAM_DOMAIN` | Your Zero Trust team domain. Use the full origin, no path: `https://<team>.cloudflareaccess.com` |
-| `NUXT_CF_ACCESS_AUD` | Access application → **Application Audience (AUD) Tag** |
+| `NUXT_CF_ACCESS_AUD`         | Access application → **Application Audience (AUD) Tag**                                          |
 
 Redeploy after setting them.
 

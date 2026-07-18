@@ -100,6 +100,7 @@ function openFilePicker() {
       :id="inputId"
       ref="fileInput"
       type="file"
+      name="image"
       accept="image/jpeg,image/png,image/webp,image/gif"
       class="hidden"
       :disabled="!canUpload || uploading"
@@ -139,8 +140,9 @@ function openFilePicker() {
             size-8
             motion-safe:animate-spin
           "
+          aria-hidden="true"
         />
-        <ImagePlus v-else class="size-8" />
+        <ImagePlus v-else aria-hidden="true" class="size-8" />
         <span class="text-sm">{{ canUpload ? $t('links.form.image_upload_hint') : $t('links.form.slug_required') }}</span>
         <span v-if="canUpload" class="text-xs opacity-60">{{ $t('links.form.image_ratio_hint') }}</span>
       </div>
@@ -160,7 +162,7 @@ function openFilePicker() {
         :aria-label="`${$t('common.delete')}: ${$t('links.form.image_preview')}`"
         @click="clearImage"
       >
-        <X class="size-4" />
+        <X aria-hidden="true" class="size-4" />
       </Button>
     </AspectRatio>
   </div>

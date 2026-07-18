@@ -135,8 +135,7 @@
       "newest": "Mới nhất trước",
       "oldest": "Cũ nhất trước",
       "az": "Slug A-Z",
-      "za": "Slug Z-A",
-      "tip": "Trải nghiệm: Chỉ áp dụng với các liên kết đã tải"
+      "za": "Slug Z-A"
     },
     "update_failed": "Cập nhật liên kết thất bại",
     "create_failed": "Tạo liên kết thất bại",

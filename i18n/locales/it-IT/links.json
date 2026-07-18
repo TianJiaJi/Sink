@@ -135,8 +135,7 @@
       "newest": "Più Recenti",
       "oldest": "Più Vecchi",
       "az": "Slug A-Z",
-      "za": "Slug Z-A",
-      "tip": "Esperienza: Solo per i link caricati"
+      "za": "Slug Z-A"
     },
     "update_failed": "Aggiornamento link fallito",
     "create_failed": "Creazione link fallita",

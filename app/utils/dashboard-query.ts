@@ -101,22 +101,6 @@ function unixTimestamp(value: DashboardQueryValue): number | undefined {
   return Number.isSafeInteger(timestamp) ? timestamp : undefined
 }
 
-function legacyObject(value: DashboardQueryValue): Record<string, unknown> | undefined {
-  const candidate = firstQueryValue(value)
-  if (!candidate)
-    return undefined
-
-  try {
-    const parsed: unknown = JSON.parse(candidate)
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
-      ? parsed as Record<string, unknown>
-      : undefined
-  }
-  catch {
-    return undefined
-  }
-}
-
 function normalizeSlugs(values: string[]): string[] {
   return [...new Set(
     values
@@ -126,38 +110,22 @@ function normalizeSlugs(values: string[]): string[] {
   )].sort((a, b) => a.localeCompare(b))
 }
 
-function legacyFilterSlugs(query: DashboardQuery): string[] {
-  const filters = legacyObject(query.filters)
-  return typeof filters?.slug === 'string' ? normalizeSlugs([filters.slug]) : []
-}
-
-function legacyAnalysisRange(query: DashboardQuery): [number, number] | undefined {
-  const time = legacyObject(query.time)
-  const startAt = typeof time?.startAt === 'number' ? time.startAt : undefined
-  const endAt = typeof time?.endAt === 'number' ? time.endAt : undefined
-  return startAt !== undefined && endAt !== undefined
-    && Number.isSafeInteger(startAt) && Number.isSafeInteger(endAt) && startAt >= 0 && startAt <= endAt
-    ? [startAt, endAt]
-    : undefined
-}
-
 export function parseAnalysisQuery(query: DashboardQuery, allowSlugs = true): AnalysisQueryState {
   const from = unixTimestamp(query.from)
   const to = unixTimestamp(query.to)
   const customRange = from !== undefined && to !== undefined && from <= to
     ? [from, to] as [number, number]
-    : legacyAnalysisRange(query)
+    : undefined
   const datePreset = customRange
     ? null
     : enumValue(query.range, ANALYSIS_DATE_PRESETS)
-      ?? enumValue(query.preset, ANALYSIS_DATE_PRESETS)
       ?? DEFAULT_ANALYSIS_PRESET
   const routeSlugs = normalizeSlugs(queryValues(query.slugs))
 
   return {
     datePreset,
     dateRange: customRange,
-    slugs: allowSlugs ? (routeSlugs.length ? routeSlugs : legacyFilterSlugs(query)) : [],
+    slugs: allowSlugs ? routeSlugs : [],
     view: enumValue(query.view, ANALYSIS_VIEWS) ?? 'trend',
     metric: enumValue(query.metric, HEATMAP_METRICS) ?? 'visits',
   }
@@ -192,10 +160,8 @@ export function serializeAnalysisQuery(
 export function parseRealtimeQuery(query: DashboardQuery): RealtimeQueryState {
   const routeSlugs = normalizeSlugs(queryValues(query.slugs))
   return {
-    window: enumValue(query.window, REALTIME_WINDOWS)
-      ?? enumValue(query.time, REALTIME_WINDOWS)
-      ?? DEFAULT_REALTIME_WINDOW,
-    slugs: routeSlugs.length ? routeSlugs : legacyFilterSlugs(query),
+    window: enumValue(query.window, REALTIME_WINDOWS) ?? DEFAULT_REALTIME_WINDOW,
+    slugs: routeSlugs,
   }
 }
 

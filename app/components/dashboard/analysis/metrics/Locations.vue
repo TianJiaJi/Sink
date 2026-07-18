@@ -123,7 +123,7 @@ function tooltipTemplate(d: any): string {
   <Card
     class="
       flex flex-col
-      md:h-[500px]
+      lg:h-[500px]
     "
   >
     <CardHeader>
@@ -143,7 +143,8 @@ function tooltipTemplate(d: any): string {
           <Button
             type="button"
             variant="link"
-            class="h-auto p-0 text-destructive"
+            size="sm"
+            class="text-destructive"
             :aria-label="`${$t('common.try_again')}: ${$t('dashboard.locations')}`"
             @click="getWorldMapJSON"
           >
@@ -155,7 +156,8 @@ function tooltipTemplate(d: any): string {
           <Button
             type="button"
             variant="link"
-            class="h-auto p-0 text-destructive"
+            size="sm"
+            class="text-destructive"
             :aria-label="`${$t('common.try_again')}: ${$t('dashboard.metrics.country')}`"
             @click="metricsRetryKey++"
           >

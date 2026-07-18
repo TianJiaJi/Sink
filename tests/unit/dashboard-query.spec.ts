@@ -46,30 +46,52 @@ describe('analysis dashboard query', () => {
     })).toEqual({ range: 'today' })
   })
 
-  it('migrates legacy preset, time, and filters fields', () => {
+  it('supports modern range, slugs, view, and metric fields', () => {
     expect(parseAnalysisQuery({
-      preset: 'last-30d',
-      filters: JSON.stringify({ slug: 'beta, alpha' }),
-    })).toMatchObject({
+      range: 'last-30d',
+      slugs: 'beta, alpha',
+      view: 'heatmap',
+      metric: 'visitors',
+    })).toEqual({
       datePreset: 'last-30d',
+      dateRange: undefined,
       slugs: ['alpha', 'beta'],
+      view: 'heatmap',
+      metric: 'visitors',
     })
-    expect(parseAnalysisQuery({
-      preset: 'today',
-      time: JSON.stringify({ startAt: 10, endAt: 20 }),
-    })).toMatchObject({
-      datePreset: null,
-      dateRange: [10, 20],
+    expect(serializeAnalysisQuery({
+      datePreset: 'last-30d',
+      slugs: ['beta', 'alpha'],
+      view: 'heatmap',
+      metric: 'visitors',
+    })).toEqual({
+      range: 'last-30d',
+      slugs: ['alpha', 'beta'],
+      view: 'heatmap',
+      metric: 'visitors',
     })
   })
 
-  it('normalizes invalid enums, times, and legacy filters to defaults', () => {
+  it('ignores legacy preset, time, and filters fields', () => {
+    expect(parseAnalysisQuery({
+      preset: 'today',
+      time: JSON.stringify({ startAt: 10, endAt: 20 }),
+      filters: JSON.stringify({ slug: 'beta, alpha' }),
+    })).toEqual({
+      datePreset: 'last-7d',
+      dateRange: undefined,
+      slugs: [],
+      view: 'trend',
+      metric: 'visits',
+    })
+  })
+
+  it('normalizes invalid modern enums, times, and slugs to defaults', () => {
     expect(parseAnalysisQuery({
       range: 'tomorrow',
       from: '-1',
       to: 'not-a-time',
-      time: JSON.stringify({ startAt: 20, endAt: 10 }),
-      filters: JSON.stringify({ slug: 'valid, not valid, /bad' }),
+      slugs: 'valid, not valid, /bad',
       view: 'table',
       metric: 'clicks',
     })).toEqual({
@@ -79,7 +101,6 @@ describe('analysis dashboard query', () => {
       view: 'trend',
       metric: 'visits',
     })
-    expect(parseAnalysisQuery({ filters: '{invalid json' }).slugs).toEqual([])
   })
 
   it('deduplicates and sorts slugs and preserves array query serialization', () => {
@@ -93,7 +114,6 @@ describe('analysis dashboard query', () => {
   it('disallows slugs for detail query state and serialization', () => {
     const state = parseAnalysisQuery({
       slugs: ['beta', 'alpha'],
-      filters: JSON.stringify({ slug: 'legacy' }),
     }, false)
     expect(state.slugs).toEqual([])
 
@@ -103,8 +123,11 @@ describe('analysis dashboard query', () => {
 })
 
 describe('realtime dashboard query', () => {
-  it('migrates legacy time to window and serializes only non-default values', () => {
-    expect(parseRealtimeQuery({ time: 'last-10m' })).toEqual({ window: 'last-10m', slugs: [] })
+  it('supports modern window and slugs and serializes only non-default values', () => {
+    expect(parseRealtimeQuery({ window: 'last-10m', slugs: 'zeta, alpha' })).toEqual({
+      window: 'last-10m',
+      slugs: ['alpha', 'zeta'],
+    })
     expect(serializeRealtimeQuery({ window: 'last-1h', slugs: [] })).toEqual({})
     expect(serializeRealtimeQuery({ window: 'last-10m', slugs: ['zeta', 'alpha', 'zeta'] })).toEqual({
       window: 'last-10m',
@@ -112,13 +135,18 @@ describe('realtime dashboard query', () => {
     })
   })
 
-  it('prefers window and normalizes invalid windows and filters', () => {
-    expect(parseRealtimeQuery({ window: 'last-5m', time: 'last-24h' }).window).toBe('last-5m')
+  it('ignores legacy time and filters fields', () => {
+    expect(parseRealtimeQuery({
+      time: 'last-10m',
+      filters: JSON.stringify({ slug: 'beta, alpha' }),
+    })).toEqual({ window: 'last-1h', slugs: [] })
+  })
+
+  it('normalizes invalid modern windows and slugs', () => {
     expect(parseRealtimeQuery({
       window: 'forever',
-      time: 'also-invalid',
-      filters: JSON.stringify({ slug: ['not', 'a', 'string'] }),
-    })).toEqual({ window: 'last-1h', slugs: [] })
+      slugs: ['valid', 'not valid', '/bad'],
+    })).toEqual({ window: 'last-1h', slugs: ['valid'] })
   })
 })
 

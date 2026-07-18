@@ -76,7 +76,6 @@ const { title, description, github, twitter } = useAppConfig()
             <Button
               as-child
               size="lg"
-              class="px-5 text-base"
             >
               <NuxtLink to="/dashboard">
                 <span class="text-nowrap">{{ $t('dashboard.title') }}</span>
@@ -86,16 +85,14 @@ const { title, description, github, twitter } = useAppConfig()
               as-child
               size="lg"
               variant="ghost"
-              class="px-5 text-base"
             >
               <a
                 :href="github"
                 target="_blank"
                 rel="noopener noreferrer"
                 :title="$t('layouts.footer.social.github')"
-                class="flex items-center gap-1.5"
               >
-                <GitHubIcon aria-hidden="true" class="size-5" />
+                <GitHubIcon aria-hidden="true" />
                 <span class="text-nowrap">{{ $t('home.hero.github_repo') }}</span>
               </a>
             </Button>

@@ -135,8 +135,7 @@
       "newest": "Neueste zuerst",
       "oldest": "Älteste zuerst",
       "az": "Slug A-Z",
-      "za": "Slug Z-A",
-      "tip": "Hinweis: Nur für geladene Links"
+      "za": "Slug Z-A"
     },
     "update_failed": "Link konnte nicht aktualisiert werden",
     "create_failed": "Link konnte nicht erstellt werden",

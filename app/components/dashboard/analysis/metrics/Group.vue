@@ -8,9 +8,12 @@ defineProps<{
 <template>
   <Tabs
     :default-value="rawTabs[0]"
-    class="flex flex-col"
+    class="
+      flex flex-col
+      lg:h-[500px]
+    "
   >
-    <div class="max-w-full overflow-x-auto p-1">
+    <div class="max-w-full shrink-0 overflow-x-auto p-1">
       <TabsList class="min-w-max">
         <TabsTrigger
           v-for="(tab, index) in tabs"
@@ -25,7 +28,7 @@ defineProps<{
       v-for="(tab, index) in tabs"
       :key="tab"
       :value="rawTabs[index]!"
-      class="flex-1"
+      class="min-h-0 flex-1"
     >
       <DashboardAnalysisMetricsMetric
         :type="rawTabs[index]!"

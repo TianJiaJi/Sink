@@ -10,10 +10,10 @@
     },
     "actions": {
       "start": "Start Check",
-      "checking": "Checking...",
+      "checking": "Checking…",
       "stop": "Stop",
       "reload": "Reload Links",
-      "loading": "Loading...",
+      "loading": "Loading…",
       "clear": "Clear Results",
       "export": "Export CSV",
       "detail": "Detail",

@@ -7,8 +7,8 @@ const { setLocale, locales } = useI18n()
 <template>
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
-      <Button variant="ghost">
-        <Languages class="size-5" />
+      <Button variant="ghost" size="icon" :aria-label="$t('layouts.header.select_language')">
+        <Languages aria-hidden="true" />
         <span class="sr-only">{{ $t('layouts.header.select_language') }}</span>
       </Button>
     </DropdownMenuTrigger>
@@ -20,7 +20,7 @@ const { setLocale, locales } = useI18n()
         :key="locale.code"
         @click="setLocale(locale.code)"
       >
-        <span class="mr-1">
+        <span>
           {{ locale.emoji }}
         </span>
         {{ locale.name }}

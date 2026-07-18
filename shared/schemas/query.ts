@@ -23,7 +23,3 @@ export const QuerySchema = z.object({
 })
 
 export type Query = z.infer<typeof QuerySchema>
-
-// export const FilterSchema = QuerySchema.omit({ id: true, startAt: true, endAt: true, limit: true }).extend({
-//   index1: z.string().optional(),
-// })

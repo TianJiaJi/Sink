@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CounterData, LinkUpdateType } from '@/types'
+import type { LinkUpdateType } from '@/types'
 import type { DashboardLink, DashboardLinkListResponse } from '@/types/dashboard-links'
 import { AlertCircle, Inbox, LoaderCircle } from '@lucide/vue'
 import { useInfiniteScroll } from '@vueuse/core'
@@ -14,61 +14,10 @@ const limit = 24
 let cursor = ''
 let requestGeneration = 0
 
-const countersMap = ref<Record<string, CounterData>>({})
-const counterErrorIds = ref<Set<string>>(new Set())
+const { countersMap, counterErrorIds, fetchCounters, resetCounters } = useLinkCounters()
 provide(LINKS_COUNTERS_MAP_KEY, countersMap)
 provide(LINKS_COUNTER_ERROR_IDS_KEY, counterErrorIds)
 provide(RETRY_LINK_COUNTERS_KEY, (id: string) => void fetchCounters([id]))
-
-const pendingIds = new Set<string>()
-const counterRequestVersions = new Map<string, number>()
-let counterRequestVersion = 0
-const defaultCounters: CounterData = Object.freeze({ visits: 0, visitors: 0, referers: 0 })
-
-async function fetchCounters(ids: string[]) {
-  const requestIds = [...new Set(ids)].filter(id => !pendingIds.has(id))
-  if (!requestIds.length)
-    return
-
-  const version = ++counterRequestVersion
-  requestIds.forEach((id) => {
-    pendingIds.add(id)
-    counterRequestVersions.set(id, version)
-  })
-  counterErrorIds.value = new Set([...counterErrorIds.value].filter(id => !requestIds.includes(id)))
-  try {
-    const result = await useAPI<{ data: (CounterData & { id: string })[] }>('/api/stats/counters', {
-      query: { id: requestIds.join(',') },
-    })
-    for (const id of requestIds) {
-      if (counterRequestVersions.get(id) === version)
-        countersMap.value[id] = { ...defaultCounters }
-    }
-
-    for (const item of result.data ?? []) {
-      if (counterRequestVersions.get(item.id) !== version)
-        continue
-      countersMap.value[item.id] = {
-        visits: item.visits,
-        visitors: item.visitors,
-        referers: item.referers,
-      }
-    }
-  }
-  catch (error) {
-    console.error('Failed to fetch counters:', error)
-    const failedIds = requestIds.filter(id => counterRequestVersions.get(id) === version)
-    counterErrorIds.value = new Set([...counterErrorIds.value, ...failedIds])
-  }
-  finally {
-    for (const id of requestIds) {
-      if (counterRequestVersions.get(id) === version) {
-        pendingIds.delete(id)
-        counterRequestVersions.delete(id)
-      }
-    }
-  }
-}
 
 const scrollContainer = shallowRef<HTMLElement | null>(null)
 
@@ -105,7 +54,7 @@ async function getLinks() {
     listComplete.value = data.list_complete
     listError.value = false
 
-    const ids = newLinks.map(l => l.id).filter(id => !countersMap.value[id] && !pendingIds.has(id))
+    const ids = newLinks.map(l => l.id).filter(id => !countersMap.value[id])
     void fetchCounters(ids)
   }
   catch (error) {
@@ -123,10 +72,7 @@ async function getLinks() {
 function resetAndLoad() {
   requestGeneration++
   links.value = []
-  countersMap.value = {}
-  counterErrorIds.value = new Set()
-  pendingIds.clear()
-  counterRequestVersions.clear()
+  resetCounters()
   cursor = ''
   listComplete.value = false
   listError.value = false
@@ -251,7 +197,7 @@ linksStore.onLinkUpdate(({ link, type }) => {
     <AlertCircle aria-hidden="true" />
     <AlertTitle>{{ $t('links.load_failed') }}</AlertTitle>
     <AlertDescription>
-      <Button variant="link" class="h-auto p-0 text-destructive" @click="getLinks">
+      <Button variant="link" size="sm" class="text-destructive" @click="getLinks">
         {{ $t('common.try_again') }}
       </Button>
     </AlertDescription>
