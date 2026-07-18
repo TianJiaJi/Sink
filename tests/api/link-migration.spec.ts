@@ -2,7 +2,7 @@ import type { ImportResult } from '../../shared/schemas/import'
 import type { ExportData } from '../../shared/schemas/link'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { LINK_PASSWORD_HASH_PREFIX, LINK_PASSWORD_MASK_PREFIX } from '../../shared/utils/link-password'
-import { deleteStoredLinks, expectStoredHashedPassword, fetchWithAuth, getStoredLink, postJson, setLinkStoreD1Mode } from '../utils'
+import { clearLinkMigrationState, deleteStoredLinks, expectStoredHashedPassword, fetchWithAuth, getStoredLink, postJson, setLinkStoreD1Mode } from '../utils'
 
 const createdSlugs = new Set<string>()
 
@@ -25,6 +25,7 @@ function createLinkPayload() {
 afterEach(async () => {
   await deleteStoredLinks([...createdSlugs])
   createdSlugs.clear()
+  await clearLinkMigrationState()
 })
 
 describe('/api/link/export', { concurrent: false }, () => {
@@ -124,6 +125,20 @@ describe('/api/link/import', { concurrent: false }, () => {
     expect(data.skippedItems).toEqual([{ index: 0, ...payload }])
   })
 
+  it('keeps ordered partial import results', async () => {
+    const existing = createLinkPayload()
+    const first = createLinkPayload()
+    const last = createLinkPayload()
+    expect((await postJson('/api/link/create', existing)).status).toBe(201)
+
+    const response = await postJson('/api/link/import', { version: '1.0', links: [first, existing, last] })
+    const data: ImportResult = await response.json()
+
+    expect(data).toMatchObject({ success: 2, skipped: 1, failed: 0 })
+    expect(data.successItems).toEqual([{ index: 0, ...first }, { index: 2, ...last }])
+    expect(data.skippedItems).toEqual([{ index: 1, ...existing }])
+  })
+
   it('hashes plaintext password during import', async () => {
     const password = 'import-secret123'
     const payload = {
@@ -204,5 +219,17 @@ describe('/api/link/import', { concurrent: false }, () => {
       links: [{ url: 'https://example.com' }],
     })
     expect(response.status).toBe(400)
+  })
+
+  it('rejects imports over the server request limit', async () => {
+    const links = Array.from({ length: 101 }, (_, index) => ({
+      url: 'https://example.com',
+      slug: `import-limit-${crypto.randomUUID()}-${index}`,
+    }))
+
+    const response = await postJson('/api/link/import', { version: '1.0', links })
+
+    expect(response.status).toBe(400)
+    expect(response.statusText).toBe('Too many links. Maximum 100 links per request.')
   })
 })

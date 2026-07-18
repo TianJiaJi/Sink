@@ -14,20 +14,9 @@ defineRouteMeta({
         'application/json': {
           schema: {
             type: 'object',
-            required: ['links'],
             properties: {
-              links: {
-                type: 'array',
-                maxItems: 10,
-                items: {
-                  type: 'object',
-                  required: ['slug', 'url'],
-                  properties: {
-                    slug: { type: 'string' },
-                    url: { type: 'string' },
-                  },
-                },
-              },
+              cursor: { type: 'string', description: 'Pagination cursor from the previous response' },
+              limit: { type: 'integer', default: 6, minimum: 1, maximum: 10, description: 'Maximum number of links to check' },
               timeout: { type: 'integer', default: 6, minimum: 1, maximum: 30, description: 'Timeout in seconds for each link' },
             },
           },
@@ -52,32 +41,13 @@ function getSafeHeaders(event: H3Event): Headers {
 }
 
 async function checkLink(
-  event: H3Event,
   target: { slug: string, url: string },
   headers: Headers,
   timeoutSeconds: number,
 ): Promise<LinkCheckResult> {
   const startedAt = Date.now()
   const checkedAt = new Date().toISOString()
-  const slug = normalizeSlug(event, target.slug)
-  const storedLink = await getAuthoritativeLink(event, slug)
-
-  if (!storedLink) {
-    return {
-      ...target,
-      slug,
-      status: 0,
-      ok: false,
-      error: 'Link not found',
-      duration: Date.now() - startedAt,
-      checkedAt,
-    }
-  }
-
-  const link = {
-    slug,
-    url: storedLink.url,
-  }
+  const link = target
 
   if (!isCheckableUrl(link.url)) {
     return {
@@ -202,10 +172,18 @@ function isBlockedIpv6(hostname: string): boolean {
 }
 
 export default eventHandler(async (event) => {
-  const { links, timeout } = await readValidatedBody(event, LinkCheckRequestSchema.parse)
+  const { cursor, limit, timeout } = await readValidatedBody(event, LinkCheckRequestSchema.parse)
   const headers = getSafeHeaders(event)
+  const page = await listLinks(event, {
+    cursor,
+    limit,
+    sort: 'az',
+    status: 'all',
+  })
 
   return {
-    results: await Promise.all(links.map(link => checkLink(event, link, headers, timeout))),
+    results: await Promise.all(page.links.map(({ slug, url }) => checkLink({ slug, url }, headers, timeout))),
+    cursor: page.cursor,
+    list_complete: page.list_complete,
   }
 })

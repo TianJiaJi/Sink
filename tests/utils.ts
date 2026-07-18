@@ -1,5 +1,4 @@
 import type { Link } from '../shared/schemas/link'
-import type { LinkMigrationMarker } from '../shared/schemas/link-migration'
 import { env, exports } from 'cloudflare:workers'
 import { expect } from 'vitest'
 import { LINK_PASSWORD_HASH_PREFIX, LINK_PASSWORD_MASK_PREFIX } from '../shared/utils/link-password'
@@ -58,23 +57,17 @@ export async function deleteStoredLinks(slugs: string[]) {
 }
 
 export async function clearLinkMigrationState() {
-  await Promise.all([
-    env.KV.delete('migration:kv-to-d1:v1'),
-    env.DB.prepare('DELETE FROM link_migration_runs').run(),
-  ])
+  await env.DB.prepare('DELETE FROM link_migration_runs').run()
 }
 
 export async function setLinkStoreD1Mode() {
   await clearLinkMigrationState()
-  const marker: LinkMigrationMarker = {
-    version: 1,
-    completedAt: new Date().toISOString(),
-    scanned: 0,
-    inserted: 0,
-    skipped: 0,
-    expired: 0,
-  }
-  await env.KV.put('migration:kv-to-d1:v1', JSON.stringify(marker))
+  const now = Math.floor(Date.now() / 1000)
+  await env.DB.prepare(`
+    INSERT INTO link_migration_runs
+      (id, expected_cursor, scanned, inserted, skipped, expired, force, status, created_at, updated_at)
+    VALUES (?, NULL, 0, 0, 0, 0, 0, 'completed', ?, ?)
+  `).bind(`test-completed-${crypto.randomUUID()}`, now, now).run()
 }
 
 export function expectMaskedPassword(password: string | undefined, plainText: string) {

@@ -1,3 +1,5 @@
+import { readCompletedLinkMigrationMarker } from '../services/link-store/migration'
+
 const ALLOWED_MIGRATION_PATH = /^\/api\/link\/migration\/(?:status|run)\/?$/
 
 export default eventHandler(async (event) => {
@@ -6,7 +8,7 @@ export default eventHandler(async (event) => {
     return
   if (ALLOWED_MIGRATION_PATH.test(pathname))
     return
-  if (await getMigrationMarker(event))
+  if (await readCompletedLinkMigrationMarker(event.context.cloudflare.env))
     return
 
   throw createError({

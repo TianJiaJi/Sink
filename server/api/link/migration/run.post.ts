@@ -1,9 +1,10 @@
-import type { LinkMigrationMarker, LinkMigrationRunResult } from '#shared/schemas/link-migration'
+import type { LinkMigrationRunResult } from '#shared/schemas/link-migration'
 import { and, eq, isNull, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/d1'
 import { parseLegacyKvLink } from '#shared/schemas/link'
 import { LinkMigrationRunSchema } from '#shared/schemas/link-migration'
 import { linkMigrationRuns } from '../../../database/schema'
+import { readCompletedLinkMigrationMarker } from '../../../services/link-store/migration'
 
 const MIGRATION_CURSOR_PREFIX = 'migration:v1:'
 
@@ -77,18 +78,6 @@ function completedResult(): LinkMigrationRunResult {
   }
 }
 
-async function writeMarker(kv: KVNamespace, run: MigrationRunRow): Promise<void> {
-  const marker: LinkMigrationMarker = {
-    version: 1,
-    completedAt: new Date().toISOString(),
-    scanned: run.scanned,
-    inserted: run.inserted,
-    skipped: run.skipped,
-    expired: run.expired,
-  }
-  await kv.put(LINK_MIGRATION_MARKER_KEY, JSON.stringify(marker))
-}
-
 export default eventHandler(async (event): Promise<LinkMigrationRunResult> => {
   const body = await readBody<Record<string, unknown> | null>(event)
   const input = LinkMigrationRunSchema.parse(Object.assign({}, getQuery(event), body))
@@ -107,8 +96,8 @@ export default eventHandler(async (event): Promise<LinkMigrationRunResult> => {
       throw createError({ status: 400, statusText: 'Migration cursor does not match force mode' })
   }
   else {
-    const existingMarker = await getMigrationMarker(event)
-    if (existingMarker && !input.force)
+    const completedRun = await readCompletedLinkMigrationMarker(event.context.cloudflare.env)
+    if (completedRun && !input.force)
       return completedResult()
 
     const runId = crypto.randomUUID()
@@ -127,10 +116,8 @@ export default eventHandler(async (event): Promise<LinkMigrationRunResult> => {
     await db.insert(linkMigrationRuns).values(run)
   }
 
-  if (run.status === 'completed') {
-    await writeMarker(KV, run)
+  if (run.status === 'completed')
     return completedResult()
-  }
 
   const page = await KV.list({ prefix: 'link:', limit: 40, cursor: run.expectedCursor ?? undefined })
   const result: LinkMigrationRunResult = {
@@ -207,7 +194,6 @@ export default eventHandler(async (event): Promise<LinkMigrationRunResult> => {
 
   result.list_complete = page.list_complete
   if (page.list_complete) {
-    await writeMarker(KV, updatedRun)
     result.completed = true
     delete result.cursor
   }

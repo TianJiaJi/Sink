@@ -1,4 +1,5 @@
 import type { Link } from '../../shared/schemas/link'
+import { sql } from 'drizzle-orm'
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 export const links = sqliteTable('links', {
@@ -23,6 +24,7 @@ export const links = sqliteTable('links', {
   effectiveExpiresAt: integer('effective_expires_at'),
 }, table => [
   index('links_created_at_slug_idx').on(table.createdAt, table.slug),
+  index('links_created_at_desc_slug_idx').on(sql`${table.createdAt} desc`, table.slug),
   index('links_normalized_url_idx').on(table.normalizedUrl),
   index('links_id_idx').on(table.id),
 ])

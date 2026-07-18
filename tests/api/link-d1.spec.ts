@@ -1,10 +1,9 @@
 import type { Link } from '../../shared/schemas/link'
-import type { LinkMigrationMarker, LinkMigrationRunResult } from '../../shared/schemas/link-migration'
+import type { LinkMigrationRunResult, LinkMigrationStatus } from '../../shared/schemas/link-migration'
 import { env } from 'cloudflare:workers'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { clearLinkMigrationState, deleteStoredLinks, fetch, fetchWithAuth, getD1Link, getStoredLink, postJson, putJson, setLinkStoreD1Mode } from '../utils'
 
-const MARKER_KEY = 'migration:kv-to-d1:v1'
 const createdSlugs = new Set<string>()
 
 function trackSlug(slug: string): string {
@@ -52,18 +51,6 @@ async function insertD1Link(link: Link, effectiveExpiresAt: number | null = null
     effectiveExpiresAt,
     link.comment ?? null,
   ).run()
-}
-
-async function completeMarker(marker: Partial<LinkMigrationMarker> = {}) {
-  await env.KV.put(MARKER_KEY, JSON.stringify({
-    version: 1,
-    completedAt: new Date().toISOString(),
-    scanned: 0,
-    inserted: 0,
-    skipped: 0,
-    expired: 0,
-    ...marker,
-  }))
 }
 
 async function runMigration(force: boolean) {
@@ -257,6 +244,39 @@ describe('d1 link integration', () => {
     expect((await postJson('/api/link/migration/run', { cursor: 'raw-cursor' })).status).toBe(400)
   })
 
+  it('unlocks management APIs from a completed D1 run', async () => {
+    expect((await fetchWithAuth('/api/link/list')).status).toBe(200)
+    const status = await fetchWithAuth('/api/link/migration/status')
+    expect(status.status).toBe(200)
+    expect(await status.json()).toMatchObject({
+      completed: true,
+      marker: {
+        version: 1,
+        scanned: 0,
+        inserted: 0,
+        skipped: 0,
+        expired: 0,
+      },
+    })
+
+    const before = await env.DB.prepare('SELECT COUNT(*) AS count FROM link_migration_runs').first<{ count: number }>()
+    const run = await postJson('/api/link/migration/run', {})
+    expect(await run.json()).toMatchObject({ completed: true, list_complete: true })
+    const after = await env.DB.prepare('SELECT COUNT(*) AS count FROM link_migration_runs').first<{ count: number }>()
+    expect(after?.count).toBe(before?.count)
+  })
+
+  it('falls back to D1 for redirects when the completed D1 run has no KV cache', async () => {
+    const link = makeLink()
+    await insertD1Link(link)
+    await env.KV.delete(`link:${link.slug}`)
+
+    const redirect = await fetch(`/${link.slug}`, { redirect: 'manual' })
+    expect(redirect.status).toBe(301)
+    expect(redirect.headers.get('Location')).toBe(link.url)
+    expect(await getStoredLink(link.slug)).toMatchObject({ slug: link.slug, url: link.url })
+  })
+
   it('writes legacy KV links to D1 only through explicit migration', async () => {
     await clearLinkMigrationState()
     const link = makeLink(undefined, { tags: ['legacy-tag'] })
@@ -327,7 +347,7 @@ describe('d1 link integration', () => {
     expect((await postJson('/api/link/migration/run', { cursor: forged })).status).toBe(409)
   })
 
-  it('paginates auto and force migrations, aggregates the marker, and skips existing D1 rows', async () => {
+  it('paginates auto and force migrations, aggregates the completed run, and skips existing D1 rows', async () => {
     await clearLinkMigrationState()
     const prefix = `paged-${crypto.randomUUID()}-`
     const links = Array.from({ length: 105 }, (_, index) => makeLink(`${prefix}${String(index).padStart(3, '0')}`))
@@ -343,8 +363,8 @@ describe('d1 link integration', () => {
       skipped: sum.skipped + page.skipped,
       expired: sum.expired + page.expired,
     }), { scanned: 0, inserted: 0, skipped: 0, expired: 0 })
-    const marker = await env.KV.get<LinkMigrationMarker>(MARKER_KEY, 'json')
-    expect(marker).toMatchObject(totals)
+    const status = await (await fetchWithAuth('/api/link/migration/status')).json() as LinkMigrationStatus
+    expect(status.marker).toMatchObject(totals)
     expect(await getD1Link(links.at(-1)!.slug)).not.toBeNull()
 
     const forced = await runMigration(true)
@@ -434,6 +454,33 @@ describe('d1 link integration', () => {
     expect(await getD1Link(active.slug)).toMatchObject({ id: active.id, url: active.url })
   })
 
+  it('does not mutate tags or tombstones when the same id conflicts', async () => {
+    const oldTag = `old-${crypto.randomUUID().slice(0, 8)}`
+    const newTag = `new-${crypto.randomUUID().slice(0, 8)}`
+    const link = makeLink(undefined, { tags: [oldTag] })
+    expect((await postJson('/api/link/create', link)).status).toBe(201)
+    await env.DB.prepare('INSERT INTO link_tombstones (slug, deleted_at) VALUES (?, ?)').bind(link.slug, link.createdAt).run()
+
+    const response = await postJson('/api/link/import', { version: '1.0', links: [{ ...link, tags: [newTag] }] })
+
+    expect(await response.json()).toMatchObject({ success: 0, skipped: 1 })
+    expect((await (await fetchWithAuth(`/api/link/query?slug=${link.slug}`)).json() as Link).tags).toEqual([oldTag])
+    expect(await env.DB.prepare('SELECT slug FROM link_tombstones WHERE slug = ?').bind(link.slug).first()).not.toBeNull()
+    expect(await env.DB.prepare('SELECT name FROM tags WHERE name = ?').bind(newTag).first()).toBeNull()
+  })
+
+  it('uses the mixed-direction newest index', async () => {
+    const plan = await env.DB.prepare(`
+      EXPLAIN QUERY PLAN
+      SELECT * FROM links
+      WHERE (effective_expires_at IS NULL OR effective_expires_at > ?)
+        AND (created_at < ? OR (created_at = ? AND slug > ?))
+      ORDER BY created_at DESC, slug ASC
+      LIMIT 10
+    `).bind(Math.floor(Date.now() / 1000), 100, 100, 'cursor-slug').all<{ detail: string }>()
+    expect(plan.results.some(row => row.detail.includes('links_created_at_desc_slug_idx'))).toBe(true)
+  })
+
   it('recreates a deleted link by JSON import and clears its tombstone', async () => {
     const link = makeLink()
     expect((await postJson('/api/link/create', { slug: link.slug, url: link.url })).status).toBe(201)
@@ -445,7 +492,7 @@ describe('d1 link integration', () => {
     expect(await env.DB.prepare('SELECT slug FROM link_tombstones WHERE slug = ?').bind(link.slug).first()).toBeNull()
   })
 
-  it('removes a failed migration run without writing a completion marker', async () => {
+  it('removes a failed migration run without recording completion', async () => {
     await clearLinkMigrationState()
     const invalidKey = `link:invalid-${crypto.randomUUID()}`
     await env.KV.put(invalidKey, JSON.stringify({ invalid: true }))
@@ -460,7 +507,6 @@ describe('d1 link integration', () => {
 
     expect(result.failed).toBeGreaterThanOrEqual(1)
     expect(result.cursor).toBeUndefined()
-    expect(await env.KV.get(MARKER_KEY)).toBeNull()
     expect(await env.DB.prepare('SELECT id FROM link_migration_runs').first()).toBeNull()
 
     await env.KV.delete(invalidKey)
@@ -500,16 +546,6 @@ describe('d1 link integration', () => {
     const response = await postJson('/api/link/migration/run', { force: true })
     const result = await response.json() as LinkMigrationRunResult
     expect(result.failed).toBeGreaterThanOrEqual(1)
-    expect(await env.KV.get(MARKER_KEY)).toBeNull()
-  })
-
-  it('does not accept malformed migration markers as completed', async () => {
-    for (const value of ['not-json', JSON.stringify({ version: 1, completedAt: 'wrong' })]) {
-      await env.KV.put(MARKER_KEY, value)
-      const response = await fetchWithAuth('/api/link/migration/status')
-      expect(response.status).toBe(200)
-      expect(await response.json()).toEqual({ completed: false, marker: null })
-    }
   })
 
   it('supports all D1 sorts and stable keyset pagination', async () => {
@@ -635,14 +671,19 @@ describe('d1 link integration', () => {
     expect(await getStoredLink(expired.slug)).toBeNull()
   })
 
-  it('binds a continuation cursor to the original force mode even after a marker appears', async () => {
+  it('binds a continuation cursor to the original force mode even after a completed run appears', async () => {
     await clearLinkMigrationState()
     const prefix = `mode-${crypto.randomUUID()}-`
     await Promise.all(Array.from({ length: 101 }, (_, index) => putKvLink(makeLink(`${prefix}${index}`))))
     const firstResponse = await postJson('/api/link/migration/run', { force: true })
     const first = await firstResponse.json() as LinkMigrationRunResult
     expect(first.cursor).toBeDefined()
-    await completeMarker()
+    const now = Math.floor(Date.now() / 1000)
+    await env.DB.prepare(`
+      INSERT INTO link_migration_runs
+        (id, expected_cursor, scanned, inserted, skipped, expired, force, status, created_at, updated_at)
+      VALUES (?, NULL, 0, 0, 0, 0, 0, 'completed', ?, ?)
+    `).bind(`test-concurrent-completed-${crypto.randomUUID()}`, now, now).run()
 
     expect((await postJson('/api/link/migration/run', { cursor: first.cursor, force: false })).status).toBe(400)
     expect((await postJson('/api/link/migration/run', { cursor: first.cursor, force: true })).status).toBe(200)

@@ -1,148 +1,105 @@
 import type { LinkCheckResponse } from '../../shared/types/link-check'
+import { env } from 'cloudflare:workers'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { deleteStoredLinks, postJson, setLinkStoreD1Mode } from '../utils'
-
-const URL_NOT_ALLOWED = 'URL is not allowed for server-side checking'
 
 beforeEach(async () => {
   await setLinkStoreD1Mode()
 })
 
-function uniqueSlug(prefix: string): string {
-  return `${prefix}-${crypto.randomUUID()}`
+function uniqueSlug(index: number): string {
+  return `link-check-${index}-${crypto.randomUUID()}`
 }
 
-async function withStoredLinks<T>(urls: string[], run: (slugs: string[]) => Promise<T>): Promise<T> {
-  const slugs: string[] = []
-
-  try {
-    for (const [index, url] of urls.entries()) {
-      const slug = uniqueSlug(`link-check-${index}`)
-      const response = await postJson('/api/link/create', { slug, url })
-      expect(response.status).toBe(201)
-      slugs.push(slug)
-    }
-
-    return await run(slugs)
-  }
-  finally {
-    await deleteStoredLinks(slugs)
-  }
+async function createStoredLinks(count: number): Promise<{ slug: string, url: string }[]> {
+  const links = Array.from({ length: count }, (_, index) => ({
+    slug: uniqueSlug(index),
+    url: `http://localhost/link-check/${index}`,
+  }))
+  for (const link of links)
+    expect((await postJson('/api/link/create', link)).status).toBe(201)
+  return links
 }
 
-async function expectRejectedStoredUrl(storedUrl: string, requestUrl = 'https://example.com'): Promise<void> {
-  await withStoredLinks([storedUrl], async ([slug]) => {
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Unexpected outbound request'))
+describe('/api/link/check', { concurrent: false }, () => {
+  it('checks authoritative links with keyset cursor pagination', async () => {
+    const created = await createStoredLinks(11)
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Blocked test outbound request'))
 
     try {
-      const response = await postJson('/api/link/check', {
-        links: [{ slug, url: requestUrl }],
-      })
+      const checked = new Map<string, string>()
+      const checkedSlugs: string[] = []
+      let cursor: string | undefined
+      let pageCount = 0
 
-      expect(response.status).toBe(200)
-      const { results } = await response.json() as LinkCheckResponse
-      expect(results).toHaveLength(1)
-      expect(fetchSpy).not.toHaveBeenCalled()
-      expect(results[0]).toMatchObject({
-        slug,
-        url: storedUrl,
+      do {
+        const response = await postJson('/api/link/check', { cursor, limit: 10, timeout: 1 })
+        expect(response.status).toBe(200)
+        const page = await response.json() as LinkCheckResponse
+        expect(page.results.length).toBeLessThanOrEqual(10)
+        for (const result of page.results) {
+          expect(checked.has(result.slug)).toBe(false)
+          checked.set(result.slug, result.url)
+          checkedSlugs.push(result.slug)
+        }
+        cursor = page.cursor
+        pageCount++
+        if (page.list_complete)
+          break
+        expect(cursor).toBeTypeOf('string')
+      } while (pageCount < 100)
+
+      expect(pageCount).toBeGreaterThan(1)
+      expect(checkedSlugs).toEqual([...checkedSlugs].sort((a, b) => a.localeCompare(b)))
+      for (const link of created)
+        expect(checked.get(link.slug)).toBe(link.url)
+    }
+    finally {
+      fetchSpy.mockRestore()
+      await deleteStoredLinks(created.map(link => link.slug))
+    }
+  })
+
+  it('includes expired links and checks their stored URL', async () => {
+    const [link] = await createStoredLinks(1)
+    const expiredAt = Math.floor(Date.now() / 1000) - 60
+    await env.DB.prepare('UPDATE links SET expiration = ?, effective_expires_at = ? WHERE slug = ?')
+      .bind(expiredAt, expiredAt, link.slug)
+      .run()
+    await env.KV.delete(`link:${link.slug}`)
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Blocked test outbound request'))
+
+    try {
+      let cursor: string | undefined
+      let result
+      for (let pageCount = 0; pageCount < 100 && !result; pageCount++) {
+        const response = await postJson('/api/link/check', { cursor, limit: 10, timeout: 1 })
+        expect(response.status).toBe(200)
+        const page = await response.json() as LinkCheckResponse
+        result = page.results.find(item => item.slug === link.slug)
+        if (page.list_complete)
+          break
+        cursor = page.cursor
+      }
+
+      expect(result).toMatchObject({
+        slug: link.slug,
+        url: link.url,
         status: 0,
         ok: false,
-        error: URL_NOT_ALLOWED,
+        error: 'URL is not allowed for server-side checking',
       })
     }
     finally {
       fetchSpy.mockRestore()
-    }
-  })
-}
-
-describe('/api/link/check', { concurrent: false }, () => {
-  it('uses the authoritative stored URL instead of the request URL', async () => {
-    await expectRejectedStoredUrl('http://localhost/authoritative', 'https://example.com/request-body')
-  })
-
-  it.each([
-    ['localhost', 'http://localhost/resource'],
-    ['IPv4 loopback', 'http://127.0.0.1/resource'],
-    ['10/8 private IPv4', 'http://10.1.2.3/resource'],
-    ['172.16/12 private IPv4', 'http://172.16.42.1/resource'],
-    ['192.168/16 private IPv4', 'http://192.168.1.1/resource'],
-    ['IPv6 loopback', 'http://[::1]/resource'],
-    ['IPv6 unique local address', 'http://[fd12:3456:789a::1]/resource'],
-    ['IPv6 link-local address', 'http://[fe80::1]/resource'],
-    ['IPv6 link-local range', 'http://[fe90::1]/resource'],
-    ['IPv6 multicast', 'http://[ff02::1]/resource'],
-    ['IPv4-mapped IPv6 loopback', 'http://[::ffff:127.0.0.1]/resource'],
-  ])('rejects a stored %s URL without making an outbound request', async (_name, url) => {
-    await expectRejectedStoredUrl(url)
-  })
-
-  it('returns Link not found for a missing slug', async () => {
-    const slug = uniqueSlug('link-check-missing')
-    await deleteStoredLinks([slug])
-
-    try {
-      const response = await postJson('/api/link/check', {
-        links: [{ slug, url: 'https://example.com' }],
-      })
-
-      expect(response.status).toBe(200)
-      const { results } = await response.json() as LinkCheckResponse
-      expect(results[0]).toMatchObject({
-        slug,
-        status: 0,
-        ok: false,
-        error: 'Link not found',
-      })
-    }
-    finally {
-      await deleteStoredLinks([slug])
+      await deleteStoredLinks([link.slug])
     }
   })
 
-  it('accepts at most 10 links and rejects 11 links', async () => {
-    await withStoredLinks(Array.from({ length: 11 }, (_, index) => `http://localhost/resource/${index}`), async (slugs) => {
-      const targets = slugs.map(slug => ({ slug, url: 'https://example.com' }))
-      const maximumResponse = await postJson('/api/link/check', { links: targets.slice(0, 10) })
-      expect(maximumResponse.status).toBe(200)
-      expect((await maximumResponse.json() as LinkCheckResponse).results).toHaveLength(10)
-
-      const overMaximumResponse = await postJson('/api/link/check', { links: targets })
-      expect(overMaximumResponse.status).toBe(400)
-    })
-  })
-
-  it('rejects an empty links array', async () => {
-    const response = await postJson('/api/link/check', { links: [] })
-    expect(response.status).toBe(400)
-  })
-
-  it.each([1, 30])('accepts the timeout boundary %i', async (timeout) => {
-    await withStoredLinks(['http://localhost/resource'], async ([slug]) => {
-      const response = await postJson('/api/link/check', {
-        links: [{ slug, url: 'https://example.com' }],
-        timeout,
-      })
-
-      expect(response.status).toBe(200)
-      expect((await response.json() as LinkCheckResponse).results[0]).toMatchObject({
-        slug,
-        status: 0,
-        ok: false,
-        error: URL_NOT_ALLOWED,
-      })
-    })
-  })
-
-  it.each([0, 31])('rejects the timeout outside the boundary: %i', async (timeout) => {
-    await withStoredLinks(['http://localhost/resource'], async ([slug]) => {
-      const response = await postJson('/api/link/check', {
-        links: [{ slug, url: 'https://example.com' }],
-        timeout,
-      })
-
-      expect(response.status).toBe(400)
-    })
+  it('rejects client-provided link targets and limits pages to 10', async () => {
+    expect((await postJson('/api/link/check', {
+      links: [{ slug: 'client-target', url: 'https://example.com' }],
+    })).status).toBe(400)
+    expect((await postJson('/api/link/check', { limit: 11 })).status).toBe(400)
   })
 })

@@ -2,7 +2,7 @@ import type { BackupData } from '../../server/utils/backup'
 import type { Link } from '../../shared/schemas/link'
 import { env, exports } from 'cloudflare:workers'
 import { describe, expect, it } from 'vitest'
-import { createBackupJsonStream, getSerializedLinkByteLength } from '../../server/utils/backup-json-stream'
+import { createBackupJsonStream, uploadBackupParts } from '../../server/utils/backup-json-stream'
 import { clearLinkMigrationState, deleteStoredLinks, postJson, setLinkStoreD1Mode } from '../utils'
 
 function getManualBackupDate(key: string) {
@@ -129,7 +129,7 @@ describe('/api/backup', { concurrent: false }, () => {
     }
   })
 
-  it('fails the backup stream when the link count changes', async () => {
+  it('streams links in one pass and writes the actual count', async () => {
     const now = Math.floor(Date.now() / 1000)
     const link: Link = {
       id: crypto.randomUUID().slice(0, 10),
@@ -139,42 +139,88 @@ describe('/api/backup', { concurrent: false }, () => {
       updatedAt: now,
       tags: [],
     }
+    let iterations = 0
     async function* links() {
+      iterations++
       yield link
     }
 
-    const stream = createBackupJsonStream(links(), {
+    const backup = createBackupJsonStream(links(), {
       version: '1.0',
       exportedAt: new Date().toISOString(),
-      count: 2,
-      linksByteLength: getSerializedLinkByteLength(link) * 2,
     })
 
-    await expect(new Response(stream).text()).rejects.toThrow(/expected 2, received 1/)
+    const data = JSON.parse(await new Response(backup.stream).text()) as BackupData
+    await expect(backup.count).resolves.toBe(1)
+    expect(iterations).toBe(1)
+    expect(data.count).toBe(data.links.length)
+    expect(data.links).toEqual([link])
   })
 
-  it('fails the backup stream when the serialized byte length changes', async () => {
-    const now = Math.floor(Date.now() / 1000)
-    const link: Link = {
-      id: crypto.randomUUID().slice(0, 10),
-      slug: `byte-mismatch-${crypto.randomUUID()}`,
-      url: 'https://example.com/byte-mismatch',
-      createdAt: now,
-      updatedAt: now,
-      tags: [],
-    }
-    async function* links() {
-      yield link
-    }
-
-    const linkByteLength = getSerializedLinkByteLength(link)
-    const stream = createBackupJsonStream(links(), {
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      count: 1,
-      linksByteLength: linkByteLength + 1,
+  it('creates exact 5 MiB non-final parts from irregular chunks', async () => {
+    const partSize = 5 * 1024 * 1024
+    const chunks = [
+      new Uint8Array(partSize - 11),
+      new Uint8Array(partSize + 29),
+      new Uint8Array(105),
+    ]
+    const uploadedSizes: number[] = []
+    const upload = {
+      async uploadPart(partNumber: number, value: ArrayBuffer | ArrayBufferView | Blob | ReadableStream) {
+        if (!(value instanceof Uint8Array))
+          throw new TypeError('Expected a byte array part')
+        uploadedSizes.push(value.byteLength)
+        return { partNumber, etag: `part-${partNumber}` }
+      },
+    } as R2MultipartUpload
+    let index = 0
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        const chunk = chunks[index++]
+        if (chunk)
+          controller.enqueue(chunk)
+        else
+          controller.close()
+      },
     })
 
-    await expect(new Response(stream).text()).rejects.toThrow(/Backup byte length changed during export/)
+    await expect(uploadBackupParts(upload, stream)).resolves.toHaveLength(3)
+    expect(uploadedSizes).toEqual([partSize, partSize, 123])
+    expect(uploadedSizes.slice(0, -1).every(size => size === partSize)).toBe(true)
+  })
+
+  it('cancels the backup stream when a multipart upload fails', async () => {
+    const now = Math.floor(Date.now() / 1000)
+    let iteratorReturned = false
+    async function* links() {
+      try {
+        yield {
+          id: crypto.randomUUID().slice(0, 10),
+          slug: `upload-failure-${crypto.randomUUID()}`,
+          url: 'https://example.com/upload-failure',
+          comment: 'x'.repeat(6 * 1024 * 1024),
+          createdAt: now,
+          updatedAt: now,
+          tags: [],
+        } satisfies Link
+      }
+      finally {
+        iteratorReturned = true
+      }
+    }
+    const backup = createBackupJsonStream(links(), {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+    })
+    const countError = backup.count.catch(error => error)
+    const upload = {
+      async uploadPart() {
+        throw new Error('upload failed')
+      },
+    } as R2MultipartUpload
+
+    await expect(uploadBackupParts(upload, backup.stream)).rejects.toThrow('upload failed')
+    expect(iteratorReturned).toBe(true)
+    await expect(countError).resolves.toEqual(expect.objectContaining({ message: 'upload failed' }))
   })
 })

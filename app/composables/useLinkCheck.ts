@@ -1,125 +1,83 @@
-import type { LinkCheckConfig, LinkCheckResponse, LinkCheckResult, LinkCheckTarget, LinkListResponse } from '@/types'
-import { ref } from 'vue'
-import { toErrorMessage } from '#shared/utils/error'
+import type { LinkCheckConfig, LinkCheckResponse, LinkCheckResult } from '@/types'
+import { computed, ref, shallowRef } from 'vue'
 import { useAPI } from '@/utils/api'
 
 type LinkCheckRunResult = 'completed' | 'empty' | 'stopped'
-type LinkCheckListResponse = Omit<LinkListResponse, 'cursor'> & { cursor?: string }
 interface LinkCountResponse {
   count: number
 }
 
 export function useLinkCheck() {
-  const links = ref<LinkCheckTarget[]>([])
-  const totalCount = ref(0)
   const results = ref<LinkCheckResult[]>([])
-  const loadingLinks = ref(false)
-  const checking = ref(false)
-  const stopRequested = ref(false)
-  const wasStopped = ref(false)
+  const totalCount = shallowRef(0)
+  const loadingLinks = shallowRef(false)
+  const checking = shallowRef(false)
+  const stopRequested = shallowRef(false)
+  const wasStopped = shallowRef(false)
+  const nextCursor = shallowRef<string | null | undefined>(null)
+  const hasLinks = computed(() => totalCount.value > 0)
+  const links = computed(() => results.value)
 
   async function loadLinks() {
     loadingLinks.value = true
     totalCount.value = 0
-    let listSettled = false
-    void useAPI<LinkCountResponse>('/api/link/count', {
-      query: { status: 'all' },
-    }).then(({ count }) => {
-      if (!listSettled)
-        totalCount.value = count
-    }).catch(() => undefined)
-
-    const firstPagePromise = useAPI<LinkCheckListResponse>('/api/link/list', {
-      query: {
-        limit: 1000,
-        status: 'all',
-        sort: 'newest',
-      },
-    })
 
     try {
-      const loadedLinks: LinkCheckTarget[] = []
-      let response = await firstPagePromise
-
-      while (true) {
-        loadedLinks.push(...response.links.map(({ slug, url }) => ({ slug, url })))
-
-        if (response.list_complete)
-          break
-        if (!response.cursor)
-          throw new Error('Incomplete link list response is missing a cursor')
-
-        response = await useAPI<LinkCheckListResponse>('/api/link/list', {
-          query: {
-            limit: 1000,
-            status: 'all',
-            sort: 'newest',
-            cursor: response.cursor,
-          },
-        })
-      }
-
-      listSettled = true
-      links.value = loadedLinks
-      totalCount.value = loadedLinks.length
+      const { count } = await useAPI<LinkCountResponse>('/api/link/count', {
+        query: { status: 'all' },
+      })
+      totalCount.value = count
       results.value = []
+      nextCursor.value = null
       wasStopped.value = false
     }
     finally {
-      listSettled = true
       loadingLinks.value = false
     }
-  }
-
-  function buildFailedResults(batch: LinkCheckTarget[], error: unknown): LinkCheckResult[] {
-    const checkedAt = new Date().toISOString()
-    const message = toErrorMessage(error)
-
-    return batch.map(link => ({
-      ...link,
-      status: 0,
-      ok: false,
-      duration: 0,
-      checkedAt,
-      error: message,
-    }))
   }
 
   async function startCheck(config: LinkCheckConfig): Promise<LinkCheckRunResult> {
     if (checking.value)
       return 'empty'
 
-    if (!links.value.length)
+    if (!totalCount.value)
       await loadLinks()
 
-    if (!links.value.length)
+    if (!totalCount.value)
       return 'empty'
 
     checking.value = true
     stopRequested.value = false
     wasStopped.value = false
     results.value = []
+    nextCursor.value = null
 
     try {
-      for (let index = 0; index < links.value.length; index += config.batchSize) {
-        if (stopRequested.value)
-          break
+      const seenSlugs = new Set<string>()
+      while (!stopRequested.value) {
+        const response: LinkCheckResponse = await useAPI<LinkCheckResponse>('/api/link/check', {
+          method: 'POST',
+          body: {
+            cursor: nextCursor.value ?? undefined,
+            limit: config.batchSize,
+            timeout: config.timeout,
+          },
+        })
+        for (const result of response.results) {
+          if (seenSlugs.has(result.slug))
+            continue
+          seenSlugs.add(result.slug)
+          results.value.push(result)
+        }
 
-        const batch = links.value.slice(index, index + config.batchSize)
-        try {
-          const response = await useAPI<LinkCheckResponse>('/api/link/check', {
-            method: 'POST',
-            body: {
-              links: batch,
-              timeout: config.timeout,
-            },
-          })
-          results.value.push(...response.results)
+        if (response.list_complete) {
+          nextCursor.value = undefined
+          totalCount.value = results.value.length
+          break
         }
-        catch (error) {
-          console.error(error)
-          results.value.push(...buildFailedResults(batch, error))
-        }
+        if (!response.cursor)
+          throw new Error('Incomplete link check response is missing a cursor')
+        nextCursor.value = response.cursor
       }
 
       wasStopped.value = stopRequested.value
@@ -142,6 +100,7 @@ export function useLinkCheck() {
 
   return {
     links,
+    hasLinks,
     totalCount,
     results,
     loadingLinks,

@@ -1,22 +1,35 @@
 import type { H3Event } from 'h3'
 import type { Link } from '#shared/schemas/link'
 import type { LinkMigrationMarker } from '#shared/schemas/link-migration'
-import { LinkMigrationMarkerSchema } from '#shared/schemas/link-migration'
+import { desc, eq } from 'drizzle-orm'
+import { drizzle } from 'drizzle-orm/d1'
+import { linkMigrationRuns } from '../../database/schema'
 import { buildD1LinkValues } from './d1'
 
-export const LINK_MIGRATION_MARKER_KEY = 'migration:kv-to-d1:v1'
+export async function readCompletedLinkMigrationMarker(env: Cloudflare.Env): Promise<LinkMigrationMarker | null> {
+  const [run] = await drizzle(env.DB)
+    .select({
+      scanned: linkMigrationRuns.scanned,
+      inserted: linkMigrationRuns.inserted,
+      skipped: linkMigrationRuns.skipped,
+      expired: linkMigrationRuns.expired,
+      updatedAt: linkMigrationRuns.updatedAt,
+    })
+    .from(linkMigrationRuns)
+    .where(eq(linkMigrationRuns.status, 'completed'))
+    .orderBy(desc(linkMigrationRuns.updatedAt), desc(linkMigrationRuns.createdAt), desc(linkMigrationRuns.id))
+    .limit(1)
 
-export async function readLinkMigrationMarker(env: Cloudflare.Env): Promise<LinkMigrationMarker | null> {
-  const value = await env.KV.get(LINK_MIGRATION_MARKER_KEY)
-  if (!value)
+  if (!run)
     return null
 
-  try {
-    const parsed = LinkMigrationMarkerSchema.safeParse(JSON.parse(value))
-    return parsed.success ? parsed.data : null
-  }
-  catch {
-    return null
+  return {
+    version: 1,
+    completedAt: new Date(run.updatedAt * 1000).toISOString(),
+    scanned: run.scanned,
+    inserted: run.inserted,
+    skipped: run.skipped,
+    expired: run.expired,
   }
 }
 

@@ -1,7 +1,8 @@
+import type { BatchItem } from 'drizzle-orm/batch'
 import type { H3Event } from 'h3'
 import type { Link } from '#shared/schemas/link'
 import type { LinkSearchItem, LinkSortBy, LinkStatus } from '#shared/types/link'
-import { and, asc, count, desc, eq, gt, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, exists, gt, inArray, isNotNull, isNull, lt, lte, or, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/d1'
 import { createError } from 'h3'
 import { parseURL, stringifyParsedURL } from 'ufo'
@@ -183,31 +184,76 @@ export async function d1HasActiveLinkVersion(event: H3Event, link: Link): Promis
   return rows.length > 0
 }
 
+export async function d1GetActiveLinkVersions(event: H3Event, expectedLinks: Link[]): Promise<Set<string>> {
+  if (!expectedLinks.length)
+    return new Set()
+
+  const rows = await getDatabase(event).select({ slug: links.slug }).from(links).where(and(
+    activeCondition(),
+    or(...expectedLinks.map(link => and(eq(links.slug, link.slug), eq(links.id, link.id), eq(links.updatedAt, link.updatedAt)))),
+  ))
+  return new Set(rows.map(row => row.slug))
+}
+
 export async function d1CreateLink(event: H3Event, link: Link): Promise<{ created: boolean, effectiveExpiresAt: number | null }> {
   const db = getDatabase(event)
+  const { statements, effectiveExpiresAt } = buildCreateLinkStatements(event, db, link)
+  const [created] = await db.batch(statements)
+  return { created: (created as { slug: string }[]).length > 0, effectiveExpiresAt }
+}
+
+function buildCreateLinkStatements(event: H3Event, db: ReturnType<typeof getDatabase>, link: Link): { statements: [BatchItem<'sqlite'>, ...BatchItem<'sqlite'>[]], effectiveExpiresAt: number | null } {
   const now = Math.floor(Date.now() / 1000)
   const values = buildD1LinkValues(event, link)
-  const insert = db.insert(links).values(values).onConflictDoUpdate({
+  const effectiveExpiresAt = values.effectiveExpiresAt
+  const pendingValues = { ...values, effectiveExpiresAt: 0 }
+  const pendingLink = and(eq(links.slug, link.slug), eq(links.effectiveExpiresAt, 0))
+  const insert = db.insert(links).values(pendingValues).onConflictDoUpdate({
     target: links.slug,
-    set: values,
+    set: pendingValues,
     setWhere: and(isNotNull(links.effectiveExpiresAt), lte(links.effectiveExpiresAt, now)),
   }).returning({ slug: links.slug })
   const clearTombstone = db.delete(linkTombstones).where(and(
     eq(linkTombstones.slug, link.slug),
-    sql`exists (select 1 from ${links} where ${links.slug} = ${link.slug} and ${links.id} = ${link.id})`,
+    exists(db.select({ slug: links.slug }).from(links).where(pendingLink)),
   ))
-  const tagInserts = link.tags.map(tag => db.insert(tags).values({ name: tag }).onConflictDoNothing())
+  const tagInserts = link.tags.map(tag => db.insert(tags).select(
+    db.select({ name: sql<string>`${tag}`.as('name') }).from(links).where(pendingLink),
+  ).onConflictDoNothing())
   const clearTags = db.delete(linkTags).where(and(
     eq(linkTags.linkSlug, link.slug),
-    sql`exists (select 1 from ${links} where ${links.slug} = ${link.slug} and ${links.id} = ${link.id})`,
+    exists(db.select({ slug: links.slug }).from(links).where(pendingLink)),
   ))
   const associationInserts = link.tags.map(tag => db.insert(linkTags).select(
     db.select({ linkSlug: links.slug, tagName: sql<string>`${tag}`.as('tag_name') })
       .from(links)
-      .where(and(eq(links.slug, link.slug), eq(links.id, link.id))),
+      .where(pendingLink),
   ).onConflictDoNothing())
-  const [created] = await db.batch([insert, clearTombstone, clearTags, ...tagInserts, ...associationInserts])
-  return { created: created.length > 0, effectiveExpiresAt: values.effectiveExpiresAt }
+  const finalize = db.update(links).set({ effectiveExpiresAt }).where(pendingLink)
+  return {
+    statements: [insert, clearTombstone, clearTags, ...tagInserts, ...associationInserts, finalize],
+    effectiveExpiresAt,
+  }
+}
+
+export async function d1CreateLinks(event: H3Event, importedLinks: Link[]): Promise<{ created: boolean, effectiveExpiresAt: number | null }[]> {
+  if (!importedLinks.length)
+    return []
+
+  const db = getDatabase(event)
+  const batches = importedLinks.map(link => buildCreateLinkStatements(event, db, link))
+  const insertIndexes: number[] = []
+  let statementCount = 0
+  const statements = batches.flatMap((batch) => {
+    insertIndexes.push(statementCount)
+    statementCount += batch.statements.length
+    return batch.statements
+  })
+  const results = await db.batch(statements as [BatchItem<'sqlite'>, ...BatchItem<'sqlite'>[]])
+  return batches.map((batch, index) => ({
+    created: (results[insertIndexes[index]!] as { slug: string }[]).length > 0,
+    effectiveExpiresAt: batch.effectiveExpiresAt,
+  }))
 }
 
 export async function d1UpdateLink(event: H3Event, link: Link, expected?: ExpectedLinkVersion): Promise<{ updated: boolean, effectiveExpiresAt: number | null }> {
@@ -225,7 +271,7 @@ export async function d1UpdateLink(event: H3Event, link: Link, expected?: Expect
   )
   const clearTags = db.delete(linkTags).where(and(
     eq(linkTags.linkSlug, link.slug),
-    sql`exists (select 1 from ${links} where ${currentVersion})`,
+    exists(db.select({ slug: links.slug }).from(links).where(currentVersion)),
   ))
   const tagInserts = link.tags.map(tag => db.insert(tags).values({ name: tag }).onConflictDoNothing())
   const associationInserts = link.tags.map(tag => db.insert(linkTags).select(

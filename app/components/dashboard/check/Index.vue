@@ -7,7 +7,7 @@ import { createExportFilename } from '#shared/utils/export-file'
 
 const { t } = useI18n()
 const {
-  links,
+  hasLinks,
   totalCount,
   results,
   loadingLinks,
@@ -26,7 +26,7 @@ const abnormalCount = computed(() => results.value.filter(result => !result.ok).
 const networkErrorCount = computed(() => results.value.filter(result => result.status === 0).length)
 const progress = computed(() => totalCount.value ? Math.round((checkedCount.value / totalCount.value) * 100) : 0)
 const hasResults = computed(() => results.value.length > 0)
-const completed = computed(() => links.value.length > 0 && checkedCount.value === links.value.length && !checking.value)
+const completed = computed(() => hasLinks.value && checkedCount.value === totalCount.value && !checking.value && !wasStopped.value)
 
 const filteredResults = computed(() => {
   if (activeFilter.value === 'all')
@@ -136,7 +136,7 @@ onMounted(() => {
         <DashboardCheckConfigForm
           :checking="checking"
           :loading-links="loadingLinks"
-          :has-links="links.length > 0"
+          :has-links="hasLinks"
           :has-results="hasResults"
           :export-disabled="exportDisabled"
           @start="runCheck"

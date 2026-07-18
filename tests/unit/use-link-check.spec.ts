@@ -6,7 +6,6 @@ const { useAPIMock } = vi.hoisted(() => ({
 }))
 
 vi.mock('@/utils/api', () => ({ useAPI: useAPIMock }))
-vi.mock('#shared/utils/error', async () => import('../../shared/utils/error'))
 
 function createDeferred<T>() {
   let resolve!: (value: T) => void
@@ -21,157 +20,120 @@ describe('useLinkCheck', () => {
     useAPIMock.mockReset()
   })
 
-  it('starts count and the first list page concurrently and calibrates the final total', async () => {
-    const countRequest = createDeferred<{ count: number }>()
-    const listRequest = createDeferred<{
-      links: { slug: string, url: string, comment?: string }[]
-      list_complete: boolean
-    }>()
-    useAPIMock.mockImplementation((api: string) => {
-      if (api === '/api/link/count')
-        return countRequest.promise
-      if (api === '/api/link/list')
-        return listRequest.promise
-      throw new Error(`Unexpected API request: ${api}`)
-    })
+  it('loads only the total before checking', async () => {
+    useAPIMock.mockResolvedValue({ count: 12 })
     const linkCheck = useLinkCheck()
 
-    const loading = linkCheck.loadLinks()
+    await linkCheck.loadLinks()
 
-    expect(useAPIMock).toHaveBeenCalledTimes(2)
+    expect(useAPIMock).toHaveBeenCalledOnce()
     expect(useAPIMock).toHaveBeenCalledWith('/api/link/count', {
       query: { status: 'all' },
     })
-    expect(useAPIMock).toHaveBeenCalledWith('/api/link/list', {
-      query: {
-        limit: 1000,
-        status: 'all',
-        sort: 'newest',
-      },
-    })
-
-    countRequest.resolve({ count: 10 })
-    await vi.waitFor(() => expect(linkCheck.totalCount.value).toBe(10))
-
-    listRequest.resolve({
-      links: [
-        { slug: 'first', url: 'https://example.com/first', comment: 'ignored' },
-        { slug: 'second', url: 'https://example.com/second' },
-      ],
-      list_complete: true,
-    })
-    await loading
-
-    expect(linkCheck.links.value).toEqual([
-      { slug: 'first', url: 'https://example.com/first' },
-      { slug: 'second', url: 'https://example.com/second' },
-    ])
-    expect(linkCheck.totalCount.value).toBe(2)
+    expect(linkCheck.totalCount.value).toBe(12)
+    expect(linkCheck.hasLinks.value).toBe(true)
+    expect(linkCheck.links.value).toEqual([])
   })
 
-  it('completes list loading when the count request fails', async () => {
-    useAPIMock.mockImplementation((api: string) => {
-      if (api === '/api/link/count')
-        return Promise.reject(new Error('Count failed'))
-      if (api === '/api/link/list') {
-        return Promise.resolve({
-          links: [{ slug: 'first', url: 'https://example.com/first' }],
-          list_complete: true,
-        })
-      }
-      throw new Error(`Unexpected API request: ${api}`)
-    })
-    const linkCheck = useLinkCheck()
-
-    await linkCheck.loadLinks()
-
-    expect(linkCheck.links.value).toHaveLength(1)
-    expect(linkCheck.totalCount.value).toBe(1)
-  })
-
-  it('loads every page using the returned cursor and calibrates the total', async () => {
-    useAPIMock.mockImplementation((api: string, options?: { query?: { cursor?: string } }) => {
-      if (api === '/api/link/count')
-        return Promise.resolve({ count: 20 })
-      if (api !== '/api/link/list')
-        throw new Error(`Unexpected API request: ${api}`)
-      if (options?.query?.cursor === 'next-page') {
-        return Promise.resolve({
-          links: [
-            { slug: 'second', url: 'https://example.com/second' },
-            { slug: 'third', url: 'https://example.com/third' },
-          ],
-          list_complete: true,
-        })
-      }
-      return Promise.resolve({
-        links: [{ slug: 'first', url: 'https://example.com/first' }],
+  it('checks cursor pages without sending client-side links', async () => {
+    useAPIMock
+      .mockResolvedValueOnce({ count: 2 })
+      .mockResolvedValueOnce({
+        results: [{ slug: 'first', url: 'https://example.com/first', status: 200, ok: true, duration: 1, checkedAt: 'now' }],
         cursor: 'next-page',
         list_complete: false,
       })
-    })
-    const linkCheck = useLinkCheck()
-
-    await linkCheck.loadLinks()
-
-    expect(useAPIMock).toHaveBeenCalledWith('/api/link/list', {
-      query: {
-        limit: 1000,
-        status: 'all',
-        sort: 'newest',
-        cursor: 'next-page',
-      },
-    })
-    expect(linkCheck.links.value).toHaveLength(3)
-    expect(linkCheck.totalCount.value).toBe(3)
-  })
-
-  it('does not commit partial links when a later page fails', async () => {
-    useAPIMock.mockImplementation((api: string) => {
-      if (api === '/api/link/count')
-        return Promise.resolve({ count: 1 })
-      return Promise.resolve({
-        links: [{ slug: 'existing', url: 'https://example.com/existing' }],
+      .mockResolvedValueOnce({
+        results: [
+          { slug: 'first', url: 'https://example.com/replaced', status: 301, ok: true, duration: 1, checkedAt: 'later' },
+          { slug: 'second', url: 'https://example.com/second', status: 404, ok: false, duration: 1, checkedAt: 'now' },
+        ],
         list_complete: true,
       })
-    })
     const linkCheck = useLinkCheck()
     await linkCheck.loadLinks()
 
-    const requestError = new Error('Request failed')
-    useAPIMock.mockImplementation((api: string, options?: { query?: { cursor?: string } }) => {
-      if (api === '/api/link/count')
-        return Promise.reject(new Error('Count failed'))
-      if (options?.query?.cursor === 'next-page')
-        return Promise.reject(requestError)
-      return Promise.resolve({
-        links: [{ slug: 'partial', url: 'https://example.com/partial' }],
+    const outcome = await linkCheck.startCheck({ batchSize: 10, timeout: 5 })
+
+    expect(outcome).toBe('completed')
+    expect(linkCheck.results.value).toHaveLength(2)
+    expect(linkCheck.results.value.map(result => result.slug)).toEqual(['first', 'second'])
+    expect(linkCheck.links.value).toHaveLength(2)
+    expect(useAPIMock).toHaveBeenNthCalledWith(2, '/api/link/check', {
+      method: 'POST',
+      body: { cursor: undefined, limit: 10, timeout: 5 },
+    })
+    expect(useAPIMock).toHaveBeenNthCalledWith(3, '/api/link/check', {
+      method: 'POST',
+      body: { cursor: 'next-page', limit: 10, timeout: 5 },
+    })
+    for (const [, options] of useAPIMock.mock.calls.slice(1))
+      expect(options.body).not.toHaveProperty('links')
+  })
+
+  it('does not request another page after stop is requested', async () => {
+    const page = createDeferred<{
+      results: { slug: string, url: string, status: number, ok: boolean, duration: number, checkedAt: string }[]
+      cursor: string
+      list_complete: boolean
+    }>()
+    useAPIMock
+      .mockResolvedValueOnce({ count: 2 })
+      .mockReturnValueOnce(page.promise)
+    const linkCheck = useLinkCheck()
+    await linkCheck.loadLinks()
+
+    const checking = linkCheck.startCheck({ batchSize: 1, timeout: 6 })
+    linkCheck.stopCheck()
+    page.resolve({
+      results: [{ slug: 'first', url: 'https://example.com', status: 200, ok: true, duration: 1, checkedAt: 'now' }],
+      cursor: 'next-page',
+      list_complete: false,
+    })
+
+    await expect(checking).resolves.toBe('stopped')
+    expect(useAPIMock).toHaveBeenCalledTimes(2)
+    expect(linkCheck.results.value).toHaveLength(1)
+    expect(linkCheck.wasStopped.value).toBe(true)
+  })
+
+  it('can clear a stopped run and start again', async () => {
+    useAPIMock
+      .mockResolvedValueOnce({ count: 2 })
+      .mockResolvedValueOnce({
+        results: [{ slug: 'first', url: 'https://example.com/first', status: 200, ok: true, duration: 1, checkedAt: 'now' }],
         cursor: 'next-page',
         list_complete: false,
       })
-    })
-
-    await expect(linkCheck.loadLinks()).rejects.toBe(requestError)
-
-    expect(linkCheck.links.value).toEqual([
-      { slug: 'existing', url: 'https://example.com/existing' },
-    ])
-    expect(linkCheck.loadingLinks.value).toBe(false)
-  })
-
-  it('rejects an incomplete page without a cursor', async () => {
-    useAPIMock.mockImplementation((api: string) => {
-      if (api === '/api/link/count')
-        return Promise.resolve({ count: 1 })
-      return Promise.resolve({
-        links: [{ slug: 'partial', url: 'https://example.com/partial' }],
+      .mockResolvedValueOnce({
+        results: [{ slug: 'first', url: 'https://example.com/first', status: 200, ok: true, duration: 1, checkedAt: 'later' }],
+        cursor: 'next-page',
         list_complete: false,
       })
-    })
+      .mockResolvedValueOnce({
+        results: [{ slug: 'second', url: 'https://example.com/second', status: 200, ok: true, duration: 1, checkedAt: 'later' }],
+        list_complete: true,
+      })
+    const linkCheck = useLinkCheck()
+    await linkCheck.loadLinks()
+
+    const firstRun = linkCheck.startCheck({ batchSize: 1, timeout: 6 })
+    linkCheck.stopCheck()
+    await expect(firstRun).resolves.toBe('stopped')
+    linkCheck.clearResults()
+
+    expect(linkCheck.results.value).toEqual([])
+    expect(linkCheck.wasStopped.value).toBe(false)
+    await expect(linkCheck.startCheck({ batchSize: 1, timeout: 6 })).resolves.toBe('completed')
+    expect(linkCheck.results.value.map(result => result.slug)).toEqual(['first', 'second'])
+  })
+
+  it('returns empty when there are no links', async () => {
+    useAPIMock.mockResolvedValue({ count: 0 })
     const linkCheck = useLinkCheck()
 
-    await expect(linkCheck.loadLinks()).rejects.toThrow('Incomplete link list response is missing a cursor')
-
-    expect(linkCheck.links.value).toEqual([])
+    await expect(linkCheck.startCheck({ batchSize: 6, timeout: 6 })).resolves.toBe('empty')
+    expect(useAPIMock).toHaveBeenCalledOnce()
+    expect(linkCheck.hasLinks.value).toBe(false)
   })
 })
