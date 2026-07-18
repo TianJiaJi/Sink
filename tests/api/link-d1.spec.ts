@@ -1,8 +1,10 @@
 import type { Link } from '../../shared/schemas/link'
 import type { LinkMigrationRunResult, LinkMigrationStatus } from '../../shared/schemas/link-migration'
 import { env } from 'cloudflare:workers'
+import { count, eq } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { clearLinkMigrationState, deleteStoredLinks, fetch, fetchWithAuth, getD1Link, getStoredLink, postJson, putJson, setLinkStoreD1Mode } from '../utils'
+import { linkMigrationRuns, links, linkTags, linkTombstones, tags } from '../../server/database/schema'
+import { clearLinkMigrationState, db, deleteStoredLinks, fetch, fetchWithAuth, getD1Link, getStoredLink, postJson, putJson, setLinkStoreD1Mode } from '../utils'
 
 const createdSlugs = new Set<string>()
 
@@ -37,20 +39,16 @@ async function putKvLink(link: Link, options: KvLinkExpirationOptions = {}) {
 }
 
 async function insertD1Link(link: Link, effectiveExpiresAt: number | null = null) {
-  await env.DB.prepare(`
-    INSERT INTO links
-      (slug, id, url, created_at, updated_at, normalized_url, effective_expires_at, comment)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `).bind(
-    link.slug,
-    link.id,
-    link.url,
-    link.createdAt,
-    link.updatedAt,
-    link.url.split('?')[0],
+  await db.insert(links).values({
+    slug: link.slug,
+    id: link.id,
+    url: link.url,
+    createdAt: link.createdAt,
+    updatedAt: link.updatedAt,
+    normalizedUrl: link.url.split('?')[0],
     effectiveExpiresAt,
-    link.comment ?? null,
-  ).run()
+    comment: link.comment ?? null,
+  })
 }
 
 async function runMigration(force: boolean) {
@@ -160,7 +158,7 @@ describe('d1 link integration', () => {
     const expired = makeLink(undefined, { expiration: now + 3600, tags: [tag] })
     expect((await postJson('/api/link/create', active)).status).toBe(201)
     expect((await postJson('/api/link/create', expired)).status).toBe(201)
-    await env.DB.prepare('UPDATE links SET expiration = ?, effective_expires_at = ? WHERE slug = ?').bind(now - 1, now - 1, expired.slug).run()
+    await db.update(links).set({ expiration: now - 1, effectiveExpiresAt: now - 1 }).where(eq(links.slug, expired.slug))
     await env.KV.delete(`link:${expired.slug}`)
     const list = async (status?: string) => {
       const suffix = status ? `&status=${status}` : ''
@@ -259,10 +257,10 @@ describe('d1 link integration', () => {
       },
     })
 
-    const before = await env.DB.prepare('SELECT COUNT(*) AS count FROM link_migration_runs').first<{ count: number }>()
+    const [before] = await db.select({ count: count() }).from(linkMigrationRuns)
     const run = await postJson('/api/link/migration/run', {})
     expect(await run.json()).toMatchObject({ completed: true, list_complete: true })
-    const after = await env.DB.prepare('SELECT COUNT(*) AS count FROM link_migration_runs').first<{ count: number }>()
+    const [after] = await db.select({ count: count() }).from(linkMigrationRuns)
     expect(after?.count).toBe(before?.count)
   })
 
@@ -323,9 +321,9 @@ describe('d1 link integration', () => {
     const staleTag = `stale-${crypto.randomUUID().slice(0, 8)}`
     const link = makeLink(undefined, { tags: [existingTag] })
     await insertD1Link(link)
-    await env.DB.batch([
-      env.DB.prepare('INSERT INTO tags (name) VALUES (?)').bind(existingTag),
-      env.DB.prepare('INSERT INTO link_tags (link_slug, tag_name) VALUES (?, ?)').bind(link.slug, existingTag),
+    await db.batch([
+      db.insert(tags).values({ name: existingTag }),
+      db.insert(linkTags).values({ linkSlug: link.slug, tagName: existingTag }),
     ])
     await putKvLink({ ...link, tags: [staleTag] })
 
@@ -333,7 +331,7 @@ describe('d1 link integration', () => {
     expect(pages.reduce((sum, page) => sum + page.skipped, 0)).toBeGreaterThanOrEqual(1)
     const stored = await (await fetchWithAuth(`/api/link/query?slug=${link.slug}`)).json() as Link
     expect(stored.tags).toEqual([existingTag])
-    expect(await env.DB.prepare('SELECT name FROM tags WHERE name = ?').bind(staleTag).first()).toBeNull()
+    expect((await db.select({ name: tags.name }).from(tags).where(eq(tags.name, staleTag)).limit(1))[0] ?? null).toBeNull()
     const tagList = await (await fetchWithAuth('/api/link/tags')).json() as { name: string, count: number }[]
     expect(tagList.some(tag => tag.name === staleTag)).toBe(false)
   })
@@ -384,7 +382,7 @@ describe('d1 link integration', () => {
     expect(redirect.headers.get('Location')).toBe(link.url)
     expect(await getStoredLink(link.slug)).toMatchObject({ slug: link.slug })
     expect(await getD1Link(link.slug)).toBeNull()
-    expect(await env.DB.prepare('SELECT slug FROM link_tombstones WHERE slug = ?').bind(link.slug).first()).not.toBeNull()
+    expect((await db.select({ slug: linkTombstones.slug }).from(linkTombstones).where(eq(linkTombstones.slug, link.slug)).limit(1))[0] ?? null).not.toBeNull()
   })
 
   it('counts expired KV migration entries and imports expired links', async () => {
@@ -399,7 +397,7 @@ describe('d1 link integration', () => {
     const response = await postJson('/api/link/import', { version: '1.0', links: [imported] })
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({ success: 1, failed: 0 })
-    expect(await getD1Link(imported.slug)).toMatchObject({ id: imported.id, effective_expires_at: imported.expiration })
+    expect(await getD1Link(imported.slug)).toMatchObject({ id: imported.id, effectiveExpiresAt: imported.expiration })
     expect(await getStoredLink(imported.slug)).toBeNull()
   })
 
@@ -408,7 +406,7 @@ describe('d1 link integration', () => {
     const tag = `archive-${crypto.randomUUID().slice(0, 8)}`
     const link = makeLink(undefined, { expiration: now + 3600, tags: [tag] })
     expect((await postJson('/api/link/create', link)).status).toBe(201)
-    await env.DB.prepare('UPDATE links SET expiration = ?, effective_expires_at = ? WHERE slug = ?').bind(now - 60, now - 60, link.slug).run()
+    await db.update(links).set({ expiration: now - 60, effectiveExpiresAt: now - 60 }).where(eq(links.slug, link.slug))
     await env.KV.delete(`link:${link.slug}`)
     const exported = await (await fetchWithAuth('/api/link/export')).json() as { links: Link[] }
     const archived = exported.links.find(item => item.slug === link.slug)
@@ -433,7 +431,7 @@ describe('d1 link integration', () => {
 
     await runMigration(true)
 
-    expect(await getD1Link(link.slug)).toMatchObject({ effective_expires_at: nativeExpiration })
+    expect(await getD1Link(link.slug)).toMatchObject({ effectiveExpiresAt: nativeExpiration })
   })
 
   it('replaces expired rows during import without overwriting active rows', async () => {
@@ -459,14 +457,14 @@ describe('d1 link integration', () => {
     const newTag = `new-${crypto.randomUUID().slice(0, 8)}`
     const link = makeLink(undefined, { tags: [oldTag] })
     expect((await postJson('/api/link/create', link)).status).toBe(201)
-    await env.DB.prepare('INSERT INTO link_tombstones (slug, deleted_at) VALUES (?, ?)').bind(link.slug, link.createdAt).run()
+    await db.insert(linkTombstones).values({ slug: link.slug, deletedAt: link.createdAt })
 
     const response = await postJson('/api/link/import', { version: '1.0', links: [{ ...link, tags: [newTag] }] })
 
     expect(await response.json()).toMatchObject({ success: 0, skipped: 1 })
     expect((await (await fetchWithAuth(`/api/link/query?slug=${link.slug}`)).json() as Link).tags).toEqual([oldTag])
-    expect(await env.DB.prepare('SELECT slug FROM link_tombstones WHERE slug = ?').bind(link.slug).first()).not.toBeNull()
-    expect(await env.DB.prepare('SELECT name FROM tags WHERE name = ?').bind(newTag).first()).toBeNull()
+    expect((await db.select({ slug: linkTombstones.slug }).from(linkTombstones).where(eq(linkTombstones.slug, link.slug)).limit(1))[0] ?? null).not.toBeNull()
+    expect((await db.select({ name: tags.name }).from(tags).where(eq(tags.name, newTag)).limit(1))[0] ?? null).toBeNull()
   })
 
   it('uses the mixed-direction newest index', async () => {
@@ -489,7 +487,7 @@ describe('d1 link integration', () => {
     const response = await postJson('/api/link/import', { version: '1.0', links: [link] })
     expect(await response.json()).toMatchObject({ success: 1, skipped: 0 })
     expect(await getD1Link(link.slug)).toMatchObject({ slug: link.slug, url: link.url })
-    expect(await env.DB.prepare('SELECT slug FROM link_tombstones WHERE slug = ?').bind(link.slug).first()).toBeNull()
+    expect((await db.select({ slug: linkTombstones.slug }).from(linkTombstones).where(eq(linkTombstones.slug, link.slug)).limit(1))[0] ?? null).toBeNull()
   })
 
   it('removes a failed migration run without recording completion', async () => {
@@ -507,7 +505,7 @@ describe('d1 link integration', () => {
 
     expect(result.failed).toBeGreaterThanOrEqual(1)
     expect(result.cursor).toBeUndefined()
-    expect(await env.DB.prepare('SELECT id FROM link_migration_runs').first()).toBeNull()
+    expect((await db.select({ id: linkMigrationRuns.id }).from(linkMigrationRuns).limit(1))[0] ?? null).toBeNull()
 
     await env.KV.delete(invalidKey)
     const retry = await runMigration(true)
@@ -532,8 +530,8 @@ describe('d1 link integration', () => {
     const migrated = await getD1Link(migrationSlug)
     expect(migrated).toMatchObject({ slug: migrationSlug, url: 'https://example.com/force' })
     expect(migrated?.id).not.toBe('')
-    expect(migrated?.created_at).toEqual(expect.any(Number))
-    expect(migrated?.updated_at).toEqual(expect.any(Number))
+    expect(migrated?.createdAt).toEqual(expect.any(Number))
+    expect(migrated?.updatedAt).toEqual(expect.any(Number))
   })
 
   it('keeps malformed legacy KV data when compatibility parsing fails', async () => {
@@ -630,7 +628,7 @@ describe('d1 link integration', () => {
     const expired = makeLink(undefined, { comment: query, expiration: now + 3600, tags: [tag] })
     expect((await postJson('/api/link/create', active)).status).toBe(201)
     expect((await postJson('/api/link/create', expired)).status).toBe(201)
-    await env.DB.prepare('UPDATE links SET expiration = ?, effective_expires_at = ? WHERE slug = ?').bind(now - 1, now - 1, expired.slug).run()
+    await db.update(links).set({ expiration: now - 1, effectiveExpiresAt: now - 1 }).where(eq(links.slug, expired.slug))
     await env.KV.delete(`link:${expired.slug}`)
     const search = async (status?: string, requestedTag = tag.toUpperCase()) => {
       const statusQuery = status ? `&status=${status}` : ''
@@ -679,11 +677,18 @@ describe('d1 link integration', () => {
     const first = await firstResponse.json() as LinkMigrationRunResult
     expect(first.cursor).toBeDefined()
     const now = Math.floor(Date.now() / 1000)
-    await env.DB.prepare(`
-      INSERT INTO link_migration_runs
-        (id, expected_cursor, scanned, inserted, skipped, expired, force, status, created_at, updated_at)
-      VALUES (?, NULL, 0, 0, 0, 0, 0, 'completed', ?, ?)
-    `).bind(`test-concurrent-completed-${crypto.randomUUID()}`, now, now).run()
+    await db.insert(linkMigrationRuns).values({
+      id: `test-concurrent-completed-${crypto.randomUUID()}`,
+      expectedCursor: null,
+      scanned: 0,
+      inserted: 0,
+      skipped: 0,
+      expired: 0,
+      force: false,
+      status: 'completed',
+      createdAt: now,
+      updatedAt: now,
+    })
 
     expect((await postJson('/api/link/migration/run', { cursor: first.cursor, force: false })).status).toBe(400)
     expect((await postJson('/api/link/migration/run', { cursor: first.cursor, force: true })).status).toBe(200)

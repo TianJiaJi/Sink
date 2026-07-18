@@ -1,7 +1,9 @@
 import type { LinkCheckResponse } from '../../shared/types/link-check'
 import { env } from 'cloudflare:workers'
+import { eq } from 'drizzle-orm'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { deleteStoredLinks, postJson, setLinkStoreD1Mode } from '../utils'
+import { links } from '../../server/database/schema'
+import { db, deleteStoredLinks, postJson, setLinkStoreD1Mode } from '../utils'
 
 beforeEach(async () => {
   await setLinkStoreD1Mode()
@@ -63,9 +65,9 @@ describe('/api/link/check', { concurrent: false }, () => {
   it('includes expired links and checks their stored URL', async () => {
     const [link] = await createStoredLinks(1)
     const expiredAt = Math.floor(Date.now() / 1000) - 60
-    await env.DB.prepare('UPDATE links SET expiration = ?, effective_expires_at = ? WHERE slug = ?')
-      .bind(expiredAt, expiredAt, link.slug)
-      .run()
+    await db.update(links)
+      .set({ expiration: expiredAt, effectiveExpiresAt: expiredAt })
+      .where(eq(links.slug, link.slug))
     await env.KV.delete(`link:${link.slug}`)
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Blocked test outbound request'))
 

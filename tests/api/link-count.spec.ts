@@ -1,7 +1,9 @@
 import type { Link } from '../../shared/schemas/link'
 import { env } from 'cloudflare:workers'
+import { eq } from 'drizzle-orm'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { deleteStoredLinks, fetchWithAuth, postJson, setLinkStoreD1Mode } from '../utils'
+import { links } from '../../server/database/schema'
+import { db, deleteStoredLinks, fetchWithAuth, postJson, setLinkStoreD1Mode } from '../utils'
 
 interface CountFixture {
   needle: string
@@ -60,9 +62,9 @@ describe('/api/link/count', { concurrent: false }, () => {
       expect((await postJson('/api/link/create', link)).status).toBe(201)
 
     const expiredAt = Math.floor(Date.now() / 1000) - 1
-    await env.DB.prepare('UPDATE links SET expiration = ?, effective_expires_at = ? WHERE slug = ?')
-      .bind(expiredAt, expiredAt, expiredTagged.slug)
-      .run()
+    await db.update(links)
+      .set({ expiration: expiredAt, effectiveExpiresAt: expiredAt })
+      .where(eq(links.slug, expiredTagged.slug))
     await env.KV.delete(`link:${expiredTagged.slug}`)
   })
 

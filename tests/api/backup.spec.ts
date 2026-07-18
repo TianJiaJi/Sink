@@ -1,9 +1,11 @@
 import type { BackupData } from '../../server/utils/backup'
 import type { Link } from '../../shared/schemas/link'
 import { env, exports } from 'cloudflare:workers'
+import { eq } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
+import { links, linkTags, tags } from '../../server/database/schema'
 import { createBackupJsonStream, uploadBackupParts } from '../../server/utils/backup-json-stream'
-import { clearLinkMigrationState, deleteStoredLinks, postJson, setLinkStoreD1Mode } from '../utils'
+import { clearLinkMigrationState, db, deleteStoredLinks, postJson, setLinkStoreD1Mode } from '../utils'
 
 function getManualBackupDate(key: string) {
   const match = key.match(/^backups\/manual-links-(.+)\.json$/)
@@ -66,22 +68,23 @@ describe('/api/backup', { concurrent: false }, () => {
 
     try {
       await setLinkStoreD1Mode()
-      await env.DB.batch([
-        env.DB.prepare(`
-          INSERT INTO links (slug, id, url, created_at, updated_at, normalized_url, effective_expires_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).bind(slugs.active, crypto.randomUUID(), 'https://example.com/active', now, now, 'https://example.com/active', null),
-        env.DB.prepare(`
-          INSERT INTO links (slug, id, url, created_at, updated_at, normalized_url, effective_expires_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `).bind(slugs.expired, crypto.randomUUID(), 'https://example.com/expired', now, now, 'https://example.com/expired', now - 60),
-        env.DB.prepare('INSERT INTO tags (name) VALUES (?)').bind(tag),
-        env.DB.prepare('INSERT INTO link_tags (link_slug, tag_name) VALUES (?, ?)').bind(slugs.active, tag),
+      await db.batch([
+        db.insert(links).values({ slug: slugs.active, id: crypto.randomUUID(), url: 'https://example.com/active', createdAt: now, updatedAt: now, normalizedUrl: 'https://example.com/active', effectiveExpiresAt: null }),
+        db.insert(links).values({ slug: slugs.expired, id: crypto.randomUUID(), url: 'https://example.com/expired', createdAt: now, updatedAt: now, normalizedUrl: 'https://example.com/expired', effectiveExpiresAt: now - 60 }),
+        db.insert(tags).values({ name: tag }),
+        db.insert(linkTags).values({ linkSlug: slugs.active, tagName: tag }),
       ])
-      await env.DB.batch(pageSlugs.map(slug => env.DB.prepare(`
-        INSERT INTO links (slug, id, url, created_at, updated_at, normalized_url, effective_expires_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).bind(slug, crypto.randomUUID(), `https://example.com/${slug}`, now, now, `https://example.com/${slug}`, null)))
+      for (let offset = 0; offset < pageSlugs.length; offset += 10) {
+        await db.insert(links).values(pageSlugs.slice(offset, offset + 10).map(slug => ({
+          slug,
+          id: crypto.randomUUID(),
+          url: `https://example.com/${slug}`,
+          createdAt: now,
+          updatedAt: now,
+          normalizedUrl: `https://example.com/${slug}`,
+          effectiveExpiresAt: null,
+        })))
+      }
       const legacyLink = (slug: string, url: string, tags: string[] = []): Link => ({
         id: crypto.randomUUID().slice(0, 10),
         slug,
@@ -124,7 +127,7 @@ describe('/api/backup', { concurrent: false }, () => {
       if (backupKey)
         await env.R2.delete(backupKey)
       await deleteStoredLinks([...Object.values(slugs), ...pageSlugs])
-      await env.DB.prepare('DELETE FROM tags WHERE name = ?').bind(tag).run()
+      await db.delete(tags).where(eq(tags.name, tag))
       await clearLinkMigrationState()
     }
   })

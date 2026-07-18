@@ -72,6 +72,15 @@ function statusCondition(status: LinkStatus, now = Math.floor(Date.now() / 1000)
   return undefined
 }
 
+function exactTagCondition(db: ReturnType<typeof getDatabase>, tag: string | undefined) {
+  return tag
+    ? exists(db.select({ linkSlug: linkTags.linkSlug }).from(linkTags).where(and(
+        eq(linkTags.linkSlug, links.slug),
+        eq(linkTags.tagName, tag),
+      )))
+    : undefined
+}
+
 function rowToLink(row: LinkRow): Link {
   const link: Link = {
     id: row.id,
@@ -317,6 +326,7 @@ function decodeCursor(cursor: string | undefined, sort: LinkSortBy, tag: string 
 }
 
 export async function d1ListLinks(event: H3Event, options: ListLinksOptions): Promise<ListLinksResult> {
+  const db = getDatabase(event)
   const sort = options.sort ?? 'newest'
   const status = options.status ?? 'active'
   const cursor = decodeCursor(options.cursor, sort, options.tag, status)
@@ -340,10 +350,8 @@ export async function d1ListLinks(event: H3Event, options: ListLinksOptions): Pr
     order = [asc(links.createdAt), asc(links.slug)]
   }
 
-  const tagCondition = options.tag
-    ? sql`exists (select 1 from ${linkTags} where ${linkTags.linkSlug} = ${links.slug} and ${linkTags.tagName} = ${options.tag})`
-    : undefined
-  const rows = await getDatabase(event).select().from(links).where(and(statusCondition(status), tagCondition, cursorCondition)).orderBy(...order).limit(options.limit + 1)
+  const tagCondition = exactTagCondition(db, options.tag)
+  const rows = await db.select().from(links).where(and(statusCondition(status), tagCondition, cursorCondition)).orderBy(...order).limit(options.limit + 1)
   const hasMore = rows.length > options.limit
   const page = hasMore ? rows.slice(0, options.limit) : rows
   const last = page.at(-1)
@@ -384,11 +392,11 @@ export async function* d1IterateAllLinks(env: Cloudflare.Env): AsyncIterable<Lin
   } while (lastSlug)
 }
 
-function linkFilterCondition(options: LinkFilterOptions) {
+function linkFilterCondition(db: ReturnType<typeof getDatabase>, options: LinkFilterOptions) {
   const status = options.status ?? 'active'
   const conditions = [statusCondition(status)]
   if (options.tag)
-    conditions.push(sql`exists (select 1 from ${linkTags} where ${linkTags.linkSlug} = ${links.slug} and ${linkTags.tagName} = ${options.tag})`)
+    conditions.push(exactTagCondition(db, options.tag))
   if (options.url)
     conditions.push(eq(links.normalizedUrl, withoutQuery(options.url)))
   if (options.q) {
@@ -405,16 +413,18 @@ function linkFilterCondition(options: LinkFilterOptions) {
 }
 
 export async function d1SearchLinks(event: H3Event, options: SearchLinksOptions): Promise<LinkSearchItem[]> {
-  let query = getDatabase(event).select({ slug: links.slug, url: links.normalizedUrl, comment: links.comment }).from(links).where(linkFilterCondition(options)).orderBy(asc(links.slug)).$dynamic()
+  const db = getDatabase(event)
+  let query = db.select({ slug: links.slug, url: links.normalizedUrl, comment: links.comment }).from(links).where(linkFilterCondition(db, options)).orderBy(asc(links.slug)).$dynamic()
   if (options.limit)
     query = query.limit(options.limit)
   const rows = await query
   const result = rows.map(row => ({ slug: row.slug, url: row.url, tags: [] as string[], ...(row.comment === null ? {} : { comment: row.comment }) }))
-  return await addTagsToLinksFromDatabase(getDatabase(event), result, result.map(link => link.slug))
+  return await addTagsToLinksFromDatabase(db, result, result.map(link => link.slug))
 }
 
 export async function d1CountLinks(event: H3Event, options: LinkFilterOptions): Promise<number> {
-  const [result] = await getDatabase(event).select({ count: count() }).from(links).where(linkFilterCondition(options))
+  const db = getDatabase(event)
+  const [result] = await db.select({ count: count() }).from(links).where(linkFilterCondition(db, options))
   return result?.count ?? 0
 }
 
