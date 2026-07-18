@@ -62,11 +62,13 @@
 - **📦 Import/Export:** Transfer links via JSON and export access analytics via CSV.
 - **🌍 Multi-language:** Full i18n support for dashboard and redirect pages.
 
-::: tip Who is Sink for?
-Sink focuses on **individuals and small teams** who want a simple, self-hosted shortener on Cloudflare.
+> [!TIP]
+> **Who is Sink for?**
+> 
+> Sink focuses on **individuals and small teams** who want a simple, self-hosted shortener on Cloudflare.
+> 
+> For professional / business needs (managed service, multi-user, SLA, and more), use **[S.EE](https://sink.cool/see)**.
 
-For professional / business needs (managed service, multi-user, SLA, and more), use **[S.EE](https://sink.cool/see)**.
-:::
 
 ## 🪧 Demo
 
