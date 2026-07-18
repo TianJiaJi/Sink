@@ -15,6 +15,8 @@ colors:
   muted-foreground: "oklch(0.552 0.016 285.938)"
   accent: "oklch(0.967 0.001 286.375)"
   accent-foreground: "oklch(0.21 0.006 285.885)"
+  success: "oklch(0.55 0.16 145)"
+  success-foreground: "oklch(0.985 0 0)"
   destructive: "oklch(0.577 0.245 27.325)"
   border: "oklch(0.92 0.004 286.32)"
   input: "oklch(0.92 0.004 286.32)"
@@ -48,6 +50,8 @@ colors:
   dark-muted-foreground: "oklch(0.705 0.015 286.067)"
   dark-accent: "oklch(0.274 0.006 286.033)"
   dark-accent-foreground: "oklch(0.985 0 0)"
+  dark-success: "oklch(0.72 0.17 145)"
+  dark-success-foreground: "oklch(0.18 0.04 145)"
   dark-destructive: "oklch(0.704 0.191 22.216)"
   dark-border: "oklch(1 0 0 / 10%)"
   dark-input: "oklch(1 0 0 / 15%)"
@@ -97,7 +101,7 @@ This file is a derived summary for design-aware agents. If it conflicts with `ap
 
 ## Colors
 
-The unprefixed tokens reproduce the semantic roles in `:root`; `dark-*` tokens flatten the corresponding `.dark` values. Always use roles as intended and keep each background paired with its foreground. The green `chart-1` through `chart-5` sequence is for charts only. Use `ring` for focus emphasis and `destructive` for destructive or invalid states, including their dark-mode counterparts.
+The unprefixed tokens reproduce the semantic roles in `:root`; `dark-*` tokens flatten the corresponding `.dark` values. Always use roles as intended and keep each background paired with its foreground. The green `chart-1` through `chart-5` sequence is for charts only. Use `success` for positive status and completion indicators, `ring` for focus emphasis, and `destructive` for destructive or invalid states, including their dark-mode counterparts.
 
 ## Typography
 
@@ -124,7 +128,7 @@ Generous component radii coexist with compact density; a larger radius does not 
 - Cards pair card background and foreground colors, use a subtle ring, and provide default and small density variants. Use small density for repeated dashboard collections and default density for standalone sections, forms, and empty states.
 - Standard dialogs use popover colors, an overlay, open/closed motion, and a subtle ring. The scrollable dialog variant instead uses the background role, a border, and a local shadow; other floating content follows its own implementation.
 - Tabs provide default filled and line variants with active, hover, focus, disabled, horizontal, and vertical states. When a horizontal list does not fit, scrolling belongs to an outer wrapper, focus-ring clearance is preserved, and the active trigger remains visible.
-- The sidebar uses its dedicated background, foreground, accent, border, and ring roles across responsive, collapsible, floating, and inset variants. Use the default shape for primary navigation and reserve a stronger pill treatment for the active item. Secondary utilities are compact icon-only controls and rely on native collapsed behavior. Sidebar primary roles are defined but are not currently consumed by these components.
+- The sidebar uses its dedicated background, foreground, accent, border, and ring roles across responsive, collapsible, floating, and inset variants. Primary navigation uses the default shape while idle and a stronger pill treatment for both hover and active states. Secondary utilities are compact icon-only controls and rely on native collapsed behavior. Sidebar primary roles are defined but are not currently consumed by these components.
 
 Components expose stable `data-slot` attributes for composition and styling. Reuse the existing UI components and their variants; do not hand-edit generated components under `app/components/ui/**`.
 

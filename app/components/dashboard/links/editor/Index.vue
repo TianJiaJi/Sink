@@ -157,8 +157,8 @@ function handleCloseAutoFocus(event: Event) {
         type="button"
         variant="secondary"
         class="
-          flex-1
-          sm:flex-none
+          w-full
+          sm:w-auto
         "
         :disabled="isSubmitting"
         @click="handleClose"
@@ -171,8 +171,8 @@ function handleCloseAutoFocus(event: Event) {
         :disabled="isSubmitting || (isEdit && !isDirty)"
         :aria-busy="isSubmitting"
         class="
-          flex-1
-          sm:flex-none
+          w-full
+          sm:w-auto
         "
       >
         <Loader2 v-if="isSubmitting" class="motion-safe:animate-spin" aria-hidden="true" />

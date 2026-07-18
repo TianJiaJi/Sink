@@ -19,6 +19,8 @@
     "no_data": "Nessun Dato",
     "none": "(Nessuno)",
     "filter_placeholder": "Filtra link...",
+    "selected_count": "{count} selezionati",
+    "clear_selection": "Cancella",
     "realtime": {
       "stats_error": "Impossibile caricare le statistiche in tempo reale.",
       "events_error": "Impossibile caricare gli eventi in tempo reale.",

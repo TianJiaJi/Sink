@@ -86,8 +86,9 @@ watch([
         />
       </CardHeader>
       <CardContent class="px-0 pb-4">
-        <div v-if="loading && !hasData" class="text-sm text-muted-foreground" role="status">
-          {{ $t('dashboard.loading') }}
+        <div v-if="loading && !hasData" role="status" aria-busy="true">
+          <Skeleton class="h-8 w-20" aria-hidden="true" />
+          <span class="sr-only">{{ $t('dashboard.loading') }}</span>
         </div>
         <div
           v-else-if="error" class="

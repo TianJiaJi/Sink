@@ -1,7 +1,7 @@
 import type { LinkUpdateType } from '@/types'
 import type { DashboardLink, DashboardLinkSearchItem } from '@/types/dashboard-links'
 import { parseURL, stringifyParsedURL } from 'ufo'
-import { readonly, ref, shallowRef } from 'vue'
+import { computed, readonly, ref, shallowRef } from 'vue'
 import { defineStore } from '#imports'
 import { useAPI } from '@/utils/api'
 
@@ -9,15 +9,17 @@ export const useDashboardLinksSearchStore = defineStore('dashboard-links-search'
   const linksStore = useDashboardLinksStore()
   const links = ref<DashboardLinkSearchItem[]>([])
   const query = shallowRef('')
-  const loading = shallowRef(false)
+  const requestStatus = shallowRef<'idle' | 'loading' | 'success' | 'error'>('idle')
   const error = shallowRef<string | null>(null)
   let searchGeneration = 0
+
+  const loading = computed(() => requestStatus.value === 'loading')
 
   function invalidateSearch(searchQuery = '') {
     searchGeneration++
     query.value = searchQuery.trim()
     links.value = []
-    loading.value = false
+    requestStatus.value = 'idle'
     error.value = null
   }
 
@@ -40,15 +42,14 @@ export const useDashboardLinksSearchStore = defineStore('dashboard-links-search'
 
   async function searchLinks(searchQuery: string): Promise<DashboardLinkSearchItem[]> {
     const normalizedQuery = searchQuery.trim()
-    const generation = ++searchGeneration
-    query.value = normalizedQuery
-
     if (!normalizedQuery) {
       invalidateSearch()
       return []
     }
 
-    loading.value = true
+    const generation = ++searchGeneration
+    query.value = normalizedQuery
+    requestStatus.value = 'loading'
     error.value = null
     try {
       const data = await useAPI<DashboardLinkSearchItem[]>('/api/link/search', {
@@ -56,11 +57,13 @@ export const useDashboardLinksSearchStore = defineStore('dashboard-links-search'
           q: normalizedQuery,
           limit: 20,
           status: linksStore.status,
-          tag: linksStore.tag,
+          ...(linksStore.tag ? { tag: linksStore.tag } : {}),
         },
       })
-      if (generation === searchGeneration)
+      if (generation === searchGeneration) {
         links.value = data
+        requestStatus.value = 'success'
+      }
       return data
     }
     catch (cause) {
@@ -68,12 +71,9 @@ export const useDashboardLinksSearchStore = defineStore('dashboard-links-search'
         console.error(cause)
         links.value = []
         error.value = cause instanceof Error ? cause.message : String(cause)
+        requestStatus.value = 'error'
       }
       return []
-    }
-    finally {
-      if (generation === searchGeneration)
-        loading.value = false
     }
   }
 
@@ -127,6 +127,7 @@ export const useDashboardLinksSearchStore = defineStore('dashboard-links-search'
     links,
     query,
     loading,
+    requestStatus: readonly(requestStatus),
     error: readonly(error),
     invalidateSearch,
     searchLinks,

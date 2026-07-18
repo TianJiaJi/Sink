@@ -47,7 +47,11 @@ export async function backupLinksToR2(env: Cloudflare.Env, isManual: boolean = f
   const filename = `backups/${prefix}${timestamp}.json`
 
   const stream = createBackupJsonStream(iterateAllAuthoritativeLinks(env), backupMetadata)
-  await env.R2.put(filename, stream, {
+  // Node dev lacks FixedLengthStream, so buffer there to give R2 a known-length body.
+  const body = typeof FixedLengthStream === 'function'
+    ? stream
+    : await new Response(stream).arrayBuffer()
+  await env.R2.put(filename, body, {
     httpMetadata: {
       contentType: 'application/json',
     },

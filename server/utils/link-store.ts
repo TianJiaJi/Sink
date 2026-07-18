@@ -1,9 +1,10 @@
 import type { H3Event } from 'h3'
 import type { Link } from '#shared/schemas/link'
 import type { LinkSearchItem } from '#shared/types/link'
-import type { ExpectedLinkVersion, ListLinksOptions, ListLinksResult, SearchLinksOptions } from '../services/link-store/d1'
+import type { ExpectedLinkVersion, LinkFilterOptions, ListLinksOptions, ListLinksResult, SearchLinksOptions } from '../services/link-store/d1'
 import { getRequestHost, getRequestProtocol } from 'h3'
 import {
+  d1CountLinks,
   d1CreateLink,
   d1DeleteLink,
   d1GetActiveLink,
@@ -107,6 +108,10 @@ export function iterateAllAuthoritativeLinks(env: Cloudflare.Env): AsyncIterable
 
 export async function searchLinks(event: H3Event, options: SearchLinksOptions): Promise<LinkSearchItem[]> {
   return await d1SearchLinks(event, options)
+}
+
+export async function countLinks(event: H3Event, options: LinkFilterOptions): Promise<number> {
+  return await d1CountLinks(event, options)
 }
 
 export async function listTags(event: H3Event): Promise<{ name: string, count: number }[]> {

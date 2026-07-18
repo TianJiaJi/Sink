@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { DashboardLinkSearchItem } from '@/types/dashboard-links'
-import { createReusableTemplate, useDebounceFn, useMagicKeys, useMediaQuery } from '@vueuse/core'
+import { Link as LinkIcon, LoaderCircle, SearchIcon } from '@lucide/vue'
+import { createReusableTemplate, useDebounceFn, useMagicKeys, useMediaQuery, useWindowSize } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
+import { ListboxFilter } from 'reka-ui'
 
 defineOptions({
   inheritAttrs: false,
@@ -10,17 +12,28 @@ const [TriggerTemplate, TriggerComponent] = createReusableTemplate()
 const [SearchTemplate, SearchComponent] = createReusableTemplate()
 
 const isDesktop = useMediaQuery('(min-width: 640px)')
+const { height: visualViewportHeight } = useWindowSize({ type: 'visual' })
 
 const router = useRouter()
 const linksStore = useDashboardLinksStore()
 const linksSearchStore = useDashboardLinksSearchStore()
-const { error, links, loading } = storeToRefs(linksSearchStore)
+const { error, links, requestStatus } = storeToRefs(linksSearchStore)
 
-const isOpen = ref(false)
-const searchTerm = ref('')
+const isOpen = shallowRef(false)
+const searchTerm = shallowRef('')
+const hasSearchActivity = computed(() =>
+  searchTerm.value.trim().length > 0 || requestStatus.value !== 'idle',
+)
+const drawerStyle = computed(() => {
+  const viewportHeight = visualViewportHeight.value
+  if (!hasSearchActivity.value || !Number.isFinite(viewportHeight) || viewportHeight <= 0)
+    return
+
+  return { height: `${Math.min(640, viewportHeight * 0.8)}px` }
+})
 
 const search = useDebounceFn((query: string) => {
-  if (searchTerm.value.trim() === query.trim())
+  if (isOpen.value && searchTerm.value.trim() === query.trim())
     void linksSearchStore.searchLinks(query)
 }, 300)
 
@@ -46,6 +59,11 @@ watch([Meta_K, Ctrl_K], (v) => {
     isOpen.value = true
 })
 
+watch(isOpen, () => {
+  searchTerm.value = ''
+  linksSearchStore.invalidateSearch()
+})
+
 function selectLink(link: DashboardLinkSearchItem | undefined) {
   if (!link)
     return
@@ -66,7 +84,7 @@ function hiddenTagCount(link: DashboardLinkSearchItem) {
 
 watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => {
   linksSearchStore.invalidateSearch(query)
-  if (!query.trim())
+  if (!isOpen.value || !query.trim())
     return
 
   void search(query)
@@ -81,26 +99,27 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
       variant="outline"
       size="sm"
       class="
-        relative min-w-0 flex-1 justify-start text-muted-foreground
-        sm:w-32 sm:flex-none sm:pr-10
+        min-w-0 flex-1 justify-start text-muted-foreground
+        sm:w-32 sm:flex-none
         md:w-48
       "
     >
+      <SearchIcon class="size-4 shrink-0" aria-hidden="true" />
       <span
         class="
-          hidden
+          hidden min-w-0 flex-1 truncate text-left
           md:inline-flex
         "
       >{{ $t('links.search_placeholder') }}</span>
       <span
         class="
-          inline-flex
+          inline-flex min-w-0 flex-1 truncate text-left
           md:hidden
         "
       >{{ $t('common.search') }}</span>
       <Kbd
         class="
-          absolute top-1/2 right-[0.3rem] hidden -translate-y-1/2
+          ml-auto hidden
           sm:flex
         "
       >
@@ -109,28 +128,66 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
     </Button>
   </TriggerTemplate>
   <SearchTemplate>
-    <Command :should-filter="false" class="h-auto flex-1">
-      <CommandInput v-model="searchTerm" :placeholder="$t('links.search_placeholder')" autocomplete="off" />
+    <Command
+      class="
+        h-full min-h-0 flex-1
+        sm:h-auto
+      "
+    >
+      <div data-slot="command-input-wrapper" class="shrink-0 p-1">
+        <InputGroup>
+          <ListboxFilter
+            v-model="searchTerm"
+            data-slot="command-input"
+            :auto-focus="isDesktop"
+            :aria-label="$t('links.search_placeholder')"
+            :placeholder="$t('links.search_placeholder')"
+            autocomplete="off"
+            class="
+              w-full text-sm outline-hidden
+              disabled:cursor-not-allowed disabled:opacity-50
+            "
+          />
+          <InputGroupAddon>
+            <SearchIcon class="size-4 shrink-0 opacity-50" aria-hidden="true" />
+          </InputGroupAddon>
+        </InputGroup>
+      </div>
       <CommandList
+        v-if="requestStatus !== 'idle'"
         class="
-          max-h-none
-          sm:max-h-[300px]
+          max-h-none min-h-0 flex-1
+          sm:max-h-[300px] sm:flex-none
+          *:[[role=presentation]]:h-full *:[[role=presentation]]:min-h-0
         "
       >
         <div
-          v-if="loading"
+          v-if="requestStatus === 'loading'"
           role="status"
           aria-live="polite"
           class="
-            flex items-center justify-center p-6 text-sm text-muted-foreground
+            flex min-h-full items-center justify-center gap-2 p-6 text-center
+            text-sm text-muted-foreground
+            sm:min-h-32
           "
         >
-          {{ $t('links.search_loading') }}
+          <LoaderCircle
+            class="
+              size-4 shrink-0
+              motion-safe:animate-spin
+            "
+            aria-hidden="true"
+          />
+          <span>{{ $t('links.search_loading') }}</span>
         </div>
         <div
-          v-else-if="error"
+          v-else-if="requestStatus === 'error'"
           role="alert"
-          class="p-6 text-center text-sm text-destructive"
+          class="
+            flex min-h-full flex-col items-center justify-center p-6 text-center
+            text-sm text-destructive
+            sm:min-h-32
+          "
         >
           <p class="font-medium">
             {{ $t('links.search_failed') }}
@@ -139,25 +196,43 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
             {{ error }}
           </p>
         </div>
-        <CommandEmpty v-else>
+        <div
+          v-else-if="requestStatus === 'success' && links.length === 0"
+          role="status"
+          class="
+            flex min-h-full items-center justify-center p-6 text-center text-sm
+            text-muted-foreground
+            sm:min-h-32
+          "
+        >
           {{ $t('links.no_results') }}
-        </CommandEmpty>
-        <CommandGroup v-if="!loading && links.length" :heading="$t('links.group_title')">
+        </div>
+        <CommandGroup
+          v-else-if="requestStatus === 'success' && links.length"
+          :heading="$t('links.group_title')"
+        >
           <CommandItem
             v-for="link in links" :key="link.slug"
             :value="link" @select="selectLink(link)"
           >
-            <div class="w-full min-w-0 space-y-1">
-              <div class="flex min-w-0 items-center gap-1">
-                <div class="text-sm font-medium">
+            <LinkIcon
+              class="mt-0.5 size-4 shrink-0 self-start text-muted-foreground"
+              aria-hidden="true"
+            />
+            <div class="min-w-0 flex-1 space-y-1 text-left">
+              <div class="flex min-w-0 items-baseline gap-2">
+                <div class="min-w-0 flex-1 truncate text-sm font-medium">
                   {{ link.slug }}
                 </div>
-                <div class="flex-1 truncate text-xs text-muted-foreground">
-                  ({{ link.url }})
+                <div
+                  v-if="link.comment"
+                  class="max-w-32 shrink truncate text-xs text-muted-foreground"
+                >
+                  {{ link.comment }}
                 </div>
-                <Badge v-if="link.comment" variant="secondary">
-                  <span class="max-w-24 truncate">{{ link.comment }}</span>
-                </Badge>
+              </div>
+              <div class="truncate text-xs text-muted-foreground">
+                {{ link.url }}
               </div>
               <div v-if="link.tags?.length" class="flex min-w-0 flex-wrap gap-1">
                 <Badge
@@ -177,6 +252,15 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
                 </Badge>
               </div>
             </div>
+            <CommandShortcut
+              class="
+                hidden
+                sm:block
+              "
+              aria-hidden="true"
+            >
+              ↵
+            </CommandShortcut>
           </CommandItem>
         </CommandGroup>
       </CommandList>
@@ -186,7 +270,7 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
     <DialogTrigger as-child>
       <TriggerComponent />
     </DialogTrigger>
-    <DialogContent class="gap-0 overflow-hidden p-0" :show-close-button="false">
+    <DialogContent class="overflow-hidden p-0" :show-close-button="false">
       <DialogHeader class="sr-only">
         <DialogTitle>{{ $t('links.search_placeholder') }}</DialogTitle>
       </DialogHeader>
@@ -197,7 +281,13 @@ watch([searchTerm, () => linksStore.status, () => linksStore.tag], ([query]) => 
     <DrawerTrigger as-child>
       <TriggerComponent />
     </DrawerTrigger>
-    <DrawerContent class="h-[500px] gap-0">
+    <DrawerContent
+      class="
+        h-auto max-h-dvh min-h-32 overscroll-contain
+        pb-[calc(1rem+env(safe-area-inset-bottom))]
+      "
+      :style="drawerStyle"
+    >
       <DrawerHeader class="sr-only">
         <DrawerTitle>{{ $t('links.search_placeholder') }}</DrawerTitle>
       </DrawerHeader>

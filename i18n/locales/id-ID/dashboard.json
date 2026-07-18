@@ -19,6 +19,8 @@
     "no_data": "Tidak ada data",
     "none": "(Tidak ada)",
     "filter_placeholder": "Filter tautan...",
+    "selected_count": "{count} dipilih",
+    "clear_selection": "Hapus",
     "realtime": {
       "stats_error": "Statistik waktu nyata gagal dimuat.",
       "events_error": "Peristiwa waktu nyata gagal dimuat.",

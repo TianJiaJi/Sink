@@ -182,12 +182,29 @@ watch([effectiveTimeRange, effectiveFilters, retryKey], async (_values, _oldValu
     <div
       v-if="loading && !hasLoaded"
       role="status"
-      class="
-        flex aspect-4/1 items-center justify-center text-sm
-        text-muted-foreground
-      "
+      aria-busy="true"
+      class="aspect-4/1 w-full overflow-x-auto rounded-sm"
     >
-      {{ $t('dashboard.loading') }}
+      <span class="sr-only">{{ $t('dashboard.loading') }}</span>
+      <div aria-hidden="true" class="flex h-full min-w-[600px] flex-col">
+        <div class="mb-2 ml-12 grid flex-none grid-cols-12 gap-2">
+          <Skeleton
+            v-for="hour in 12"
+            :key="hour"
+            class="h-1.5 w-full rounded-sm"
+          />
+        </div>
+        <div class="flex flex-1 flex-col gap-3">
+          <div
+            v-for="weekday in weekdayIndices"
+            :key="weekday"
+            class="flex flex-1 items-center gap-3"
+          >
+            <Skeleton class="h-2 w-9 shrink-0 rounded-sm" />
+            <Skeleton class="h-full flex-1 rounded-sm" />
+          </div>
+        </div>
+      </div>
     </div>
     <div
       v-else-if="error"

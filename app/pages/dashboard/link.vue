@@ -135,18 +135,8 @@ linksStore.onLinkUpdate(({ link: updatedLink, type }) => {
       role="status"
       aria-live="polite"
     >
-      <Card>
-        <CardContent class="space-y-4">
-          <div class="flex items-center gap-3">
-            <Skeleton class="size-10 rounded-full" />
-            <div class="flex-1 space-y-2">
-              <Skeleton class="h-4 w-1/3" />
-              <Skeleton class="h-3 w-2/3" />
-            </div>
-          </div>
-          <Skeleton class="h-20 w-full" />
-        </CardContent>
-      </Card>
+      <DashboardLinksLinkSkeleton />
+      <DashboardAnalysisSkeleton />
       <span class="sr-only">{{ $t('dashboard.loading') }}</span>
     </section>
     <Alert v-else-if="loadError" variant="destructive" class="mx-auto max-w-xl">

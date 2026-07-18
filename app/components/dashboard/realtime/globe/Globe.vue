@@ -15,6 +15,7 @@ const reducedMotion = computed(() => preferredMotion.value === 'reduce')
 const isPaused = inject(REALTIME_PAUSED_KEY, shallowRef(false))
 const instructionsId = useId()
 const isLoading = shallowRef(true)
+const hasLoaded = shallowRef(false)
 const hasError = shallowRef(false)
 const isUnsupported = shallowRef(false)
 const isContextLost = shallowRef(false)
@@ -135,6 +136,7 @@ async function initialize() {
     trafficEventBus.on(trafficEvent.handleTrafficEvent)
     trafficListening = true
     trafficEventBus.setReady(true)
+    hasLoaded.value = true
   }
   catch (error) {
     if (!disposed && !controller.signal.aborted) {
@@ -223,6 +225,7 @@ onBeforeUnmount(() => {
   <div
     ref="containerRef"
     class="relative size-full"
+    :aria-busy="isLoading"
   >
     <p :id="instructionsId" class="sr-only">
       {{ t('dashboard.realtime.globe_instructions') }}
@@ -280,13 +283,27 @@ onBeforeUnmount(() => {
     </div>
     <div
       v-if="isLoading"
-      class="
-        absolute inset-0 flex items-center justify-center text-sm
-        text-muted-foreground
-      "
+      class="absolute inset-0 flex items-center justify-center"
       role="status"
+      aria-busy="true"
     >
-      {{ t('dashboard.loading') }}
+      <div
+        v-if="!hasLoaded"
+        aria-hidden="true"
+        class="relative aspect-square max-h-3/4 w-2/3 max-w-md"
+      >
+        <Skeleton class="size-full rounded-full" />
+        <div
+          class="absolute inset-[18%] rounded-full border border-background/50"
+        />
+        <div
+          class="absolute inset-y-[12%] left-1/2 border-l border-background/50"
+        />
+        <div
+          class="absolute inset-x-[12%] top-1/2 border-t border-background/50"
+        />
+      </div>
+      <span class="sr-only">{{ t('dashboard.loading') }}</span>
     </div>
     <div
       v-else-if="hasError"

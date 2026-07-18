@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MetricItem } from '@/types'
+import { LoaderCircle } from '@lucide/vue'
 
 const props = defineProps<{
   type: string
@@ -88,22 +89,25 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
     </template>
     <template v-else-if="loading && !hasLoaded">
       <div class="flex h-12 items-center justify-between px-4">
-        <Skeleton
-          class="h-4 w-32 rounded-full"
-        />
-        <Skeleton
-          class="h-4 w-20 rounded-full"
-        />
+        <Skeleton class="h-4 w-32 rounded-full" />
+        <Skeleton class="h-4 w-20 rounded-full" />
       </div>
-      <div
-        v-for="i in 5"
-        :key="i"
-        class="p-4"
-      >
-        <Skeleton
-          class="h-4 w-full rounded-full"
-        />
-      </div>
+      <CardContent class="h-[342px] overflow-hidden p-0">
+        <div
+          v-for="index in 7"
+          :key="index"
+          class="space-y-2 border-b px-4 py-2"
+        >
+          <div class="flex items-center justify-between gap-3">
+            <Skeleton class="h-4 w-2/5" />
+            <Skeleton class="h-4 w-20 shrink-0" />
+          </div>
+          <Skeleton class="h-2 w-full rounded-full" />
+        </div>
+      </CardContent>
+      <CardFooter class="py-2">
+        <Skeleton class="h-9 w-full rounded-md" />
+      </CardFooter>
     </template>
     <template v-else-if="metrics.length">
       <CardContent class="p-0">
@@ -128,7 +132,14 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
       "
       role="status"
     >
-      {{ $t('dashboard.loading') }}
+      <LoaderCircle
+        class="
+          size-5
+          motion-safe:animate-spin
+        "
+        aria-hidden="true"
+      />
+      <span class="sr-only">{{ $t('dashboard.loading') }}</span>
     </CardContent>
     <CardContent
       v-else

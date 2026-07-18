@@ -176,13 +176,32 @@ type Data = ViewDataPoint
     "
   >
     <div
-      v-if="loading && !hasLoaded" class="
-        flex aspect-4/1 items-center justify-center text-sm
-        text-muted-foreground
-      "
+      v-if="loading && !hasLoaded"
+      class="relative aspect-4/1 w-full"
       role="status"
+      aria-busy="true"
     >
-      {{ $t('dashboard.loading') }}
+      <span class="sr-only">{{ $t('dashboard.loading') }}</span>
+      <div aria-hidden="true" class="absolute inset-0">
+        <div
+          class="
+            absolute inset-y-2 right-2 left-6 overflow-hidden border-b border-l
+            border-border
+          "
+        >
+          <div class="absolute top-1/3 w-full border-t border-border/60" />
+          <div class="absolute top-2/3 w-full border-t border-border/60" />
+          <Skeleton
+            class="
+              absolute inset-x-2 bottom-1 h-3/4 rounded-sm opacity-70
+              [clip-path:polygon(0_82%,18%_62%,36%_72%,54%_24%,72%_48%,88%_10%,100%_34%,100%_100%,0_100%)]
+            "
+          />
+        </div>
+        <div class="absolute right-2 bottom-0 left-6 flex justify-between">
+          <Skeleton v-for="index in 4" :key="index" class="h-1.5 w-8 rounded-sm" />
+        </div>
+      </div>
     </div>
     <div
       v-else-if="error" class="

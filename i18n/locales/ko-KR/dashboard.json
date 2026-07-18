@@ -19,6 +19,8 @@
     "no_data": "데이터 없음",
     "none": "(없음)",
     "filter_placeholder": "링크 필터링...",
+    "selected_count": "{count}개 선택됨",
+    "clear_selection": "지우기",
     "realtime": {
       "stats_error": "실시간 통계를 불러오지 못했습니다.",
       "events_error": "실시간 이벤트를 불러오지 못했습니다.",

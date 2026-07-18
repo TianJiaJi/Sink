@@ -552,17 +552,38 @@ describe('d1 link integration', () => {
     expect((await fetchWithAuth(`/api/link/list?limit=1&sort=za&cursor=${encodeURIComponent(firstPage.cursor)}`)).status).toBe(400)
   })
 
+  it('requires a non-empty keyword or exact URL search selector', async () => {
+    const tag = `guard-${crypto.randomUUID().slice(0, 8)}`
+    const link = makeLink(undefined, { tags: [tag] })
+    expect((await postJson('/api/link/create', link)).status).toBe(201)
+
+    for (const path of [
+      '/api/link/search',
+      `/api/link/search?q=${encodeURIComponent('   ')}`,
+      `/api/link/search?tag=${tag}&status=all`,
+    ]) {
+      const response = await fetchWithAuth(path)
+      expect(response.status).toBe(200)
+      expect(await response.json()).toEqual([])
+    }
+  })
+
   it('searches D1 case-insensitively with normalized exact URLs and limits results', async () => {
     const prefix = `Search-${crypto.randomUUID()}`
-    const one = makeLink(`${prefix}-one`, { url: 'https://example.com/path?one=1', comment: 'Mixed Needle' })
-    const two = makeLink(`${prefix}-two`, { url: 'https://example.com/path?two=2', comment: 'needle again' })
-    await insertD1Link(one)
-    await insertD1Link(two)
+    const matches = Array.from({ length: 21 }, (_, index) => makeLink(`${prefix}-${index.toString().padStart(2, '0')}`, {
+      comment: index === 0 ? 'Mixed Needle' : `mixed needle ${index}`,
+    }))
+    await Promise.all(matches.map(link => insertD1Link(link)))
     const query = await fetchWithAuth(`/api/link/search?q=${encodeURIComponent('mIxEd nEeDlE')}`)
-    expect(await query.json()).toEqual([expect.objectContaining({ slug: one.slug })])
-    const exact = await fetchWithAuth(`/api/link/search?url=${encodeURIComponent('https://example.com/path?ignored=1')}&limit=1`)
-    const exactData = await exact.json() as unknown[]
-    expect(exactData).toHaveLength(1)
+    const queryData = await query.json() as Link[]
+    expect(queryData).toHaveLength(20)
+    expect(queryData).toContainEqual(expect.objectContaining({ slug: matches[0].slug }))
+    expect(queryData.every(link => link.slug.startsWith(prefix))).toBe(true)
+
+    const exactLink = makeLink(undefined, { url: `https://exact.example/${crypto.randomUUID()}?stored=1` })
+    await insertD1Link(exactLink)
+    const exact = await fetchWithAuth(`/api/link/search?url=${encodeURIComponent(exactLink.url.replace('stored=1', 'ignored=1'))}`)
+    expect(await exact.json()).toEqual([expect.objectContaining({ slug: exactLink.slug })])
   })
 
   it('filters search results by normalized tag and expiration status', async () => {

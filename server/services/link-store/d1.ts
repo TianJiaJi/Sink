@@ -31,12 +31,15 @@ export interface ListLinksResult {
   cursor?: string
 }
 
-export interface SearchLinksOptions {
+export interface LinkFilterOptions {
   q?: string
   url?: string
-  limit?: number
   tag?: string
   status?: LinkStatus
+}
+
+export interface SearchLinksOptions extends LinkFilterOptions {
+  limit?: number
 }
 
 interface D1Cursor {
@@ -335,7 +338,7 @@ export async function* d1IterateAllLinks(env: Cloudflare.Env): AsyncIterable<Lin
   } while (lastSlug)
 }
 
-export async function d1SearchLinks(event: H3Event, options: SearchLinksOptions): Promise<LinkSearchItem[]> {
+function linkFilterCondition(options: LinkFilterOptions) {
   const status = options.status ?? 'active'
   const conditions = [statusCondition(status)]
   if (options.tag)
@@ -352,12 +355,21 @@ export async function d1SearchLinks(event: H3Event, options: SearchLinksOptions)
     )!)
   }
 
-  let query = getDatabase(event).select({ slug: links.slug, url: links.normalizedUrl, comment: links.comment }).from(links).where(and(...conditions)).orderBy(asc(links.slug)).$dynamic()
+  return and(...conditions)
+}
+
+export async function d1SearchLinks(event: H3Event, options: SearchLinksOptions): Promise<LinkSearchItem[]> {
+  let query = getDatabase(event).select({ slug: links.slug, url: links.normalizedUrl, comment: links.comment }).from(links).where(linkFilterCondition(options)).orderBy(asc(links.slug)).$dynamic()
   if (options.limit)
     query = query.limit(options.limit)
   const rows = await query
   const result = rows.map(row => ({ slug: row.slug, url: row.url, tags: [] as string[], ...(row.comment === null ? {} : { comment: row.comment }) }))
   return await addTagsToLinksFromDatabase(getDatabase(event), result, result.map(link => link.slug))
+}
+
+export async function d1CountLinks(event: H3Event, options: LinkFilterOptions): Promise<number> {
+  const [result] = await getDatabase(event).select({ count: count() }).from(links).where(linkFilterCondition(options))
+  return result?.count ?? 0
 }
 
 export async function d1ListTags(event: H3Event): Promise<{ name: string, count: number }[]> {

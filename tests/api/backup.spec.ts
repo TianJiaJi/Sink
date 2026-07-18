@@ -152,4 +152,29 @@ describe('/api/backup', { concurrent: false }, () => {
 
     await expect(new Response(stream).text()).rejects.toThrow(/expected 2, received 1/)
   })
+
+  it('fails the backup stream when the serialized byte length changes', async () => {
+    const now = Math.floor(Date.now() / 1000)
+    const link: Link = {
+      id: crypto.randomUUID().slice(0, 10),
+      slug: `byte-mismatch-${crypto.randomUUID()}`,
+      url: 'https://example.com/byte-mismatch',
+      createdAt: now,
+      updatedAt: now,
+      tags: [],
+    }
+    async function* links() {
+      yield link
+    }
+
+    const linkByteLength = getSerializedLinkByteLength(link)
+    const stream = createBackupJsonStream(links(), {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      count: 1,
+      linksByteLength: linkByteLength + 1,
+    })
+
+    await expect(new Response(stream).text()).rejects.toThrow(/Backup byte length changed during export/)
+  })
 })

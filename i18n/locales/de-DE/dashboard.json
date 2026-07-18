@@ -19,6 +19,8 @@
     "no_data": "Keine Daten",
     "none": "(Keine)",
     "filter_placeholder": "Links filtern...",
+    "selected_count": "{count} ausgewählt",
+    "clear_selection": "Löschen",
     "realtime": {
       "stats_error": "Echtzeitstatistiken konnten nicht geladen werden.",
       "events_error": "Echtzeitereignisse konnten nicht geladen werden.",

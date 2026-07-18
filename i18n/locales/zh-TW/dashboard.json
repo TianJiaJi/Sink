@@ -19,6 +19,8 @@
     "no_data": "暫無數據",
     "none": "（無）",
     "filter_placeholder": "篩選連結...",
+    "selected_count": "已選 {count} 項",
+    "clear_selection": "清除",
     "realtime": {
       "stats_error": "即時統計資料載入失敗。",
       "events_error": "即時事件載入失敗。",

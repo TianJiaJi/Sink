@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import type { Link } from '@/types'
+import type { DashboardLinkSearchItem } from '@/types/dashboard-links'
 import type { DashboardSlugFilters } from '@/utils/dashboard-query'
-import { Check, ChevronsUpDown } from '@lucide/vue'
-import { createReusableTemplate, useMediaQuery, watchDebounced } from '@vueuse/core'
+import { Check, ChevronsUpDown, LoaderCircle, SearchIcon } from '@lucide/vue'
+import { createReusableTemplate, useMediaQuery, useWindowSize, watchDebounced } from '@vueuse/core'
+import { ListboxFilter } from 'reka-ui'
 import { VList } from 'virtua/vue'
-import { cn } from '@/lib/utils'
+
+type FilterLink = Pick<DashboardLinkSearchItem, 'slug'>
 
 const props = withDefaults(defineProps<{
   filters?: DashboardSlugFilters
@@ -23,21 +25,29 @@ const [TriggerTemplate, TriggerComponent] = createReusableTemplate()
 const [FilterTemplate, FilterComponent] = createReusableTemplate()
 
 const isDesktop = useMediaQuery('(min-width: 640px)')
+const { height: visualViewportHeight } = useWindowSize({ type: 'visual' })
 
-const links = ref<Link[]>([])
-const isOpen = ref(false)
+const links = ref<FilterLink[]>([])
+const isOpen = shallowRef(false)
 const isLoading = shallowRef(false)
 const hasError = shallowRef(false)
 const selectedLinks = ref<string[]>(props.filters?.slug?.split(',').filter(Boolean) ?? [])
 const searchTerm = shallowRef('')
-let requestController: AbortController | null = null
+const hasSearchActivity = computed(() =>
+  searchTerm.value.trim().length > 0
+  || isLoading.value
+  || hasError.value
+  || links.value.length > 0,
+)
+const drawerStyle = computed(() => {
+  const viewportHeight = visualViewportHeight.value
+  if (!hasSearchActivity.value || !Number.isFinite(viewportHeight) || viewportHeight <= 0)
+    return
 
-const filteredLinks = computed(() => {
-  const query = searchTerm.value.trim().toLocaleLowerCase()
-  if (!query)
-    return links.value
-  return links.value.filter(link => link.slug.toLocaleLowerCase().includes(query))
+  return { height: `${Math.min(640, viewportHeight * 0.8)}px` }
 })
+let requestController: AbortController | null = null
+let requestGeneration = 0
 
 watch(() => props.filters?.slug, (newSlug) => {
   const newValue = newSlug?.split(',').filter(Boolean) ?? []
@@ -51,33 +61,70 @@ watch(isOpen, (open) => {
     searchTerm.value = ''
 })
 
-async function getLinks() {
+function cancelSearch() {
+  requestGeneration++
+  requestController?.abort()
+  requestController = null
+  isLoading.value = false
+}
+
+async function getLinks(query: string) {
+  const normalizedQuery = query.trim()
+  if (!normalizedQuery)
+    return
+
   requestController?.abort()
   const controller = new AbortController()
   requestController = controller
+  const generation = ++requestGeneration
   isLoading.value = true
   hasError.value = false
 
   try {
-    links.value = await useAPI<Link[]>('/api/link/search', { signal: controller.signal })
+    const data = await useAPI<FilterLink[]>('/api/link/search', {
+      signal: controller.signal,
+      query: {
+        q: normalizedQuery,
+        limit: 50,
+      },
+    })
+    if (!controller.signal.aborted && generation === requestGeneration)
+      links.value = data
   }
   catch {
-    if (!controller.signal.aborted) {
+    if (!controller.signal.aborted && generation === requestGeneration) {
       links.value = []
       hasError.value = true
     }
   }
   finally {
-    if (requestController === controller) {
+    if (requestController === controller && generation === requestGeneration) {
       requestController = null
       isLoading.value = false
     }
   }
 }
 
-onMounted(() => {
-  void getLinks()
+watch(searchTerm, () => {
+  cancelSearch()
+  links.value = []
+  hasError.value = false
+  isLoading.value = Boolean(searchTerm.value.trim())
 })
+
+watchDebounced(searchTerm, (query) => {
+  const normalizedQuery = query.trim()
+  if (normalizedQuery)
+    void getLinks(normalizedQuery)
+}, { debounce: 300 })
+
+function retrySearch() {
+  void getLinks(searchTerm.value)
+}
+
+function clearSelectedLinks() {
+  selectedLinks.value = []
+}
 
 onBeforeUnmount(() => requestController?.abort())
 
@@ -105,12 +152,12 @@ else {
       :aria-label="ariaLabelledby ? undefined : (ariaLabel ?? $t('dashboard.realtime.filter_label'))"
       :aria-labelledby="ariaLabelledby"
       class="
-        flex w-full justify-between px-3
+        flex w-full justify-between
         sm:w-48
       "
     >
       <div
-        class="flex-1 truncate text-left" :class="selectedLinks.length ? `
+        class="min-w-0 flex-1 truncate text-left" :class="selectedLinks.length ? `
           text-foreground
         ` : `text-muted-foreground`"
       >
@@ -123,95 +170,135 @@ else {
     <Command
       v-model="selectedLinks"
       :aria-busy="isLoading"
+      class="
+        h-full min-h-0 flex-1
+        sm:h-auto
+      "
       multiple
     >
-      <CommandInput
-        v-model="searchTerm"
-        :aria-label="$t('dashboard.realtime.filter_search_label')"
-        :placeholder="selectedLinks.length ? selectedLinks.join(', ') : $t('dashboard.filter_placeholder')"
-        autocomplete="off"
-      />
+      <div data-slot="command-input-wrapper" class="shrink-0 p-1">
+        <InputGroup>
+          <ListboxFilter
+            v-model="searchTerm"
+            data-slot="command-input"
+            :auto-focus="isDesktop"
+            :aria-label="$t('dashboard.realtime.filter_search_label')"
+            :placeholder="$t('dashboard.filter_placeholder')"
+            autocomplete="off"
+            class="
+              w-full text-sm outline-hidden
+              disabled:cursor-not-allowed disabled:opacity-50
+            "
+          />
+          <InputGroupAddon>
+            <SearchIcon class="size-4 shrink-0 opacity-50" aria-hidden="true" />
+          </InputGroupAddon>
+        </InputGroup>
+      </div>
+      <div
+        v-if="selectedLinks.length"
+        class="flex min-w-0 shrink-0 items-center gap-2 px-3 py-1"
+      >
+        <p
+          class="
+            flex min-w-0 flex-1 items-center gap-1 text-xs text-muted-foreground
+          "
+        >
+          <span class="shrink-0">
+            {{ $t('dashboard.selected_count', { count: selectedLinks.length }) }}
+          </span>
+          <span aria-hidden="true">·</span>
+          <span class="min-w-0 truncate">{{ selectedLinks.join(', ') }}</span>
+        </p>
+        <Button type="button" variant="ghost" size="sm" @click="clearSelectedLinks">
+          {{ $t('dashboard.clear_selection') }}
+        </Button>
+      </div>
       <div
         v-if="isLoading"
+        role="status"
         aria-live="polite"
         class="
-          flex min-h-24 items-center justify-center p-4 text-sm
+          flex min-h-0 flex-1 items-center justify-center gap-2 p-4
           text-muted-foreground
+          sm:h-72 sm:flex-none
         "
       >
-        {{ $t('dashboard.loading') }}
+        <LoaderCircle
+          class="
+            size-4
+            motion-safe:animate-spin
+          "
+          aria-hidden="true"
+        />
+        <span>{{ $t('dashboard.loading') }}</span>
       </div>
       <div
         v-else-if="hasError"
         role="alert"
         class="
-          flex min-h-24 flex-col items-center justify-center gap-3 p-4
+          flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-4
           text-center
+          sm:h-72 sm:flex-none
         "
       >
         <p class="text-sm text-destructive">
           {{ $t('dashboard.realtime.links_error') }}
         </p>
-        <Button type="button" variant="outline" size="sm" @click="getLinks">
+        <Button type="button" variant="outline" size="sm" @click="retrySearch">
           {{ $t('common.try_again') }}
         </Button>
       </div>
       <div
-        v-else-if="links.length === 0"
+        v-else-if="searchTerm.trim() && links.length === 0"
+        role="status"
+        aria-live="polite"
         class="
-          flex min-h-24 items-center justify-center p-4 text-center text-sm
-          text-muted-foreground
+          flex min-h-0 flex-1 items-center justify-center p-4 text-center
+          text-sm text-muted-foreground
+          sm:h-72 sm:flex-none
         "
       >
         {{ $t('links.no_results') }}
       </div>
-      <CommandList v-else-if="filteredLinks.length" :class="{ 'max-h-none': !isDesktop }">
-        <CommandGroup>
+      <CommandList
+        v-else-if="links.length"
+        class="
+          max-h-none min-h-0 flex-1 overflow-hidden
+          sm:h-72 sm:max-h-72 sm:flex-none
+          *:[[role=presentation]]:h-full *:[[role=presentation]]:min-h-0
+        "
+      >
+        <CommandGroup class="h-full min-h-0">
           <VList
             v-slot="{ item: link }"
-            :data="filteredLinks"
-            :style="{ height: isDesktop ? '292px' : '420px' }"
+            :data="links"
+            style="height: 100%"
           >
             <CommandItem
               :value="link.slug"
-              class="py-2"
-              @select="searchTerm = ''"
             >
-              <Check
-                aria-hidden="true"
-                :class="cn(
-                  'size-4',
-                  selectedLinks.includes(link.slug) ? 'opacity-100' : `
-                    opacity-0
-                  `,
-                )"
-              />
-              {{ link.slug }}
+              <CommandShortcut
+                class="ml-0 flex size-4 shrink-0 items-center justify-center"
+              >
+                <Check
+                  v-if="selectedLinks.includes(link.slug)"
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </CommandShortcut>
+              <span class="min-w-0 flex-1 truncate">{{ link.slug }}</span>
             </CommandItem>
           </VList>
         </CommandGroup>
       </CommandList>
-      <div
-        v-else
-        class="
-          flex min-h-24 items-center justify-center p-4 text-center text-sm
-          text-muted-foreground
-        "
-      >
-        {{ $t('links.no_results') }}
-      </div>
     </Command>
   </FilterTemplate>
   <Popover v-if="isDesktop" v-model:open="isOpen">
     <PopoverTrigger as-child>
       <TriggerComponent />
     </PopoverTrigger>
-    <PopoverContent
-      class="
-        w-full p-0
-        sm:w-48
-      "
-    >
+    <PopoverContent class="p-0" align="end">
       <FilterComponent />
     </PopoverContent>
   </Popover>
@@ -222,8 +309,10 @@ else {
     </DrawerTrigger>
     <DrawerContent
       class="
-        h-[500px] max-h-dvh overscroll-contain pb-[env(safe-area-inset-bottom)]
+        h-auto max-h-dvh min-h-32 overscroll-contain
+        pb-[calc(1rem+env(safe-area-inset-bottom))]
       "
+      :style="drawerStyle"
     >
       <DrawerHeader class="sr-only">
         <DrawerTitle>{{ $t('dashboard.realtime.filter_label') }}</DrawerTitle>

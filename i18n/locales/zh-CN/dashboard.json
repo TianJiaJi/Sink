@@ -19,6 +19,8 @@
     "no_data": "暂无数据",
     "none": "（无）",
     "filter_placeholder": "过滤链接...",
+    "selected_count": "已选 {count} 项",
+    "clear_selection": "清除",
     "realtime": {
       "stats_error": "实时统计数据加载失败。",
       "events_error": "实时事件加载失败。",

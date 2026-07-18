@@ -8,6 +8,7 @@ import { createExportFilename } from '#shared/utils/export-file'
 const { t } = useI18n()
 const {
   links,
+  totalCount,
   results,
   loadingLinks,
   checking,
@@ -19,14 +20,13 @@ const {
 } = useLinkCheck()
 const activeFilter = ref('abnormal')
 
-const totalCount = computed(() => links.value.length)
 const checkedCount = computed(() => results.value.length)
 const normalCount = computed(() => results.value.filter(result => result.ok).length)
 const abnormalCount = computed(() => results.value.filter(result => !result.ok).length)
 const networkErrorCount = computed(() => results.value.filter(result => result.status === 0).length)
 const progress = computed(() => totalCount.value ? Math.round((checkedCount.value / totalCount.value) * 100) : 0)
 const hasResults = computed(() => results.value.length > 0)
-const completed = computed(() => totalCount.value > 0 && checkedCount.value === totalCount.value && !checking.value)
+const completed = computed(() => links.value.length > 0 && checkedCount.value === links.value.length && !checking.value)
 
 const filteredResults = computed(() => {
   if (activeFilter.value === 'all')

@@ -35,8 +35,11 @@ watch(() => route.path, () => {
         <SidebarMenuButton
           as-child
           :tooltip="t(item.title)"
-          :data-active="item.isActive"
-          class="data-active:rounded-4xl"
+          :is-active="item.isActive"
+          class="
+            hover:rounded-4xl
+            data-active:rounded-4xl
+          "
         >
           <NuxtLink :to="item.url">
             <component :is="item.icon" aria-hidden="true" />
@@ -54,8 +57,11 @@ watch(() => route.path, () => {
         <SidebarMenuButton
           as-child
           :tooltip="t(item.title)"
-          :data-active="item.isActive"
-          class="data-active:rounded-4xl"
+          :is-active="item.isActive"
+          class="
+            hover:rounded-4xl
+            data-active:rounded-4xl
+          "
         >
           <NuxtLink :to="item.url">
             <component :is="item.icon" aria-hidden="true" />

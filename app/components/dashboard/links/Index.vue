@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CounterData, LinkUpdateType } from '@/types'
 import type { DashboardLink, DashboardLinkListResponse } from '@/types/dashboard-links'
-import { AlertCircle, Inbox, Loader } from '@lucide/vue'
+import { AlertCircle, Inbox, LoaderCircle } from '@lucide/vue'
 import { useInfiniteScroll } from '@vueuse/core'
 
 const linksStore = useDashboardLinksStore()
@@ -73,7 +73,7 @@ async function fetchCounters(ids: string[]) {
 const scrollContainer = shallowRef<HTMLElement | null>(null)
 
 onMounted(() => {
-  scrollContainer.value = document.querySelector('.overflow-y-auto') as HTMLElement | null
+  scrollContainer.value = document.getElementById('dashboard-main')
   void getLinks()
 })
 
@@ -138,7 +138,7 @@ useInfiniteScroll(
   scrollContainer,
   getLinks,
   {
-    distance: 150,
+    distance: 0,
     interval: 1000,
     canLoadMore: () => {
       return !listError.value && !listComplete.value
@@ -213,35 +213,22 @@ linksStore.onLinkUpdate(({ link, type }) => {
     role="status"
     aria-live="polite"
   >
-    <Card v-for="index in 6" :key="index" size="sm" class="h-48">
-      <CardContent class="flex h-full flex-col gap-4">
-        <div class="flex items-center gap-3">
-          <Skeleton class="size-10 rounded-full" />
-          <div class="flex-1 space-y-2">
-            <Skeleton class="h-4 w-2/3" />
-            <Skeleton class="h-3 w-1/2" />
-          </div>
-        </div>
-        <Skeleton class="mt-auto h-5 w-full" />
-        <Skeleton class="h-5 w-1/2" />
-      </CardContent>
-    </Card>
+    <DashboardLinksLinkSkeleton v-for="index in 6" :key="index" />
     <span class="sr-only">{{ $t('dashboard.loading') }}</span>
   </section>
   <div
-    v-if="listLoading && links.length"
-    class="flex items-center justify-center py-4"
+    v-if="links.length"
+    class="flex min-h-14 items-center justify-center py-4"
     role="status"
     aria-live="polite"
   >
-    <Loader class="motion-safe:animate-spin" aria-hidden="true" />
-    <span class="sr-only">{{ $t('dashboard.loading') }}</span>
-  </div>
-  <div
-    v-if="!listLoading && listComplete && links.length > 0"
-    class="flex items-center justify-center text-sm"
-  >
-    {{ $t('links.no_more') }}
+    <template v-if="listLoading">
+      <LoaderCircle class="motion-safe:animate-spin" aria-hidden="true" />
+      <span class="sr-only">{{ $t('dashboard.loading') }}</span>
+    </template>
+    <span v-else-if="listComplete" class="text-sm">
+      {{ $t('links.no_more') }}
+    </span>
   </div>
   <Card v-if="!listLoading && listComplete && links.length === 0">
     <CardContent

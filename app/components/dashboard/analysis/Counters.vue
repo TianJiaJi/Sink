@@ -84,8 +84,18 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
         />
       </CardHeader>
       <CardContent>
-        <Skeleton v-if="loading && !hasLoaded" class="h-8 w-20" />
-        <NumberFlow v-else class="text-2xl font-bold tabular-nums" :value="counters.visits" />
+        <div class="relative min-h-8">
+          <NumberFlow
+            class="block text-2xl font-bold tabular-nums"
+            :class="{ 'opacity-0': counters.visits === 0 }"
+            :value="counters.visits"
+          />
+          <Skeleton
+            v-if="loading && !hasLoaded"
+            class="absolute inset-y-0 left-0 h-8 w-20"
+            aria-hidden="true"
+          />
+        </div>
       </CardContent>
     </Card>
     <Card class="gap-0">
@@ -98,8 +108,18 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
         <Users aria-hidden="true" class="size-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <Skeleton v-if="loading && !hasLoaded" class="h-8 w-20" />
-        <NumberFlow v-else class="text-2xl font-bold tabular-nums" :value="counters.visitors" />
+        <div class="relative min-h-8">
+          <NumberFlow
+            class="block text-2xl font-bold tabular-nums"
+            :class="{ 'opacity-0': counters.visitors === 0 }"
+            :value="counters.visitors"
+          />
+          <Skeleton
+            v-if="loading && !hasLoaded"
+            class="absolute inset-y-0 left-0 h-8 w-20"
+            aria-hidden="true"
+          />
+        </div>
       </CardContent>
     </Card>
     <Card class="gap-0">
@@ -112,8 +132,18 @@ watch([() => analysisStore.dateRange, () => analysisStore.filters, retryKey], as
         <Flame aria-hidden="true" class="size-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <Skeleton v-if="loading && !hasLoaded" class="h-8 w-20" />
-        <NumberFlow v-else class="text-2xl font-bold tabular-nums" :value="counters.referers" />
+        <div class="relative min-h-8">
+          <NumberFlow
+            class="block text-2xl font-bold tabular-nums"
+            :class="{ 'opacity-0': counters.referers === 0 }"
+            :value="counters.referers"
+          />
+          <Skeleton
+            v-if="loading && !hasLoaded"
+            class="absolute inset-y-0 left-0 h-8 w-20"
+            aria-hidden="true"
+          />
+        </div>
       </CardContent>
     </Card>
   </div>

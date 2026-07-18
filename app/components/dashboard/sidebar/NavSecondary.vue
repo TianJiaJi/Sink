@@ -11,9 +11,10 @@ const { hasUpdate, currentVersion, latestVersion } = useVersionCheck()
 const secondaryMenuClass = computed(() => isMobile.value || state.value === 'expanded'
   ? 'flex-row items-center'
   : 'items-center')
-const releaseLabel = computed(() => hasUpdate.value
-  ? t('sidebar.update', { current: currentVersion, version: latestVersion.value })
-  : t('sidebar.releases'))
+const releaseLabel = computed(() => t('sidebar.update', {
+  current: currentVersion,
+  version: latestVersion.value,
+}))
 </script>
 
 <template>
@@ -37,7 +38,7 @@ const releaseLabel = computed(() => hasUpdate.value
           </SidebarMenuButton>
         </SidebarMenuItem>
 
-        <SidebarMenuItem>
+        <SidebarMenuItem v-if="hasUpdate">
           <SidebarMenuButton
             as-child
             :tooltip="releaseLabel"
@@ -51,11 +52,9 @@ const releaseLabel = computed(() => hasUpdate.value
             >
               <ArrowUpCircle aria-hidden="true" />
               <span
-                v-if="hasUpdate"
                 aria-hidden="true"
                 class="
-                  absolute top-0.5 right-0.5 size-1.5 rounded-full
-                  bg-destructive
+                  absolute top-0.5 right-0.5 size-1.5 rounded-full bg-success
                   motion-safe:animate-pulse
                 "
               />

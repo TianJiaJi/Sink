@@ -36,7 +36,7 @@ onMounted(() => {
   </Tabs>
   <section
     v-else
-    class="flex min-h-[50vh] items-center justify-center px-4"
+    class="flex h-full items-center justify-center px-4"
   >
     <div
       v-if="migration.error.value"

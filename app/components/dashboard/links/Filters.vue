@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { LoaderCircle } from '@lucide/vue'
+
 interface TagCount {
   name: string
   count: number
@@ -77,7 +79,16 @@ linksStore.onLinkUpdate(() => void fetchTags())
           "
           :aria-label="$t('links.filters.tag_label')"
         >
-          <SelectValue :placeholder="loading ? $t('links.filters.tags_loading') : $t('links.filters.all_tags')" />
+          <SelectValue :placeholder="$t('links.filters.all_tags')" />
+          <LoaderCircle
+            v-if="loading"
+            class="
+              size-4 shrink-0
+              motion-safe:animate-spin
+            "
+            aria-hidden="true"
+          />
+          <span v-if="loading" class="sr-only">{{ $t('links.filters.tags_loading') }}</span>
         </SelectTrigger>
         <SelectContent>
           <SelectItem :value="allTagsValue">

@@ -19,6 +19,8 @@
     "no_data": "No Data",
     "none": "(None)",
     "filter_placeholder": "Filter links...",
+    "selected_count": "{count} selected",
+    "clear_selection": "Clear",
     "realtime": {
       "stats_error": "Failed to load real-time statistics.",
       "events_error": "Failed to load real-time events.",

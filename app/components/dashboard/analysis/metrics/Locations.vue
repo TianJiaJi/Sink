@@ -129,12 +129,12 @@ function tooltipTemplate(d: any): string {
     <CardHeader>
       <CardTitle><h2>{{ $t('dashboard.locations') }}</h2></CardTitle>
     </CardHeader>
-    <CardContent class="relative flex-1" :aria-busy="loading || mapLoading">
+    <CardContent class="relative min-h-64 flex-1" :aria-busy="loading || mapLoading">
       <div
         v-if="mapError || metricsError"
         class="
-          flex min-h-64 flex-col items-center justify-center gap-4 text-sm
-          text-destructive
+          absolute inset-0 flex flex-col items-center justify-center gap-4
+          text-sm text-destructive
         "
         role="alert"
       >
@@ -164,19 +164,18 @@ function tooltipTemplate(d: any): string {
         </div>
       </div>
       <div
-        v-else-if="(loading && !hasLoaded) || mapLoading"
-        class="
-          flex min-h-64 items-center justify-center text-sm
-          text-muted-foreground
-        "
+        v-else-if="(loading && !hasLoaded) || (mapLoading && !worldMapTopoJSON.type)"
+        class="absolute inset-0 overflow-hidden"
         role="status"
+        aria-busy="true"
       >
-        {{ $t('dashboard.loading') }}
+        <span class="sr-only">{{ $t('dashboard.loading') }}</span>
+        <Skeleton aria-hidden="true" class="size-full rounded-none" />
       </div>
       <div
         v-else-if="hasLoaded && !areaData.length"
         class="
-          flex min-h-64 items-center justify-center text-sm
+          absolute inset-0 flex items-center justify-center text-sm
           text-muted-foreground
         "
         role="status"
