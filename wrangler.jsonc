@@ -45,7 +45,7 @@
     {
       "binding": "DB",
       "database_name": "sink", // Override with DEPLOY_D1_DATABASE_NAME (default: sink)
-      "database_id": "66f97b0a-de7f-4b2a-86fc-fc8ec6f1ef80", // Override with DEPLOY_D1_DATABASE_ID (required for CLI deploy)
+      "database_id": "f171c620-db55-4e1e-a163-4d42cd697065", // Override with DEPLOY_D1_DATABASE_ID (required for CLI deploy)
       "migrations_dir": "drizzle"
     }
   ],
