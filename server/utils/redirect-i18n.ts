@@ -11,6 +11,7 @@ interface RedirectTranslation {
   unsafeDesc: string
   goBack: string
   turnstileVerifying: string
+  turnstileError: string
   unavailableTitle: string
   unavailableExpired: string
   unavailableCap: string
@@ -48,6 +49,7 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeDesc: 'Dieser Link wurde als potenziell unsicher markiert. Gehen Sie mit Vorsicht vor.',
     goBack: 'Zurück',
     turnstileVerifying: 'Verifizierung, dass Sie ein Mensch sind…',
+    turnstileError: 'Bitte schließen Sie die Verifizierung ab und versuchen Sie es erneut.',
     unavailableTitle: 'Nicht verfügbar',
     unavailableExpired: 'Dieser Link ist abgelaufen.',
     unavailableCap: 'Dieser Link hat sein Besuchslimit erreicht.',
@@ -65,6 +67,7 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeDesc: 'This link has been flagged as potentially unsafe. Proceed with caution.',
     goBack: 'Go Back',
     turnstileVerifying: 'Verifying you are human…',
+    turnstileError: 'Please complete the verification and try again.',
     unavailableTitle: 'Unavailable',
     unavailableExpired: 'This link has expired.',
     unavailableCap: 'This link has reached its visit limit.',
@@ -82,6 +85,7 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeDesc: 'Ce lien a été signalé comme potentiellement dangereux. Procédez avec prudence.',
     goBack: 'Retour',
     turnstileVerifying: 'Vérification que vous êtes humain…',
+    turnstileError: 'Veuillez terminer la vérification et réessayer.',
     unavailableTitle: 'Indisponible',
     unavailableExpired: 'Ce lien a expiré.',
     unavailableCap: 'Ce lien a atteint sa limite de visites.',
@@ -99,6 +103,7 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeDesc: 'Tautan ini telah ditandai berpotensi tidak aman. Lanjutkan dengan hati-hati.',
     goBack: 'Kembali',
     turnstileVerifying: 'Memverifikasi bahwa Anda manusia…',
+    turnstileError: 'Selesaikan verifikasi terlebih dahulu, lalu coba lagi.',
     unavailableTitle: 'Tidak Tersedia',
     unavailableExpired: 'Tautan ini telah kedaluwarsa.',
     unavailableCap: 'Tautan ini telah mencapai batas kunjungan.',
@@ -116,6 +121,7 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeDesc: 'Questo link è stato contrassegnato come potenzialmente non sicuro. Procedi con cautela.',
     goBack: 'Indietro',
     turnstileVerifying: 'Verifica che tu sia umano…',
+    turnstileError: 'Completa la verifica e riprova.',
     unavailableTitle: 'Non disponibile',
     unavailableExpired: 'Questo link è scaduto.',
     unavailableCap: 'Questo link ha raggiunto il limite di visite.',
@@ -133,6 +139,7 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeDesc: 'Este link foi sinalizado como potencialmente inseguro. Prossiga com cuidado.',
     goBack: 'Voltar',
     turnstileVerifying: 'Verificando se você é humano…',
+    turnstileError: 'Conclua a verificação e tente novamente.',
     unavailableTitle: 'Indisponível',
     unavailableExpired: 'Este link expirou.',
     unavailableCap: 'Este link atingiu o limite de visitas.',
@@ -150,6 +157,7 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeDesc: 'Esta ligação foi assinalada como potencialmente insegura. Prossiga com cuidado.',
     goBack: 'Voltar',
     turnstileVerifying: 'A verificar se é humano…',
+    turnstileError: 'Conclua a verificação e tente novamente.',
     unavailableTitle: 'Indisponível',
     unavailableExpired: 'Esta ligação expirou.',
     unavailableCap: 'Esta ligação atingiu o limite de visitas.',
@@ -167,6 +175,7 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeDesc: 'Liên kết này đã bị đánh dấu là có thể không an toàn. Hãy thận trọng khi tiếp tục.',
     goBack: 'Quay lại',
     turnstileVerifying: 'Đang xác minh bạn là người…',
+    turnstileError: 'Vui lòng hoàn thành xác minh rồi thử lại.',
     unavailableTitle: 'Không khả dụng',
     unavailableExpired: 'Liên kết này đã hết hạn.',
     unavailableCap: 'Liên kết này đã đạt giới hạn lượt truy cập.',
@@ -184,6 +193,7 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeDesc: '此链接已被标记为潜在不安全。请谨慎访问。',
     goBack: '返回',
     turnstileVerifying: '正在验证你是否为真人…',
+    turnstileError: '请先完成验证后再试。',
     unavailableTitle: '暂不可用',
     unavailableExpired: '此链接已过期。',
     unavailableCap: '此链接的访问次数已达上限。',
@@ -201,6 +211,7 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeDesc: '此連結已被標記為潛在不安全。請謹慎訪問。',
     goBack: '返回',
     turnstileVerifying: '正在驗證你是否為真人…',
+    turnstileError: '請先完成驗證後再試。',
     unavailableTitle: '暫不可用',
     unavailableExpired: '此連結已過期。',
     unavailableCap: '此連結的造訪次數已達上限。',
