@@ -192,9 +192,15 @@ export function writeAccessLog(event: H3Event, accessLogs: LogsMap): void {
 
   if (process.env.NODE_ENV === 'production') {
     const analytics = cloudflare.env.ANALYTICS
-    if (!analytics)
+    if (!analytics) {
+      console.warn({ event: 'access_log.binding.missing' })
       return
+    }
 
+    // writeDataPoint is fire-and-forget (returns void); the Workers runtime owns
+    // delivery and does not surface per-call failures, so there is nothing to
+    // await or catch here. The binding-missing case above is the only observable
+    // failure point — the rest is left to the platform.
     analytics.writeDataPoint({
       indexes: [link.id], // only one index
       blobs: logs2blobs(accessLogs),

@@ -30,7 +30,7 @@ export async function incrementClickCount(event: H3Event, slug: string, maxClick
     return rows.length > 0
   }
   catch (error) {
-    console.warn('click-cap.increment.failed:', error)
+    console.error({ event: 'click_cap.increment.failed', error: error instanceof Error ? error.message : String(error) })
     return true
   }
 }

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from 'vue'
 import type { DashboardLink } from '@/types/dashboard-links'
+import type { LinkStatus } from '@/utils/link-status'
 import { CalendarPlus2, Copy, CopyCheck, Ellipsis, Eraser, Flame, Hourglass, Link as LinkIcon, MousePointerClick, QrCode, RotateCcw, ShieldAlert, SquarePen, Users } from '@lucide/vue'
 import { useClipboard, useMediaQuery } from '@vueuse/core'
 import { parseURL } from 'ufo'
 import { toast } from 'vue-sonner'
+import { getLinkStatus } from '@/utils/link-status'
 
 const props = defineProps<{
   link: DashboardLink
@@ -78,20 +80,7 @@ function getLinkHost(url: string): string | undefined {
 
 const shortLink = computed(() => `${origin}/${props.link.slug}`)
 const linkIcon = computed(() => `https://unavatar.webp.se/${getLinkHost(props.link.url)}?fallback=https://sink.cool/icon.png`)
-type LinkStatus = 'active' | 'limited' | 'expired' | 'capped' | 'disabled'
-
-const linkStatus = computed<LinkStatus>(() => {
-  const now = Math.floor(Date.now() / 1000)
-  if (props.link.disabled)
-    return 'disabled'
-  if (props.link.expiration && props.link.expiration <= now)
-    return 'expired'
-  if (props.link.maxClicks && (props.link.clickCount ?? 0) >= props.link.maxClicks)
-    return 'capped'
-  if (props.link.expiration || props.link.maxClicks)
-    return 'limited'
-  return 'active'
-})
+const linkStatus = computed(() => getLinkStatus(props.link))
 
 const statusMeta: Record<LinkStatus, { variant: 'destructive' | 'outline', cls: string, label: string }> = {
   active: { variant: 'outline', cls: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', label: 'links.status_active' },

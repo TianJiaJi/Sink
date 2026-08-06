@@ -97,12 +97,11 @@ export default eventHandler(async (event) => {
 
       let targetUrl = link.ab?.length ? pickAbVariant(link.ab) : link.url
       const country = event.context.cloudflare?.request?.cf?.country
+      if (evalCountryGate(link, country) === 'block') {
+        return handleUnavailable(event, 'blocked', getLocale())
+      }
       if (country && typeof country === 'string') {
         const countryCode = country.toUpperCase()
-        // Country allow/deny lists (allow wins semantics: empty = no restriction)
-        if ((link.countryAllow?.length && !link.countryAllow.includes(countryCode)) || link.countryBlock?.includes(countryCode)) {
-          return handleUnavailable(event, 'blocked', getLocale())
-        }
         if (link.geo?.[countryCode]) {
           targetUrl = link.geo[countryCode]!
         }
@@ -204,28 +203,28 @@ export default eventHandler(async (event) => {
       try {
         accessLogResult = collectAccessLog(event)
       }
-      catch {
-        console.error({ event: 'access_log.collection.failed' })
+      catch (error) {
+        console.error({ event: 'access_log.collection.failed', error: error instanceof Error ? error.message : String(error) })
       }
 
       if (accessLogResult) {
         try {
           writeAccessLog(event, accessLogResult.logs)
         }
-        catch {
-          console.error({ event: 'access_log.write.failed' })
+        catch (error) {
+          console.error({ event: 'access_log.write.failed', error: error instanceof Error ? error.message : String(error) })
         }
 
         try {
           queueLinkClickedWebhook(event, accessLogResult.click, link)
         }
-        catch {
-          console.error({ event: 'webhook.scheduling.failed' })
+        catch (error) {
+          console.error({ event: 'webhook.scheduling.failed', error: error instanceof Error ? error.message : String(error) })
         }
       }
 
       // Click cap: count this valid visit (after all gates passed); block if the cap is reached
-      if (link.maxClicks && !(await incrementClickCount(event, slug, link.maxClicks))) {
+      if (!(await checkClickCap(event, link))) {
         return handleUnavailable(event, 'cap', getLocale())
       }
 
@@ -270,7 +269,7 @@ export default eventHandler(async (event) => {
       return generateUnavailableHtml('notfound', resolveRedirectLocale(event))
     }
   }
-  else if (slug && !reserveSlug.includes(slug) && cloudflare && !/\.[a-z0-9]+$/i.test(slug)) {
+  else if (slug && !slug.includes('/') && !reserveSlug.includes(slug) && cloudflare && !/\.[a-z0-9]+$/i.test(slug)) {
     // Slug didn't match the allowed format (e.g. trailing symbol) and isn't a
     // static asset — treat it as a non-existent link and show the friendly 404
     // instead of falling through to Nuxt's default error page.
