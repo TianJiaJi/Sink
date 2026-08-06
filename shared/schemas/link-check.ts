@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-function isHttpUrl(value: string): boolean {
+export function isHttpUrl(value: string): boolean {
   try {
     const { protocol } = new URL(value)
     return protocol === 'http:' || protocol === 'https:'
