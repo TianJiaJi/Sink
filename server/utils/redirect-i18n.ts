@@ -10,6 +10,13 @@ interface RedirectTranslation {
   unsafeTitle: string
   unsafeDesc: string
   goBack: string
+  turnstileVerifying: string
+  unavailableTitle: string
+  unavailableExpired: string
+  unavailableCap: string
+  unavailableBlocked: string
+  unavailableDisabled: string
+  unavailableNotFound: string
 }
 
 const REDIRECT_LOCALES = [
@@ -40,6 +47,13 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeTitle: 'Potenziell unsicherer Link',
     unsafeDesc: 'Dieser Link wurde als potenziell unsicher markiert. Gehen Sie mit Vorsicht vor.',
     goBack: 'Zurück',
+    turnstileVerifying: 'Verifizierung, dass Sie ein Mensch sind…',
+    unavailableTitle: 'Nicht verfügbar',
+    unavailableExpired: 'Dieser Link ist abgelaufen.',
+    unavailableCap: 'Dieser Link hat sein Besuchslimit erreicht.',
+    unavailableBlocked: 'Dieser Link ist in Ihrer Region nicht verfügbar.',
+    unavailableDisabled: 'Dieser Link wurde vom Administrator deaktiviert.',
+    unavailableNotFound: 'Dieser Link existiert nicht oder wurde entfernt.',
   },
   'en-US': {
     passwordTitle: 'Password Required',
@@ -50,6 +64,13 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeTitle: 'Potentially Unsafe Link',
     unsafeDesc: 'This link has been flagged as potentially unsafe. Proceed with caution.',
     goBack: 'Go Back',
+    turnstileVerifying: 'Verifying you are human…',
+    unavailableTitle: 'Unavailable',
+    unavailableExpired: 'This link has expired.',
+    unavailableCap: 'This link has reached its visit limit.',
+    unavailableBlocked: 'This link is not available in your region.',
+    unavailableDisabled: 'This link has been disabled by the administrator.',
+    unavailableNotFound: 'This link does not exist or has been removed.',
   },
   'fr-FR': {
     passwordTitle: 'Mot de passe requis',
@@ -60,6 +81,13 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeTitle: 'Lien potentiellement dangereux',
     unsafeDesc: 'Ce lien a été signalé comme potentiellement dangereux. Procédez avec prudence.',
     goBack: 'Retour',
+    turnstileVerifying: 'Vérification que vous êtes humain…',
+    unavailableTitle: 'Indisponible',
+    unavailableExpired: 'Ce lien a expiré.',
+    unavailableCap: 'Ce lien a atteint sa limite de visites.',
+    unavailableBlocked: 'Ce lien est indisponible dans votre région.',
+    unavailableDisabled: 'Ce lien a été désactivé par un administrateur.',
+    unavailableNotFound: 'Ce lien est introuvable ou a été supprimé.',
   },
   'id-ID': {
     passwordTitle: 'Diperlukan Kata Sandi',
@@ -70,16 +98,30 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeTitle: 'Tautan Berpotensi Tidak Aman',
     unsafeDesc: 'Tautan ini telah ditandai berpotensi tidak aman. Lanjutkan dengan hati-hati.',
     goBack: 'Kembali',
+    turnstileVerifying: 'Memverifikasi bahwa Anda manusia…',
+    unavailableTitle: 'Tidak Tersedia',
+    unavailableExpired: 'Tautan ini telah kedaluwarsa.',
+    unavailableCap: 'Tautan ini telah mencapai batas kunjungan.',
+    unavailableBlocked: 'Tautan ini tidak tersedia di wilayah Anda.',
+    unavailableDisabled: 'Tautan ini telah dinonaktifkan oleh administrator.',
+    unavailableNotFound: 'Tautan ini tidak ada atau telah dihapus.',
   },
   'it-IT': {
     passwordTitle: 'Password richiesta',
     passwordLabel: 'Password',
     passwordPlaceholder: 'Inserisci la password',
     passwordError: 'Password errata',
-    continue: 'Continua',
+    continue: 'Continuare',
     unsafeTitle: 'Link potenzialmente non sicuro',
     unsafeDesc: 'Questo link è stato contrassegnato come potenzialmente non sicuro. Procedi con cautela.',
     goBack: 'Indietro',
+    turnstileVerifying: 'Verifica che tu sia umano…',
+    unavailableTitle: 'Non disponibile',
+    unavailableExpired: 'Questo link è scaduto.',
+    unavailableCap: 'Questo link ha raggiunto il limite di visite.',
+    unavailableBlocked: 'Questo link non è disponibile nella tua regione.',
+    unavailableDisabled: 'Questo link è stato disabilitato da un amministratore.',
+    unavailableNotFound: 'Questo link non esiste o è stato rimosso.',
   },
   'pt-BR': {
     passwordTitle: 'Senha necessária',
@@ -90,6 +132,13 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeTitle: 'Link potencialmente inseguro',
     unsafeDesc: 'Este link foi sinalizado como potencialmente inseguro. Prossiga com cuidado.',
     goBack: 'Voltar',
+    turnstileVerifying: 'Verificando se você é humano…',
+    unavailableTitle: 'Indisponível',
+    unavailableExpired: 'Este link expirou.',
+    unavailableCap: 'Este link atingiu o limite de visitas.',
+    unavailableBlocked: 'Este link não está disponível na sua região.',
+    unavailableDisabled: 'Este link foi desativado pelo administrador.',
+    unavailableNotFound: 'Este link não existe ou foi removido.',
   },
   'pt-PT': {
     passwordTitle: 'Palavra-passe necessária',
@@ -100,6 +149,13 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeTitle: 'Ligação potencialmente insegura',
     unsafeDesc: 'Esta ligação foi assinalada como potencialmente insegura. Prossiga com cuidado.',
     goBack: 'Voltar',
+    turnstileVerifying: 'A verificar se é humano…',
+    unavailableTitle: 'Indisponível',
+    unavailableExpired: 'Esta ligação expirou.',
+    unavailableCap: 'Esta ligação atingiu o limite de visitas.',
+    unavailableBlocked: 'Esta ligação não está disponível na sua região.',
+    unavailableDisabled: 'Esta ligação foi desativada pelo administrador.',
+    unavailableNotFound: 'Esta ligação não existe ou foi removida.',
   },
   'vi-VN': {
     passwordTitle: 'Yêu cầu mật khẩu',
@@ -110,6 +166,13 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeTitle: 'Liên kết có thể không an toàn',
     unsafeDesc: 'Liên kết này đã bị đánh dấu là có thể không an toàn. Hãy thận trọng khi tiếp tục.',
     goBack: 'Quay lại',
+    turnstileVerifying: 'Đang xác minh bạn là người…',
+    unavailableTitle: 'Không khả dụng',
+    unavailableExpired: 'Liên kết này đã hết hạn.',
+    unavailableCap: 'Liên kết này đã đạt giới hạn lượt truy cập.',
+    unavailableBlocked: 'Liên kết này không khả dụng ở khu vực của bạn.',
+    unavailableDisabled: 'Liên kết này đã bị quản trị viên tắt.',
+    unavailableNotFound: 'Liên kết này không tồn tại hoặc đã bị xóa.',
   },
   'zh-CN': {
     passwordTitle: '需要密码',
@@ -120,6 +183,13 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeTitle: '潜在不安全链接',
     unsafeDesc: '此链接已被标记为潜在不安全。请谨慎访问。',
     goBack: '返回',
+    turnstileVerifying: '正在验证你是否为真人…',
+    unavailableTitle: '暂不可用',
+    unavailableExpired: '此链接已过期。',
+    unavailableCap: '此链接的访问次数已达上限。',
+    unavailableBlocked: '此链接在你的地区不可用。',
+    unavailableDisabled: '此链接已被管理员停用。',
+    unavailableNotFound: '此链接不存在或已被删除。',
   },
   'zh-TW': {
     passwordTitle: '需要密碼',
@@ -130,6 +200,13 @@ export const REDIRECT_TRANSLATIONS = {
     unsafeTitle: '潛在不安全連結',
     unsafeDesc: '此連結已被標記為潛在不安全。請謹慎訪問。',
     goBack: '返回',
+    turnstileVerifying: '正在驗證你是否為真人…',
+    unavailableTitle: '暫不可用',
+    unavailableExpired: '此連結已過期。',
+    unavailableCap: '此連結的造訪次數已達上限。',
+    unavailableBlocked: '此連結在你的地區不可用。',
+    unavailableDisabled: '此連結已被管理員停用。',
+    unavailableNotFound: '此連結不存在或已被刪除。',
   },
 } as const satisfies Record<RedirectLocale, RedirectTranslation>
 

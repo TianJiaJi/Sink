@@ -39,13 +39,16 @@ export default defineNuxtConfig({
     disableBotAccessLog: false,
     disableAutoBackup: false,
     notFoundRedirect: '',
+    unavailableRedirectUrl: '', // Optional: redirect expired/cap-reached/geo-blocked links here with ?reason= instead of the default page
     safeBrowsingDoh: '', // Set to DoH URL to enable auto-detection, e.g. https://family.cloudflare-dns.com/dns-query
+    turnstileSecret: '', // Cloudflare Turnstile secret key; leave empty to disable Turnstile
     webhookUrl: '',
     webhookSecret: '',
     public: {
       previewMode: '',
       slugDefaultLength: '6',
       kvBatchLimit: '50',
+      turnstileSitekey: '',
     },
   },
   routeRules: {

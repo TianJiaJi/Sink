@@ -6,8 +6,9 @@ export type DashboardLink = Link & {
   tags?: string[]
 }
 
-export type DashboardLinkFormData = Omit<LinkFormData, 'tags'> & {
+export type DashboardLinkFormData = Omit<LinkFormData, 'tags' | 'maxClicks'> & {
   tags: string[]
+  maxClicks: number | undefined
 }
 
 export type DashboardLinkSearchItem = LinkSearchItem & {
