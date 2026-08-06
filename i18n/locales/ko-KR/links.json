@@ -34,6 +34,13 @@
     },
     "expired": "만료됨",
     "unsafe": "안전하지 않은 링크",
+    "status_active": "정상",
+    "status_limited": "제한",
+    "status_capped": "한도 도달",
+    "status_disabled": "비활성화",
+    "reset_clicks": "방문 카운터 초기화",
+    "reset_clicks_success": "카운터가 초기화되었습니다",
+    "reset_clicks_failed": "카운터 초기화 실패",
     "filters": {
       "aria_label": "링크 필터",
       "status_label": "상태",

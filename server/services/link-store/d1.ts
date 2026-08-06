@@ -89,6 +89,7 @@ function rowToLink(row: LinkRow): Link {
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     tags: [],
+    clickCount: row.clickCount,
   }
   const optionalFields = [
     'comment',

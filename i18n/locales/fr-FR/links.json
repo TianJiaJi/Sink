@@ -34,6 +34,13 @@
     },
     "expired": "Expiré",
     "unsafe": "Lien non sécurisé",
+    "status_active": "Actif",
+    "status_limited": "Limité",
+    "status_capped": "Limite atteinte",
+    "status_disabled": "Désactivé",
+    "reset_clicks": "Réinitialiser le compteur",
+    "reset_clicks_success": "Compteur réinitialisé",
+    "reset_clicks_failed": "Échec de réinitialisation du compteur",
     "filters": {
       "aria_label": "Filtres de liens",
       "status_label": "Statut",

@@ -34,6 +34,13 @@
     },
     "expired": "Abgelaufen",
     "unsafe": "Unsicherer Link",
+    "status_active": "Aktiv",
+    "status_limited": "Begrenzt",
+    "status_capped": "Limit erreicht",
+    "status_disabled": "Deaktiviert",
+    "reset_clicks": "Zähler zurücksetzen",
+    "reset_clicks_success": "Zähler zurückgesetzt",
+    "reset_clicks_failed": "Zähler konnte nicht zurückgesetzt werden",
     "filters": {
       "aria_label": "Linkfilter",
       "status_label": "Status",

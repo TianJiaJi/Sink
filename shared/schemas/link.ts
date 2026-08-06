@@ -89,6 +89,7 @@ export const StoredLinkSchema = LinkFieldsSchema.extend({
   createdAt: TimestampSchema,
   updatedAt: TimestampSchema,
   expiration: TimestampSchema.optional(),
+  clickCount: z.number().int().min(0).optional(),
 })
 
 export function parseLegacyKvLink(value: unknown, slug: string) {

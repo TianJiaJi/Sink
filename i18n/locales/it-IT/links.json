@@ -34,6 +34,13 @@
     },
     "expired": "Scaduto",
     "unsafe": "Link non sicuro",
+    "status_active": "Attivo",
+    "status_limited": "Limitato",
+    "status_capped": "Limite raggiunto",
+    "status_disabled": "Disabilitato",
+    "reset_clicks": "Azzera contatore",
+    "reset_clicks_success": "Contatore azzerato",
+    "reset_clicks_failed": "Reimpostazione contatore non riuscita",
     "filters": {
       "aria_label": "Filtri dei link",
       "status_label": "Stato",

@@ -34,6 +34,13 @@
     },
     "expired": "Đã hết hạn",
     "unsafe": "Liên kết không an toàn",
+    "status_active": "Hoạt động",
+    "status_limited": "Giới hạn",
+    "status_capped": "Đạt giới hạn",
+    "status_disabled": "Đã tắt",
+    "reset_clicks": "Đặt lại bộ đếm",
+    "reset_clicks_success": "Đã đặt lại bộ đếm",
+    "reset_clicks_failed": "Đặt lại bộ đếm thất bại",
     "filters": {
       "aria_label": "Bộ lọc liên kết",
       "status_label": "Trạng thái",

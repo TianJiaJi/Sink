@@ -34,6 +34,13 @@
     },
     "expired": "Kedaluwarsa",
     "unsafe": "Tautan tidak aman",
+    "status_active": "Aktif",
+    "status_limited": "Terbatas",
+    "status_capped": "Batas tercapai",
+    "status_disabled": "Dinonaktifkan",
+    "reset_clicks": "Reset penghitung",
+    "reset_clicks_success": "Penghitung direset",
+    "reset_clicks_failed": "Gagal mereset penghitung",
     "filters": {
       "aria_label": "Filter tautan",
       "status_label": "Status",

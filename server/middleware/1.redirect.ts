@@ -270,4 +270,15 @@ export default eventHandler(async (event) => {
       return generateUnavailableHtml('notfound', resolveRedirectLocale(event))
     }
   }
+  else if (slug && !reserveSlug.includes(slug) && cloudflare && !/\.[a-z0-9]+$/i.test(slug)) {
+    // Slug didn't match the allowed format (e.g. trailing symbol) and isn't a
+    // static asset — treat it as a non-existent link and show the friendly 404
+    // instead of falling through to Nuxt's default error page.
+    if (notFoundRedirect) {
+      return sendRedirect(event, notFoundRedirect, 302)
+    }
+    setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
+    setHeader(event, 'Cache-Control', 'no-store')
+    return generateUnavailableHtml('notfound', resolveRedirectLocale(event))
+  }
 })
