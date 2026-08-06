@@ -1,5 +1,6 @@
 import type { Link } from '@/types'
 import { parsePath, withQuery } from 'ufo'
+import { d1GetAnyLink } from '../services/link-store/d1'
 
 const SOCIAL_BOTS = [
   'applebot',
@@ -89,15 +90,33 @@ export default eventHandler(async (event) => {
       const shouldRedirectWithQuery = link.redirectWithQuery ?? redirectWithQuery
       const buildTarget = (url: string) => shouldRedirectWithQuery ? withQuery(url, query) : url
 
-      let targetUrl = link.url
+      // Disabled link: administrator has turned it off
+      if (link.disabled) {
+        return handleUnavailable(event, 'disabled', getLocale())
+      }
+
+      let targetUrl = link.ab?.length ? pickAbVariant(link.ab) : link.url
       const country = event.context.cloudflare?.request?.cf?.country
-      if (country && typeof country === 'string' && link.geo?.[country.toUpperCase()]) {
-        targetUrl = link.geo[country.toUpperCase()]!
+      if (country && typeof country === 'string') {
+        const countryCode = country.toUpperCase()
+        // Country allow/deny lists (allow wins semantics: empty = no restriction)
+        if ((link.countryAllow?.length && !link.countryAllow.includes(countryCode)) || link.countryBlock?.includes(countryCode)) {
+          return handleUnavailable(event, 'blocked', getLocale())
+        }
+        if (link.geo?.[countryCode]) {
+          targetUrl = link.geo[countryCode]!
+        }
       }
       targetUrl = buildTarget(targetUrl)
 
       const deviceRedirectUrl = getDeviceRedirectUrl(userAgent, link)
       const finalTargetUrl = deviceRedirectUrl ?? targetUrl
+      event.context.resolvedTargetUrl = finalTargetUrl
+
+      // === Turnstile gate: per-link toggle + every password-protected link (stateless) ===
+      const turnstileEnabled = isTurnstileEnabled(event)
+      const sitekey = turnstileEnabled ? getTurnstileSitekey(event) : ''
+      const needTurnstile = turnstileEnabled && (!!link.turnstile || !!link.password)
 
       // Password protection check
       if (link.password) {
@@ -107,8 +126,16 @@ export default eventHandler(async (event) => {
           const body = await readBody(event)
           const submittedPassword = typeof body?.password === 'string' ? body.password : ''
 
+          // Turnstile must pass before the password is even checked (when required)
+          if (needTurnstile) {
+            const token = typeof body?.['cf-turnstile-response'] === 'string' ? body['cf-turnstile-response'] : ''
+            if (!await verifyTurnstileToken(event, token)) {
+              return sendNoStoreHtml(generatePasswordHtml(slug, { locale: getLocale(), requireTurnstile: true, sitekey, turnstileError: true }))
+            }
+          }
+
           if (!await verifyLinkPassword(submittedPassword, link.password)) {
-            return sendNoStoreHtml(generatePasswordHtml(slug, { hasError: true, locale: getLocale() }))
+            return sendNoStoreHtml(generatePasswordHtml(slug, { hasError: true, locale: getLocale(), requireTurnstile: needTurnstile, sitekey }))
           }
 
           // Password correct - show unsafe warning if needed
@@ -117,6 +144,13 @@ export default eventHandler(async (event) => {
           }
         }
         else if (headerPassword) {
+          // API path: when Turnstile is triggered, require x-turnstile-token header
+          if (needTurnstile) {
+            const token = getHeader(event, 'x-turnstile-token')
+            if (!await verifyTurnstileToken(event, token || undefined)) {
+              throw createError({ status: 403, statusText: 'Turnstile verification required (set x-turnstile-token header)' })
+            }
+          }
           if (!await verifyLinkPassword(headerPassword, link.password)) {
             throw createError({ status: 403, statusText: 'Incorrect password' })
           }
@@ -126,12 +160,34 @@ export default eventHandler(async (event) => {
           }
         }
         else {
-          return sendNoStoreHtml(generatePasswordHtml(slug, { locale: getLocale() }))
+          // GET: render password page, with Turnstile widget when required
+          return sendNoStoreHtml(generatePasswordHtml(slug, { locale: getLocale(), requireTurnstile: needTurnstile, sitekey }))
+        }
+      }
+      else if (needTurnstile) {
+        // No password, but a Turnstile gate is active (per-link toggle on this link)
+        const headerToken = getHeader(event, 'x-turnstile-token')
+        if (event.method === 'POST') {
+          const body = await readBody(event)
+          const token = typeof body?.['cf-turnstile-response'] === 'string' ? body['cf-turnstile-response'] : ''
+          if (!await verifyTurnstileToken(event, token)) {
+            return sendNoStoreHtml(generateTurnstileGateHtml(slug, sitekey, getLocale()))
+          }
+          // gate passed -> fall through to redirect (unsafe is skipped below since Turnstile subsumes it)
+        }
+        else if (headerToken) {
+          if (!await verifyTurnstileToken(event, headerToken)) {
+            throw createError({ status: 403, statusText: 'Turnstile verification required' })
+          }
+          // fall through
+        }
+        else {
+          return sendNoStoreHtml(generateTurnstileGateHtml(slug, sitekey))
         }
       }
 
-      // Unsafe link warning (for links without password)
-      if (!link.password && link.unsafe) {
+      // Unsafe link warning (for links without password; skipped when Turnstile already gated the visit)
+      if (!link.password && link.unsafe && !needTurnstile) {
         if (event.method === 'POST') {
           const body = await readBody(event)
           if (body?.confirm !== 'true') {
@@ -168,6 +224,11 @@ export default eventHandler(async (event) => {
         }
       }
 
+      // Click cap: count this valid visit (after all gates passed); block if the cap is reached
+      if (link.maxClicks && !(await incrementClickCount(event, slug, link.maxClicks))) {
+        return handleUnavailable(event, 'cap', getLocale())
+      }
+
       if (deviceRedirectUrl) {
         if (redirectNoStore)
           setHeader(event, 'Cache-Control', 'no-store')
@@ -194,11 +255,19 @@ export default eventHandler(async (event) => {
       return sendRedirect(event, finalTargetUrl, +redirectStatusCode)
     }
     else {
+      // Distinguish "expired" from "not found". Both render a friendly default
+      // page, or redirect when unavailableRedirectUrl / notFoundRedirect is set.
+      const anyLink = await d1GetAnyLink(event, caseSensitive ? slug : lowerCaseSlug)
+      const now = Math.floor(Date.now() / 1000)
+      if (anyLink?.expiration && anyLink.expiration <= now) {
+        return handleUnavailable(event, 'expired', resolveRedirectLocale(event))
+      }
       if (notFoundRedirect) {
         return sendRedirect(event, notFoundRedirect, 302)
       }
-
-      throw createError({ status: 404, statusText: 'Link not found' })
+      setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
+      setHeader(event, 'Cache-Control', 'no-store')
+      return generateUnavailableHtml('notfound', resolveRedirectLocale(event))
     }
   }
 })

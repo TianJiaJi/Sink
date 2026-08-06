@@ -150,7 +150,7 @@ export function collectAccessLog(event: H3Event): AccessLogResult | undefined {
 
   const countryName = getCountryName(cf?.country)
   const logs = {
-    url: link.url,
+    url: event.context.resolvedTargetUrl ?? link.url,
     slug: link.slug,
     ua: userAgent,
     ip,

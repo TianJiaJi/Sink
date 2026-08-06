@@ -40,6 +40,26 @@ function removeGeoRoute(routes: GeoRoute[], index: number | string) {
   return routes.filter((_, routeIndex) => routeIndex !== targetIndex)
 }
 
+function updateCountry(list: string[], index: number | string, value: string): string[] {
+  const targetIndex = Number(index)
+  return list.map((item, i) => i === targetIndex ? value : item)
+}
+
+function removeListItem<T>(list: T[], index: number | string): T[] {
+  const targetIndex = Number(index)
+  return list.filter((_, i) => i !== targetIndex)
+}
+
+interface AbRoute {
+  url: string
+  weight: number
+}
+
+function updateAbRoute(routes: AbRoute[], index: number | string, value: Partial<AbRoute>): AbRoute[] {
+  const targetIndex = Number(index)
+  return routes.map((route, i) => i === targetIndex ? { ...route, ...value } : route)
+}
+
 function formatPasswordDisplay(password: string) {
   return isMaskedLinkPassword(password)
     ? password.replace(LINK_PASSWORD_MASK_PREFIX, '')
@@ -117,6 +137,26 @@ async function aiOg() {
             />
           </props.form.Field>
 
+          <props.form.Field v-slot="{ field }" name="turnstile">
+            <DashboardLinksEditorFieldSwitch
+              :id="`${idPrefix}-${field.name}`"
+              :model-value="field.state.value"
+              :label="$t('links.form.turnstile_label')"
+              :description="$t('links.form.turnstile_description')"
+              @update:model-value="field.handleChange"
+            />
+          </props.form.Field>
+
+          <props.form.Field v-slot="{ field }" name="disabled">
+            <DashboardLinksEditorFieldSwitch
+              :id="`${idPrefix}-${field.name}`"
+              :model-value="field.state.value"
+              :label="$t('links.form.disabled_label')"
+              :description="$t('links.form.disabled_description')"
+              @update:model-value="field.handleChange"
+            />
+          </props.form.Field>
+
           <props.form.Field v-slot="{ field }" name="expiration">
             <Field :data-invalid="isInvalid(field)">
               <FieldLabel :for="`${idPrefix}-${field.name}`">
@@ -190,6 +230,27 @@ async function aiOg() {
                 autocomplete="off"
                 @blur="field.handleBlur"
                 @input="field.handleChange(($event.target as HTMLInputElement).value)"
+              />
+            </Field>
+          </props.form.Field>
+
+          <props.form.Field v-slot="{ field }" name="maxClicks">
+            <Field>
+              <FieldLabel :for="`${idPrefix}-${field.name}`">
+                {{ $t('links.form.click_cap_label') }}
+              </FieldLabel>
+              <FieldDescription>
+                {{ $t('links.form.click_cap_description') }}
+              </FieldDescription>
+              <Input
+                :id="`${idPrefix}-${field.name}`"
+                :name="field.name"
+                type="number"
+                min="1"
+                :model-value="field.state.value"
+                :placeholder="$t('links.form.click_cap_placeholder')"
+                autocomplete="off"
+                @input="field.handleChange(($event.target as HTMLInputElement).value ? Number(($event.target as HTMLInputElement).value) : undefined)"
               />
             </Field>
           </props.form.Field>
@@ -369,6 +430,160 @@ async function aiOg() {
               </div>
               <Button type="button" variant="outline" size="sm" @click="field.handleChange([...field.state.value, { country: '', url: '' }])">
                 <Plus aria-hidden="true" class="mr-2 size-4" /> {{ $t('links.form.add_geo_route') }}
+              </Button>
+            </div>
+          </props.form.Field>
+        </FieldGroup>
+      </AccordionContent>
+    </AccordionItem>
+
+    <AccordionItem value="country_access">
+      <AccordionTrigger>
+        {{ $t('links.form.country_access') }}
+      </AccordionTrigger>
+      <AccordionContent class="px-1">
+        <FieldGroup>
+          <props.form.Field v-slot="{ field }" name="countryAllow">
+            <div class="space-y-2">
+              <div>
+                <FieldLabel>{{ $t('links.form.country_allow_label') }}</FieldLabel>
+                <FieldDescription>{{ $t('links.form.country_allow_description') }}</FieldDescription>
+              </div>
+              <div
+                v-for="(code, i) in field.state.value" :key="`allow-${i}`"
+                class="flex items-start gap-2"
+              >
+                <Field class="flex-1">
+                  <FieldLabel
+                    :for="`${idPrefix}-country-allow-${i}`" class="sr-only"
+                  >
+                    {{ $t('links.form.select_country') }}
+                  </FieldLabel>
+                  <DashboardLinksEditorCountrySelect
+                    :id="`${idPrefix}-country-allow-${i}`"
+                    :model-value="code"
+                    :placeholder="$t('links.form.select_country')"
+                    :search-placeholder="$t('links.form.search_country')"
+                    :empty-text="$t('links.form.no_country_found')"
+                    @update:model-value="field.handleChange(updateCountry(field.state.value, i, $event))"
+                  />
+                </Field>
+                <Button
+                  type="button" variant="ghost" size="icon"
+                  :aria-label="$t('common.delete')"
+                  @click="field.handleChange(removeListItem(field.state.value, i))"
+                >
+                  <Trash2
+                    aria-hidden="true" class="size-4 text-muted-foreground"
+                  />
+                </Button>
+              </div>
+              <Button type="button" variant="outline" size="sm" @click="field.handleChange([...field.state.value, ''])">
+                <Plus aria-hidden="true" class="mr-2 size-4" /> {{ $t('links.form.add_country') }}
+              </Button>
+            </div>
+          </props.form.Field>
+
+          <props.form.Field v-slot="{ field }" name="countryBlock">
+            <div class="space-y-2">
+              <div>
+                <FieldLabel>{{ $t('links.form.country_block_label') }}</FieldLabel>
+                <FieldDescription>{{ $t('links.form.country_block_description') }}</FieldDescription>
+              </div>
+              <div
+                v-for="(code, i) in field.state.value" :key="`block-${i}`"
+                class="flex items-start gap-2"
+              >
+                <Field class="flex-1">
+                  <FieldLabel
+                    :for="`${idPrefix}-country-block-${i}`" class="sr-only"
+                  >
+                    {{ $t('links.form.select_country') }}
+                  </FieldLabel>
+                  <DashboardLinksEditorCountrySelect
+                    :id="`${idPrefix}-country-block-${i}`"
+                    :model-value="code"
+                    :placeholder="$t('links.form.select_country')"
+                    :search-placeholder="$t('links.form.search_country')"
+                    :empty-text="$t('links.form.no_country_found')"
+                    @update:model-value="field.handleChange(updateCountry(field.state.value, i, $event))"
+                  />
+                </Field>
+                <Button
+                  type="button" variant="ghost" size="icon"
+                  :aria-label="$t('common.delete')"
+                  @click="field.handleChange(removeListItem(field.state.value, i))"
+                >
+                  <Trash2
+                    aria-hidden="true" class="size-4 text-muted-foreground"
+                  />
+                </Button>
+              </div>
+              <Button type="button" variant="outline" size="sm" @click="field.handleChange([...field.state.value, ''])">
+                <Plus aria-hidden="true" class="mr-2 size-4" /> {{ $t('links.form.add_country') }}
+              </Button>
+            </div>
+          </props.form.Field>
+        </FieldGroup>
+      </AccordionContent>
+    </AccordionItem>
+
+    <AccordionItem value="ab_routing">
+      <AccordionTrigger>
+        {{ $t('links.form.ab_routing') }}
+      </AccordionTrigger>
+      <AccordionContent class="px-1">
+        <FieldGroup>
+          <props.form.Field v-slot="{ field }" name="ab">
+            <div class="space-y-2">
+              <FieldDescription>{{ $t('links.form.ab_routing_description') }}</FieldDescription>
+              <div
+                v-for="(item, i) in field.state.value" :key="`ab-${i}`"
+                class="
+                  flex flex-col gap-2
+                  sm:flex-row sm:items-center
+                "
+              >
+                <Field class="flex-1">
+                  <FieldLabel :for="`${idPrefix}-ab-url-${i}`" class="sr-only">
+                    {{ $t('links.form.ab_routing_url') }}
+                  </FieldLabel>
+                  <Input
+                    :id="`${idPrefix}-ab-url-${i}`"
+                    :model-value="item.url"
+                    inputmode="url"
+                    placeholder="https://..."
+                    autocomplete="off"
+                    @input="field.handleChange(updateAbRoute(field.state.value, i, { url: ($event.target as HTMLInputElement).value }))"
+                  />
+                </Field>
+                <Field class="sm:w-24">
+                  <FieldLabel
+                    :for="`${idPrefix}-ab-weight-${i}`" class="sr-only"
+                  >
+                    {{ $t('links.form.ab_routing_weight') }}
+                  </FieldLabel>
+                  <Input
+                    :id="`${idPrefix}-ab-weight-${i}`"
+                    :model-value="item.weight"
+                    type="number"
+                    min="1"
+                    placeholder="1"
+                    @input="field.handleChange(updateAbRoute(field.state.value, i, { weight: Number(($event.target as HTMLInputElement).value) || 1 }))"
+                  />
+                </Field>
+                <Button
+                  type="button" variant="ghost" size="icon"
+                  :aria-label="$t('common.delete')"
+                  @click="field.handleChange(removeListItem(field.state.value, i))"
+                >
+                  <Trash2
+                    aria-hidden="true" class="size-4 text-muted-foreground"
+                  />
+                </Button>
+              </div>
+              <Button type="button" variant="outline" size="sm" @click="field.handleChange([...field.state.value, { url: '', weight: 1 }])">
+                <Plus aria-hidden="true" class="mr-2 size-4" /> {{ $t('links.form.add_ab_route') }}
               </Button>
             </div>
           </props.form.Field>

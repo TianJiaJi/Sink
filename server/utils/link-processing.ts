@@ -12,6 +12,12 @@ const editableOptionalLinkFields = [
   'redirectWithQuery',
   'expiration',
   'unsafe',
+  'turnstile',
+  'disabled',
+  'countryBlock',
+  'countryAllow',
+  'ab',
+  'maxClicks',
   'geo',
   'tags',
 ] as const satisfies readonly (keyof Link)[]

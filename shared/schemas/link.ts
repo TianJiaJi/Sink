@@ -56,6 +56,12 @@ const LinkFieldsSchema = z.object({
   redirectWithQuery: z.boolean().optional(),
   password: LinkPasswordSchema.optional(),
   unsafe: z.boolean().optional(),
+  turnstile: z.boolean().optional(),
+  disabled: z.boolean().optional(),
+  countryBlock: z.array(z.string().regex(/^[A-Z]{2}$/)).optional(),
+  countryAllow: z.array(z.string().regex(/^[A-Z]{2}$/)).optional(),
+  ab: z.array(z.object({ url: UrlSchema, weight: z.number().int().min(1) })).optional(),
+  maxClicks: z.number().int().positive().optional(),
   geo: GeoSchema.optional(),
   tags: TagsSchema,
 })
