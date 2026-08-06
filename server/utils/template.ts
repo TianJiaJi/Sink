@@ -100,6 +100,7 @@ export function generatePasswordHtml(slug: string, options: PasswordHtmlOptions 
     <meta name="robots" content="noindex">
     <title>${escape(t.passwordTitle)}</title>${turnstileScript}
     <style>${REDIRECT_BASE_CSS}
+      h1{margin-bottom:1.25rem}
       .error{color:#f87171;font-size:.8125rem;margin-bottom:.75rem;text-align:center;font-weight:500;padding:.5rem .75rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.22);border-radius:8px}
       .input-field{position:relative;margin-bottom:1.25rem}
       .field-icon{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);width:16px;height:16px;color:#71717a;pointer-events:none;transition:color .15s ease}
@@ -113,7 +114,7 @@ export function generatePasswordHtml(slug: string, options: PasswordHtmlOptions 
 <body>
     <div class="card">
         <div class="icon">${lockIcon}</div>
-        <h1>${escape(t.passwordTitle)}</h1>${hasError ? `\n        <p class="error">${escape(t.passwordError)}</p>` : ''}${turnstileError ? '\n        <p class="error">Please complete the verification and try again.</p>' : ''}
+        <h1>${escape(t.passwordTitle)}</h1>${hasError ? `\n        <p class="error">${escape(t.passwordError)}</p>` : ''}${turnstileError ? `\n        <p class="error">${escape(t.turnstileError)}</p>` : ''}
         <form method="POST" action="/${escape(slug)}">${withTurnstile ? `\n            <div class="cf-turnstile" data-sitekey="${escape(sitekey)}" data-callback="onTurnstileOk"></div>` : ''}
             <div class="input-field">
                 <span class="field-icon">${lockIcon}</span>
