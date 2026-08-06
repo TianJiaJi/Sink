@@ -34,6 +34,13 @@
     },
     "expired": "已过期",
     "unsafe": "不安全链接",
+    "status_active": "正常",
+    "status_limited": "受限",
+    "status_capped": "已达上限",
+    "status_disabled": "已停用",
+    "reset_clicks": "重置访问计数",
+    "reset_clicks_success": "访问计数已重置",
+    "reset_clicks_failed": "重置访问计数失败",
     "filters": {
       "aria_label": "链接筛选",
       "status_label": "状态",

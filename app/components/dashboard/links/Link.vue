@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from 'vue'
 import type { DashboardLink } from '@/types/dashboard-links'
-import { CalendarPlus2, Copy, CopyCheck, Ellipsis, Eraser, Flame, Hourglass, Link as LinkIcon, MousePointerClick, QrCode, ShieldAlert, SquarePen, Users } from '@lucide/vue'
+import { CalendarPlus2, Copy, CopyCheck, Ellipsis, Eraser, Flame, Hourglass, Link as LinkIcon, MousePointerClick, QrCode, RotateCcw, ShieldAlert, SquarePen, Users } from '@lucide/vue'
 import { useClipboard, useMediaQuery } from '@vueuse/core'
 import { parseURL } from 'ufo'
 import { toast } from 'vue-sonner'
@@ -11,6 +11,8 @@ const props = defineProps<{
 }>()
 
 const { t, locale } = useI18n()
+const linksStore = useDashboardLinksStore()
+const linksSearchStore = useDashboardLinksSearchStore()
 const editPopoverOpen = shallowRef(false)
 const qrDialogOpen = shallowRef(false)
 const editDialogOpen = shallowRef(false)
@@ -76,7 +78,28 @@ function getLinkHost(url: string): string | undefined {
 
 const shortLink = computed(() => `${origin}/${props.link.slug}`)
 const linkIcon = computed(() => `https://unavatar.webp.se/${getLinkHost(props.link.url)}?fallback=https://sink.cool/icon.png`)
-const isExpired = computed(() => Boolean(props.link.expiration && props.link.expiration <= Math.floor(Date.now() / 1000)))
+type LinkStatus = 'active' | 'limited' | 'expired' | 'capped' | 'disabled'
+
+const linkStatus = computed<LinkStatus>(() => {
+  const now = Math.floor(Date.now() / 1000)
+  if (props.link.disabled)
+    return 'disabled'
+  if (props.link.expiration && props.link.expiration <= now)
+    return 'expired'
+  if (props.link.maxClicks && (props.link.clickCount ?? 0) >= props.link.maxClicks)
+    return 'capped'
+  if (props.link.expiration || props.link.maxClicks)
+    return 'limited'
+  return 'active'
+})
+
+const statusMeta: Record<LinkStatus, { variant: 'destructive' | 'outline', cls: string, label: string }> = {
+  active: { variant: 'outline', cls: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400', label: 'links.status_active' },
+  limited: { variant: 'outline', cls: 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400', label: 'links.status_limited' },
+  expired: { variant: 'destructive', cls: '', label: 'links.expired' },
+  capped: { variant: 'destructive', cls: '', label: 'links.status_capped' },
+  disabled: { variant: 'destructive', cls: '', label: 'links.status_disabled' },
+}
 const noteText = computed(() => props.link.comment?.trim() ?? '')
 const summaryText = computed(() => props.link.title?.trim() || props.link.description?.trim() || '')
 const tags = computed(() => props.link.tags ?? [])
@@ -88,6 +111,23 @@ const { copy, copied } = useClipboard({ source: shortLink.value, copiedDuring: 4
 function copyLink() {
   copy(shortLink.value)
   toast(t('links.copy_success'))
+}
+
+async function resetClicks() {
+  try {
+    await useAPI('/api/link/reset-clicks', {
+      method: 'POST',
+      body: { slug: props.link.slug },
+    })
+    const updatedLink = { ...props.link, clickCount: 0 }
+    linksSearchStore.syncLink(updatedLink, 'edit')
+    linksStore.notifyLinkUpdate(updatedLink, 'edit')
+    toast(t('links.reset_clicks_success'))
+  }
+  catch (error) {
+    console.error(error)
+    toast.error(t('links.reset_clicks_failed'))
+  }
 }
 </script>
 
@@ -176,11 +216,11 @@ function copyLink() {
                 <ShieldAlert aria-hidden="true" class="size-4" />
               </span>
               <Badge
-                v-if="isExpired"
-                variant="destructive"
+                :variant="statusMeta[linkStatus].variant"
                 class="ml-1 shrink-0"
+                :class="statusMeta[linkStatus].cls"
               >
-                {{ $t('links.expired') }}
+                {{ $t(statusMeta[linkStatus].label) }}
               </Badge>
             </div>
 
@@ -267,6 +307,13 @@ function copyLink() {
                 {{ $t('common.edit') }}
               </DropdownMenuItem>
 
+              <DropdownMenuItem
+                v-if="link.maxClicks"
+                @select="resetClicks"
+              >
+                <RotateCcw aria-hidden="true" />
+                {{ $t('links.reset_clicks') }}
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
 
               <DropdownMenuItem

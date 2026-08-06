@@ -34,6 +34,13 @@
     },
     "expired": "Expired",
     "unsafe": "Unsafe link",
+    "status_active": "Active",
+    "status_limited": "Limited",
+    "status_capped": "Limit reached",
+    "status_disabled": "Disabled",
+    "reset_clicks": "Reset visit counter",
+    "reset_clicks_success": "Visit counter reset",
+    "reset_clicks_failed": "Failed to reset visit counter",
     "filters": {
       "aria_label": "Link filters",
       "status_label": "Status",
