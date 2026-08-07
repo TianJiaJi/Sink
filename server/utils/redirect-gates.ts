@@ -2,19 +2,10 @@ import type { H3Event } from 'h3'
 import type { Link } from '#shared/schemas/link'
 import { incrementClickCount } from './click-cap'
 
-/**
- * Country allow/deny gate. Returns 'block' if the visitor's country is denied
- * by the link's lists, 'allow' otherwise (including when country is unknown —
- * we fail open to avoid blocking legit visitors whose country can't be detected).
- */
-export function evalCountryGate(link: Pick<Link, 'countryAllow' | 'countryBlock'>, country: string | undefined): 'allow' | 'block' {
-  if (!country || typeof country !== 'string')
-    return 'allow'
-  const code = country.toUpperCase()
-  if ((link.countryAllow?.length && !link.countryAllow.includes(code)) || link.countryBlock?.includes(code))
-    return 'block'
-  return 'allow'
-}
+// evalCountryGate lives in shared/utils/redirect-gates.ts so both the server
+// middleware and the client-side country-preview use the same rule. Nuxt
+// auto-imports it everywhere — no re-export needed here (re-exporting caused a
+// "duplicated imports" warning).
 
 /**
  * Click-cap gate. Atomically increments the visit counter (D1) and returns true

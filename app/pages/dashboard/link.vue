@@ -97,6 +97,10 @@ linksStore.onLinkUpdate(({ link: updatedLink, type }) => {
       v-if="link?.id"
       :link="link"
     />
+    <DashboardLinksCountryPreview
+      v-if="link?.id"
+      :link="link"
+    />
     <section
       v-else-if="loading"
       class="space-y-6"
