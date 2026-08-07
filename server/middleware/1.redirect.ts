@@ -266,6 +266,7 @@ export default eventHandler(async (event) => {
       }
       setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
       setHeader(event, 'Cache-Control', 'no-store')
+      setResponseStatus(event, 404)
       return generateUnavailableHtml('notfound', resolveRedirectLocale(event))
     }
   }
@@ -278,6 +279,7 @@ export default eventHandler(async (event) => {
     }
     setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
     setHeader(event, 'Cache-Control', 'no-store')
+    setResponseStatus(event, 404)
     return generateUnavailableHtml('notfound', resolveRedirectLocale(event))
   }
 })
