@@ -284,3 +284,27 @@ export function resolveRedirectLocale(event: H3Event): RedirectLocale {
 
   return DEFAULT_REDIRECT_LOCALE
 }
+
+/**
+ * Map a resolved redirect locale to a Cloudflare Turnstile `language` code
+ * (https://developers.cloudflare.com/turnstile/reference/supported-languages/).
+ * Drives the `data-language` attribute on `.cf-turnstile` widgets so the
+ * in-widget text (e.g. "Verifying you are human…") follows the visitor's
+ * locale instead of defaulting to English.
+ */
+const TURNSTILE_LANGUAGE_BY_LOCALE: Record<RedirectLocale, string> = {
+  'de-DE': 'de',
+  'en-US': 'en',
+  'fr-FR': 'fr',
+  'id-ID': 'id',
+  'it-IT': 'it',
+  'pt-BR': 'pt-BR',
+  'pt-PT': 'pt-PT',
+  'vi-VN': 'vi',
+  'zh-CN': 'zh-CN',
+  'zh-TW': 'zh-TW',
+}
+
+export function redirectLocaleToTurnstileLang(locale: RedirectLocale): string {
+  return TURNSTILE_LANGUAGE_BY_LOCALE[locale] ?? 'en'
+}

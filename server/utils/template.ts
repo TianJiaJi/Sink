@@ -115,7 +115,7 @@ export function generatePasswordHtml(slug: string, options: PasswordHtmlOptions 
     <div class="card">
         <div class="icon">${lockIcon}</div>
         <h1>${escape(t.passwordTitle)}</h1>${hasError ? `\n        <p class="error">${escape(t.passwordError)}</p>` : ''}${turnstileError ? `\n        <p class="error">${escape(t.turnstileError)}</p>` : ''}
-        <form method="POST" action="/${escape(slug)}">${withTurnstile ? `\n            <div class="cf-turnstile" data-sitekey="${escape(sitekey)}" data-action="turnstile-spin-v2" data-callback="onTurnstileOk"></div>` : ''}
+        <form method="POST" action="/${escape(slug)}">${withTurnstile ? `\n            <div class="cf-turnstile" data-sitekey="${escape(sitekey)}" data-language="${escape(redirectLocaleToTurnstileLang(locale))}" data-action="turnstile-spin-v2" data-callback="onTurnstileOk"></div>` : ''}
             <div class="input-field">
                 <span class="field-icon">${lockIcon}</span>
                 <input type="password" id="password" name="password" required autofocus placeholder="${escape(t.passwordPlaceholder)}">
@@ -153,7 +153,7 @@ export function generateTurnstileGateHtml(slug: string, sitekey: string, locale:
         <p class="title">${escape(t.turnstileVerifying)}</p>
         <div class="spinner"></div>
         <form method="POST" action="/${escape(slug)}" id="turnstile-gate-form">
-            <div class="cf-turnstile" data-sitekey="${escape(sitekey)}" data-action="turnstile-spin-v2" data-callback="onTurnstileGateOk"></div>
+            <div class="cf-turnstile" data-sitekey="${escape(sitekey)}" data-language="${escape(redirectLocaleToTurnstileLang(locale))}" data-action="turnstile-spin-v2" data-callback="onTurnstileGateOk"></div>
             <input type="hidden" name="turnstile-gate" value="1">
         </form>
     </div>
