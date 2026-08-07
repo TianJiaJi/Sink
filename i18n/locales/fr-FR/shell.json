@@ -29,15 +29,7 @@
     "analysis": "Statistiques",
     "realtime": "Realtime",
     "check": "Check",
-    "migrate": "Import/Export",
-    "audit": "Journal d'audit"
-  },
-  "audit": {
-    "time": "Heure",
-    "action": "Action",
-    "slug": "Slug",
-    "actor": "Acteur",
-    "empty": "Aucune entrée d'audit"
+    "migrate": "Import/Export"
   },
   "sidebar": {
     "subtitle": "Raccourcisseur de liens",

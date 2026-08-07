@@ -1,0 +1,1 @@
+DROP TABLE `link_audit_logs`;

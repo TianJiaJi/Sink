@@ -29,15 +29,7 @@
     "analysis": "Analisis",
     "realtime": "Real-time",
     "check": "Check",
-    "migrate": "Impor/Ekspor",
-    "audit": "Log Audit"
-  },
-  "audit": {
-    "time": "Waktu",
-    "action": "Tindakan",
-    "slug": "Slug",
-    "actor": "Aktor",
-    "empty": "Belum ada entri audit"
+    "migrate": "Impor/Ekspor"
   },
   "sidebar": {
     "subtitle": "Pemendek Tautan",

@@ -29,15 +29,7 @@
     "analysis": "Análise",
     "realtime": "Tempo Real",
     "check": "Check",
-    "migrate": "Importar/Exportar",
-    "audit": "Registro de auditoria"
-  },
-  "audit": {
-    "time": "Hora",
-    "action": "Ação",
-    "slug": "Slug",
-    "actor": "Autor",
-    "empty": "Sem registros de auditoria"
+    "migrate": "Importar/Exportar"
   },
   "sidebar": {
     "subtitle": "Encurtador de links",
