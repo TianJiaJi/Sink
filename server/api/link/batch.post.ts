@@ -43,7 +43,6 @@ export default eventHandler(async (event) => {
     try {
       if (body.action === 'delete') {
         await deleteLink(event, slug)
-        await writeAuditLog(event, { action: 'delete', linkSlug: slug })
       }
       else {
         // disable / enable / addTags all need the existing link first
@@ -68,8 +67,6 @@ export default eventHandler(async (event) => {
             await updateLink(event, { ...existing, tags: merged }, { id: existing.id, updatedAt: existing.updatedAt })
           }
         }
-
-        await writeAuditLog(event, { action: 'edit', linkSlug: slug, details: { batch: body.action } })
       }
 
       results.push({ slug, ok: true })

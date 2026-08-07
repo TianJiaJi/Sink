@@ -29,15 +29,7 @@
     "analysis": "分析",
     "realtime": "实时",
     "check": "检测",
-    "migrate": "导入/导出",
-    "audit": "操作日志"
-  },
-  "audit": {
-    "time": "时间",
-    "action": "操作",
-    "slug": "短码",
-    "actor": "操作者",
-    "empty": "暂无操作记录"
+    "migrate": "导入/导出"
   },
   "sidebar": {
     "subtitle": "短链接服务",

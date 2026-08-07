@@ -43,12 +43,6 @@ const settingsItems = computed<NavItem[]>(() => [
     icon: DASHBOARD_ROUTES.migrate.icon,
     isActive: isActive('migrate'),
   },
-  {
-    title: 'nav.audit',
-    url: '/dashboard/audit',
-    icon: DASHBOARD_ROUTES.audit.icon,
-    isActive: isActive('audit'),
-  },
 ])
 </script>
 

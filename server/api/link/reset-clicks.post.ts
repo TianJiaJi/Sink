@@ -42,5 +42,4 @@ export default eventHandler(async (event) => {
   const slug = normalizeSlug(event, body.slug)
   const db = drizzle(event.context.cloudflare.env.DB)
   await db.update(links).set({ clickCount: 0 }).where(eq(links.slug, slug))
-  await writeAuditLog(event, { action: 'reset-clicks', linkSlug: slug })
 })

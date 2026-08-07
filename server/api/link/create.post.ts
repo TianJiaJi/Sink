@@ -60,6 +60,5 @@ export default eventHandler(async (event) => {
     })
   }
   setResponseStatus(event, 201)
-  await writeAuditLog(event, { action: 'create', linkSlug: link.slug, details: { url: link.url } })
   return buildLinkResponse(event, link)
 })

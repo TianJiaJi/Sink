@@ -66,15 +66,3 @@ export const linkMigrationRuns = sqliteTable('link_migration_runs', {
   createdAt: integer('created_at').notNull(),
   updatedAt: integer('updated_at').notNull(),
 })
-
-export const linkAuditLogs = sqliteTable('link_audit_logs', {
-  id: text().primaryKey(),
-  createdAt: integer('created_at').notNull(),
-  action: text({ enum: ['create', 'edit', 'delete', 'reset-clicks'] }).notNull(),
-  linkSlug: text('link_slug').notNull(),
-  actor: text().notNull(),
-  details: text({ mode: 'json' }).$type<Record<string, unknown>>(),
-}, table => [
-  index('link_audit_logs_created_at_idx').on(table.createdAt),
-  index('link_audit_logs_link_slug_idx').on(table.linkSlug),
-])
