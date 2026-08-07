@@ -38,4 +38,5 @@ export default eventHandler(async (event) => {
   const body = await readValidatedBody(event, DeleteSchema.parse)
   const slug = normalizeSlug(event, body.slug)
   await deleteLink(event, slug)
+  await writeAuditLog(event, { action: 'delete', linkSlug: slug })
 })
