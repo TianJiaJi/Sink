@@ -142,8 +142,8 @@ export function generateTurnstileGateHtml(slug: string, sitekey: string, locale:
       .title{font-size:1rem;font-weight:600;margin-bottom:.5rem;letter-spacing:-.02em}
       .desc{font-size:.8125rem;color:#71717a;margin-bottom:1.5rem}
       .cf-turnstile{display:flex;justify-content:center}
-      @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-      .spinner{width:24px;height:24px;margin:0 auto 1.25rem;border-radius:50%;border:2px solid #27272a;border-top-color:#fafafa;animation:pulse 1.2s ease-in-out infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      .spinner{width:24px;height:24px;margin:0 auto 1.25rem;border-radius:50%;border:2px solid #27272a;border-top-color:#fafafa;animation:spin .8s linear infinite}
     </style>
     <script>function onTurnstileGateOk(){document.getElementById("turnstile-gate-form").submit();}</script>
 </head>
