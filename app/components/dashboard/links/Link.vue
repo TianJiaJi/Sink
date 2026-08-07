@@ -211,6 +211,13 @@ async function resetClicks() {
               >
                 {{ $t(statusMeta[linkStatus].label) }}
               </Badge>
+              <Badge
+                v-if="link.maxClicks"
+                variant="outline"
+                class="ml-1 shrink-0 text-muted-foreground tabular-nums"
+              >
+                {{ link.clickCount ?? 0 }}/{{ link.maxClicks }}
+              </Badge>
             </div>
 
             <p v-if="summaryText" class="truncate text-sm">
