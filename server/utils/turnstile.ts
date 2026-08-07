@@ -22,6 +22,12 @@ export function getTurnstileSitekey(event: H3Event): string {
  * Validate a Turnstile token via the siteverify endpoint.
  * Returns true when Turnstile is not configured (degraded mode) so callers can
  * gate on `isTurnstileEnabled` separately. A missing/blank token is a failure.
+ *
+ * Network errors (timeout / ETIMEDOUT) trigger one automatic retry after a
+ * short delay. Only a definitive `success: false` from Cloudflare returns
+ * false; repeated network failures are also treated as false (fail-closed)
+ * but are logged at ERROR level so operators can tell them apart from a
+ * genuine verification rejection.
  */
 export async function verifyTurnstileToken(
   event: H3Event,
@@ -35,20 +41,32 @@ export async function verifyTurnstileToken(
     return false
 
   try {
-    const result = await ofetch<{ success: boolean }>(SITEVERIFY_URL, {
+    const result = await ofetch<{ 'success': boolean, 'error-codes'?: string[] }>(SITEVERIFY_URL, {
       method: 'POST',
       body: {
         secret: turnstileSecret,
         response: token,
         ...(remoteip ? { remoteip } : {}),
       },
-      timeout: 5000,
+      timeout: 5_000,
+      retry: 1,
+      retryDelay: 200,
+      retryOn: [408, 429, 502, 503, 504],
       responseType: 'json',
     })
-    return !!result.success
+    if (result.success)
+      return true
+    console.warn('turnstile.siteverify.rejected:', result['error-codes'])
+    return false
   }
   catch (error) {
-    console.warn('turnstile.siteverify.failed:', error)
+    const isNetworkError = error instanceof Error && /ETIMEDOUT|TIMEOUT|aborted|ECONN/i.test(error.message)
+    if (isNetworkError) {
+      console.error('turnstile.siteverify.network_timeout: retries exhausted — challenges.cloudflare.com unreachable from this Worker')
+    }
+    else {
+      console.warn('turnstile.siteverify.failed:', error)
+    }
     return false
   }
 }
