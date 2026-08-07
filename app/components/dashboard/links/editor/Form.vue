@@ -168,7 +168,7 @@ function getInitialAdvancedSections() {
     sections.push('og')
   if (props.link.google || props.link.apple)
     sections.push('device')
-  if (props.link.expiration || props.link.cloaking || props.link.redirectWithQuery || props.link.password || props.link.unsafe || props.link.turnstile || props.link.disabled)
+  if (props.link.expiration || props.link.cloaking || props.link.redirectWithQuery || props.link.password || props.link.unsafe || props.link.turnstile || props.link.disabled || props.link.burnAfterRead)
     sections.push('link_settings')
   if (props.link.geo && Object.keys(props.link.geo).length)
     sections.push('geo')

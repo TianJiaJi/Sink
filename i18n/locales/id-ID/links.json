@@ -86,6 +86,8 @@
       "unsafe_description": "Tampilkan halaman peringatan sebelum mengalihkan. Pengunjung harus mengonfirmasi untuk melanjutkan.",
       "turnstile_label": "Wajib Verifikasi Turnstile",
       "turnstile_description": "Pengunjung harus lulus pemeriksaan Cloudflare Turnstile sebelum link ini diaktifkan. Biasanya tak terlihat oleh pengguna asli.",
+      "burn_after_read_label": "Tautan Sekali Pakai",
+      "burn_after_read_description": "Tautan hancur setelah kunjungan pertama.",
       "disabled_label": "Nonaktifkan Tautan",
       "disabled_description": "Saat dinonaktifkan, pengunjung melihat halaman yang menyatakan tautan telah dinonaktifkan oleh administrator.",
       "password_label": "Proteksi Kata Sandi",

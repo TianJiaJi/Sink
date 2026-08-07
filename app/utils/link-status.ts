@@ -7,7 +7,7 @@ export type LinkStatus = 'active' | 'limited' | 'expired' | 'capped' | 'disabled
  * Extracted as a pure function so it can be unit-tested without mounting the
  * component (the project has no @vue/test-utils).
  */
-export function getLinkStatus(link: { disabled?: boolean, expiration?: number, maxClicks?: number, clickCount?: number }): LinkStatus {
+export function getLinkStatus(link: { disabled?: boolean, expiration?: number, maxClicks?: number, clickCount?: number, burnAfterRead?: boolean }): LinkStatus {
   const now = Math.floor(Date.now() / 1000)
   if (link.disabled)
     return 'disabled'
@@ -15,7 +15,7 @@ export function getLinkStatus(link: { disabled?: boolean, expiration?: number, m
     return 'expired'
   if (link.maxClicks && (link.clickCount ?? 0) >= link.maxClicks)
     return 'capped'
-  if (link.expiration || link.maxClicks)
+  if (link.expiration || link.maxClicks || link.burnAfterRead)
     return 'limited'
   return 'active'
 }

@@ -86,6 +86,8 @@
       "unsafe_description": "Hiển thị trang cảnh báo trước khi chuyển hướng. Khách truy cập phải xác nhận để tiếp tục.",
       "turnstile_label": "Yêu cầu xác minh Turnstile",
       "turnstile_description": "Khách truy cập phải vượt qua kiểm tra Cloudflare Turnstile trước khi truy cập liên kết này. Thường không hiển thị với người dùng thực.",
+      "burn_after_read_label": "Liên kết một lần",
+      "burn_after_read_description": "Liên kết tự hủy sau lần truy cập đầu tiên.",
       "disabled_label": "Tắt liên kết",
       "disabled_description": "Khi bị tắt, khách truy cập sẽ thấy trang thông báo liên kết đã bị quản trị viên tắt.",
       "password_label": "Bảo vệ bằng mật khẩu",

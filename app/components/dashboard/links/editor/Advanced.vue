@@ -157,6 +157,16 @@ async function aiOg() {
             />
           </props.form.Field>
 
+          <props.form.Field v-slot="{ field }" name="burnAfterRead">
+            <DashboardLinksEditorFieldSwitch
+              :id="`${idPrefix}-${field.name}`"
+              :model-value="field.state.value"
+              :label="$t('links.form.burn_after_read_label')"
+              :description="$t('links.form.burn_after_read_description')"
+              @update:model-value="field.handleChange"
+            />
+          </props.form.Field>
+
           <props.form.Field v-slot="{ field }" name="expiration">
             <Field :data-invalid="isInvalid(field)">
               <FieldLabel :for="`${idPrefix}-${field.name}`">

@@ -86,6 +86,8 @@
       "unsafe_description": "跳转前显示警告页面，访客需确认后才能继续。",
       "turnstile_label": "访问需人机验证",
       "turnstile_description": "访客访问此短链前需先通过 Cloudflare 人机验证（对真人大多无感）。",
+      "burn_after_read_label": "一次性链接",
+      "burn_after_read_description": "访问一次后自动失效（自毁）。",
       "disabled_label": "停用链接",
       "disabled_description": "停用后，访客会看到此链接已被管理员停用的提示。",
       "password_label": "密码保护",

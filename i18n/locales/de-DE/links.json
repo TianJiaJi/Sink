@@ -86,6 +86,8 @@
       "unsafe_description": "Vor der Weiterleitung eine Warnseite anzeigen. Besucher müssen bestätigen, um fortzufahren.",
       "turnstile_label": "Turnstile-Bestätigung erforderlich",
       "turnstile_description": "Besucher müssen eine Cloudflare Turnstile-Prüfung bestehen, bevor dieser Link geöffnet wird. Für echte Nutzer meist unsichtbar.",
+      "burn_after_read_label": "Einweg-Link",
+      "burn_after_read_description": "Link zerstört sich nach dem ersten Besuch.",
       "disabled_label": "Link deaktivieren",
       "disabled_description": "Wenn deaktiviert, sehen Besucher eine Seite, die besagt, dass der Link vom Administrator deaktiviert wurde.",
       "password_label": "Passwortschutz",

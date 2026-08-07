@@ -86,6 +86,8 @@
       "unsafe_description": "Mostra una pagina di avviso prima del reindirizzamento. I visitatori devono confermare per continuare.",
       "turnstile_label": "Verifica Turnstile obbligatoria",
       "turnstile_description": "I visitatori devono superare un controllo Cloudflare Turnstile prima di accedere a questo link. Solitamente invisibile per gli utenti reali.",
+      "burn_after_read_label": "Link monouso",
+      "burn_after_read_description": "Il link si autodistrugge dopo la prima visita.",
       "disabled_label": "Disabilita link",
       "disabled_description": "Quando disabilitato, i visitatori vedono una pagina che indica che il link è stato disabilitato da un amministratore.",
       "password_label": "Protezione con Password",

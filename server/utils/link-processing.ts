@@ -14,6 +14,7 @@ const editableOptionalLinkFields = [
   'unsafe',
   'turnstile',
   'disabled',
+  'burnAfterRead',
   'countryBlock',
   'countryAllow',
   'ab',

@@ -21,6 +21,7 @@ export const links = sqliteTable('links', {
   unsafe: integer({ mode: 'boolean' }),
   turnstile: integer({ mode: 'boolean' }),
   disabled: integer({ mode: 'boolean' }),
+  burnAfterRead: integer({ mode: 'boolean' }),
   countryBlock: text({ mode: 'json' }).$type<Link['countryBlock']>(),
   countryAllow: text({ mode: 'json' }).$type<Link['countryAllow']>(),
   ab: text({ mode: 'json' }).$type<Link['ab']>(),
