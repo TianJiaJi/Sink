@@ -34,6 +34,18 @@
     },
     "expired": "Đã hết hạn",
     "unsafe": "Liên kết không an toàn",
+    "batch_delete": "Xóa",
+    "batch_disable": "Tắt",
+    "batch_enable": "Bật",
+    "batch_add_tags": "Thêm Thẻ",
+    "cancel_selection": "Hủy",
+    "select_all": "Chọn tất cả",
+    "deselect_all": "Bỏ chọn tất cả",
+    "selected_count": "Đã chọn {count}",
+    "batch_success": "Đã {action} {count} liên kết",
+    "batch_item_failed": "{slug}: {error}",
+    "batch_more_failed": "{count} lỗi khác",
+    "batch_request_failed": "Thao tác hàng loạt thất bại",
     "status_active": "Hoạt động",
     "status_limited": "Giới hạn",
     "status_capped": "Đạt giới hạn",
@@ -165,6 +177,16 @@
         "title": "Xóa {slug}?",
         "description": "Liên kết sẽ bị xóa vĩnh viễn và không thể hoàn tác.",
         "action": "Xóa liên kết"
+      },
+      "batch_delete": {
+        "title": "Xóa {count} liên kết?",
+        "description": "Các liên kết đã chọn sẽ bị xóa vĩnh viễn và không thể hoàn tác.",
+        "action": "Xóa liên kết"
+      },
+      "batch_add_tags": {
+        "title": "Thêm Thẻ vào Liên kết Đã chọn",
+        "description": "Thêm thẻ vào {count} liên kết đã chọn. Các thẻ hiện có sẽ được giữ lại.",
+        "action": "Thêm Thẻ"
       }
     },
     "sort": {

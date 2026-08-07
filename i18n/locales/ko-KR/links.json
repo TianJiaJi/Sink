@@ -34,6 +34,18 @@
     },
     "expired": "만료됨",
     "unsafe": "안전하지 않은 링크",
+    "batch_delete": "삭제",
+    "batch_disable": "비활성화",
+    "batch_enable": "활성화",
+    "batch_add_tags": "태그 추가",
+    "cancel_selection": "취소",
+    "select_all": "전체 선택",
+    "deselect_all": "선택 해제",
+    "selected_count": "{count}개 선택됨",
+    "batch_success": "링크 {count}개 {action}",
+    "batch_item_failed": "{slug}: {error}",
+    "batch_more_failed": "{count}개 더 실패",
+    "batch_request_failed": "일괄 작업 실패",
     "status_active": "정상",
     "status_limited": "제한",
     "status_capped": "한도 도달",
@@ -165,6 +177,16 @@
         "title": "{slug} 링크를 삭제할까요?",
         "description": "링크가 영구 삭제되며 되돌릴 수 없습니다.",
         "action": "링크 삭제"
+      },
+      "batch_delete": {
+        "title": "링크 {count}개를 삭제할까요?",
+        "description": "선택한 링크가 영구 삭제되며 되돌릴 수 없습니다.",
+        "action": "링크 삭제"
+      },
+      "batch_add_tags": {
+        "title": "선택한 링크에 태그 추가",
+        "description": "선택한 {count}개 링크에 태그를 추가합니다. 기존 태그는 유지됩니다.",
+        "action": "태그 추가"
       }
     },
     "sort": {

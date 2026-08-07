@@ -34,6 +34,18 @@
     },
     "expired": "Expiré",
     "unsafe": "Lien non sécurisé",
+    "batch_delete": "Supprimer",
+    "batch_disable": "Désactiver",
+    "batch_enable": "Activer",
+    "batch_add_tags": "Ajouter des tags",
+    "cancel_selection": "Annuler",
+    "select_all": "Tout sélectionner",
+    "deselect_all": "Tout désélectionner",
+    "selected_count": "{count} sélectionnés",
+    "batch_success": "{count} liens {action}",
+    "batch_item_failed": "{slug} : {error}",
+    "batch_more_failed": "{count} autres échecs",
+    "batch_request_failed": "Échec de l'opération groupée",
     "status_active": "Actif",
     "status_limited": "Limité",
     "status_capped": "Limite atteinte",
@@ -165,6 +177,16 @@
         "title": "Supprimer {slug} ?",
         "description": "Ce lien sera supprimé définitivement. Cette action est irréversible.",
         "action": "Supprimer le lien"
+      },
+      "batch_delete": {
+        "title": "Supprimer {count} liens ?",
+        "description": "Les liens sélectionnés seront supprimés définitivement. Cette action est irréversible.",
+        "action": "Supprimer les liens"
+      },
+      "batch_add_tags": {
+        "title": "Ajouter des tags aux liens sélectionnés",
+        "description": "Ajouter des tags à {count} liens sélectionnés. Les tags existants seront conservés.",
+        "action": "Ajouter les tags"
       }
     },
     "sort": {

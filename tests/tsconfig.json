@@ -1,9 +1,23 @@
 {
+  // NOTE: do not extend `../.nuxt/tsconfig.json` here. Doing so inherits
+  // strict + noUncheckedIndexedAccess, which surfaces dozens of new errors
+  // across the test suite. The root tsconfig.json is a `references`/`files:[]`
+  // umbrella with no compilerOptions, so we declare what we need locally.
+  //
+  // `paths` is required because shared/types/link-check.ts imports its schema
+  // via the `#shared/*` alias. Without it, that alias fails to resolve,
+  // LinkCheckTarget collapses to `any`, and LinkCheckResult loses slug/url
+  // (TS2339 in tests/api/link-check.spec.ts). baseUrl is the repo root.
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "target": "esnext",
+    "baseUrl": "..",
     "module": "esnext",
     "moduleResolution": "bundler",
+    "paths": {
+      "#shared": ["shared"],
+      "#shared/*": ["shared/*"]
+    },
     "types": ["node", "vite/client"],
     "skipLibCheck": true
   },

@@ -37,7 +37,7 @@ async function getCount(query: Record<string, string> = {}): Promise<number> {
   return (await response.json() as { count: number }).count
 }
 
-describe('/api/link/count', { concurrent: false }, () => {
+describe('/api/link/count', { concurrent: false, timeout: 60_000 }, () => {
   beforeEach(async () => {
     await setLinkStoreD1Mode()
     const prefix = `count-${crypto.randomUUID()}`

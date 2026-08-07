@@ -10,6 +10,11 @@ import { getLinkStatus } from '@/utils/link-status'
 
 const props = defineProps<{
   link: DashboardLink
+  selected?: boolean
+}>()
+
+const emit = defineEmits<{
+  toggle: [slug: string]
 }>()
 
 const { t, locale } = useI18n()
@@ -131,6 +136,12 @@ async function resetClicks() {
         <div
           class="group flex min-w-0 flex-1 cursor-pointer items-center gap-3"
         >
+          <Checkbox
+            :model-value="selected"
+            class="relative z-30 shrink-0"
+            @click.stop
+            @update:model-value="emit('toggle', link.slug)"
+          />
           <Avatar>
             <AvatarImage
               :src="linkIcon"
