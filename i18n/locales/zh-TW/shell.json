@@ -29,7 +29,15 @@
     "analysis": "分析",
     "realtime": "即時",
     "check": "檢查",
-    "migrate": "匯入/匯出"
+    "migrate": "匯入/匯出",
+    "audit": "操作日誌"
+  },
+  "audit": {
+    "time": "時間",
+    "action": "操作",
+    "slug": "短碼",
+    "actor": "操作者",
+    "empty": "暫無操作記錄"
   },
   "sidebar": {
     "subtitle": "縮網址服務",
