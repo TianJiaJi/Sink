@@ -29,7 +29,15 @@
     "analysis": "Analysis",
     "realtime": "Realtime",
     "check": "Check",
-    "migrate": "Import/Export"
+    "migrate": "Import/Export",
+    "audit": "Audit Log"
+  },
+  "audit": {
+    "time": "Time",
+    "action": "Action",
+    "slug": "Slug",
+    "actor": "Actor",
+    "empty": "No audit entries"
   },
   "sidebar": {
     "subtitle": "Link Shortener",
