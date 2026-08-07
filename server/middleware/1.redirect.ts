@@ -181,7 +181,7 @@ export default eventHandler(async (event) => {
           // fall through
         }
         else {
-          return sendNoStoreHtml(generateTurnstileGateHtml(slug, sitekey))
+          return sendNoStoreHtml(generateTurnstileGateHtml(slug, sitekey, getLocale()))
         }
       }
 
