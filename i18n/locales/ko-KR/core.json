@@ -1,5 +1,6 @@
 {
   "common": {
+    "refresh": "새로고침",
     "i18n": "다국어",
     "abbreviations": "한",
     "current_language": "한국어",

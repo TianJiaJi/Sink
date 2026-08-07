@@ -1,5 +1,6 @@
 {
   "common": {
+    "refresh": "Atualizar",
     "i18n": "Multi idioma",
     "abbreviations": "Pt",
     "current_language": "Português (PT)",

@@ -33,8 +33,8 @@ const result = computed(() => {
         id="country-preview"
         :model-value="selectedCountry"
         :placeholder="$t('links.select_country_to_preview')"
-        :search-placeholder="$t('links.search_country')"
-        :empty-text="$t('links.no_country_found')"
+        :search-placeholder="$t('links.form.search_country')"
+        :empty-text="$t('links.form.no_country_found')"
         @update:model-value="selectedCountry = $event"
       />
       <div v-if="result" class="rounded-lg border border-border p-3 text-sm">
