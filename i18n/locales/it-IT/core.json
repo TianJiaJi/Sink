@@ -1,5 +1,6 @@
 {
   "common": {
+    "refresh": "Aggiorna",
     "i18n": "Multilingua",
     "abbreviations": "It",
     "current_language": "Italiano",

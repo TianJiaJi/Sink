@@ -1,5 +1,6 @@
 {
   "common": {
+    "refresh": "重新整理",
     "i18n": "多語言",
     "abbreviations": "繁",
     "current_language": "繁體中文",
