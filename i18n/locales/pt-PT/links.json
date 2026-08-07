@@ -86,6 +86,8 @@
       "unsafe_description": "Mostrar uma página de aviso antes do redirecionamento. Os visitantes devem confirmar para continuar.",
       "turnstile_label": "Exigir verificação Turnstile",
       "turnstile_description": "Os visitantes têm de passar numa verificação Cloudflare Turnstile antes de aceder a este link. Geralmente invisível para utilizadores reais.",
+      "burn_after_read_label": "Ligação Descartável",
+      "burn_after_read_description": "A ligação autodestrói-se após a primeira visita.",
       "disabled_label": "Desativar ligação",
       "disabled_description": "Quando desativada, os visitantes veem uma página a indicar que a ligação foi desativada pelo administrador.",
       "password_label": "Proteção por palavra-passe",

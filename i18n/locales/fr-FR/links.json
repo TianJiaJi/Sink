@@ -86,6 +86,8 @@
       "unsafe_description": "Afficher une page d'avertissement avant la redirection. Les visiteurs doivent confirmer pour continuer.",
       "turnstile_label": "Vérification Turnstile requise",
       "turnstile_description": "Les visiteurs doivent réussir une vérification Cloudflare Turnstile avant l'ouverture de ce lien. Généralement invisible pour les utilisateurs réels.",
+      "burn_after_read_label": "Lien à usage unique",
+      "burn_after_read_description": "Le lien se détruit après la première visite.",
       "disabled_label": "Désactiver le lien",
       "disabled_description": "Une fois désactivé, les visiteurs voient une page indiquant que le lien a été désactivé par un administrateur.",
       "password_label": "Protection par mot de passe",

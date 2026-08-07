@@ -228,6 +228,12 @@ export default eventHandler(async (event) => {
         return handleUnavailable(event, 'cap', getLocale())
       }
 
+      // Burn-after-read: one-time links self-destruct after serving this visitor.
+      // Fire-and-forget so the redirect still goes out even if the burn errors.
+      if (link.burnAfterRead) {
+        deleteLink(event, slug).catch(error => console.error({ event: 'burn.failed', error: error instanceof Error ? error.message : String(error) }))
+      }
+
       if (deviceRedirectUrl) {
         if (redirectNoStore)
           setHeader(event, 'Cache-Control', 'no-store')

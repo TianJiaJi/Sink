@@ -86,6 +86,8 @@
       "unsafe_description": "Show a warning page before redirecting. Visitors must confirm to continue.",
       "turnstile_label": "Require Turnstile Verification",
       "turnstile_description": "Visitors must pass a Cloudflare Turnstile check before this link resolves. Usually invisible to real users.",
+      "burn_after_read_label": "One-Time Link",
+      "burn_after_read_description": "Link self-destructs after the first visit.",
       "disabled_label": "Disable Link",
       "disabled_description": "When disabled, visitors see a page saying the link has been disabled by the administrator.",
       "password_label": "Password Protection",
