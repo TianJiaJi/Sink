@@ -34,6 +34,18 @@
     },
     "expired": "Kedaluwarsa",
     "unsafe": "Tautan tidak aman",
+    "batch_delete": "Hapus",
+    "batch_disable": "Nonaktifkan",
+    "batch_enable": "Aktifkan",
+    "batch_add_tags": "Tambah Tag",
+    "cancel_selection": "Batal",
+    "select_all": "Pilih Semua",
+    "deselect_all": "Batalkan Pilihan",
+    "selected_count": "{count} dipilih",
+    "batch_success": "{count} tautan {action}",
+    "batch_item_failed": "{slug}: {error}",
+    "batch_more_failed": "{count} kegagalan lainnya",
+    "batch_request_failed": "Operasi batch gagal",
     "status_active": "Aktif",
     "status_limited": "Terbatas",
     "status_capped": "Batas tercapai",
@@ -165,6 +177,16 @@
         "title": "Hapus {slug}?",
         "description": "Tautan akan dihapus permanen dan tidak dapat dipulihkan.",
         "action": "Hapus tautan"
+      },
+      "batch_delete": {
+        "title": "Hapus {count} tautan?",
+        "description": "Tautan yang dipilih akan dihapus permanen dan tidak dapat dipulihkan.",
+        "action": "Hapus tautan"
+      },
+      "batch_add_tags": {
+        "title": "Tambah Tag ke Tautan Terpilih",
+        "description": "Tambah tag ke {count} tautan terpilih. Tag yang ada akan dipertahankan.",
+        "action": "Tambah Tag"
       }
     },
     "sort": {

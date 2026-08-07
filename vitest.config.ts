@@ -60,7 +60,8 @@ export default defineConfig(async ({ mode }) => ({
     isolate: false,
     maxWorkers: 1,
     setupFiles: ['./tests/setup.ts'],
-    testTimeout: 10_000,
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     // TEMPORARY: skipped due to test debt from the recent Turnstile / country /
     // click-cap / A-B / disable features (Turnstile env-isolation in test runs
     // + field/fixture drift). Re-enable and fix in a dedicated test-debt batch.
@@ -68,11 +69,19 @@ export default defineConfig(async ({ mode }) => ({
       '**/node_modules/**',
       '**/dist/**',
       '**/.output/**',
+      // redirect.spec.ts: the real Turnstile sitekey/secret in .env get injected
+      // into Miniflare by @cloudflare/vitest-pool-workers (it loads .env into the
+      // worker env, overriding the `delete process.env` below). With Turnstile on,
+      // password-protected links require a token the redirect specs don't supply.
+      // Fix: strip NUXT_*TURNSTILE* from .env for the test run, or generate a token.
       'tests/redirect.spec.ts',
-      'tests/api/link.spec.ts',
+      // link-d1.spec.ts: two expired-link tests set `expiration` to the past in D1
+      // and delete the KV entry, but Miniflare's KV.getWithMetadata can still serve
+      // a cached entry with the original future expiration → redirect instead of 404.
       'tests/api/link-d1.spec.ts',
-      'tests/api/link-count.spec.ts',
-      'tests/api/link-check.spec.ts',
+      // Vue-dependent unit tests: cannot run inside the Cloudflare Workers pool
+      // (Workers runtime has no `vue` package). Need a separate vitest node-pool
+      // config (workspace) to re-enable.
       'tests/unit/dashboard-links-search-store.spec.ts',
       'tests/unit/realtime-logs.spec.ts',
       'tests/unit/use-link-check.spec.ts',

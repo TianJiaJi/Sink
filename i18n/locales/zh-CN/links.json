@@ -34,6 +34,18 @@
     },
     "expired": "已过期",
     "unsafe": "不安全链接",
+    "batch_delete": "删除",
+    "batch_disable": "停用",
+    "batch_enable": "启用",
+    "batch_add_tags": "添加标签",
+    "cancel_selection": "取消",
+    "select_all": "全选",
+    "deselect_all": "取消全选",
+    "selected_count": "已选 {count} 项",
+    "batch_success": "已{action} {count} 条链接",
+    "batch_item_failed": "{slug}: {error}",
+    "batch_more_failed": "还有 {count} 条失败",
+    "batch_request_failed": "批量操作失败",
     "status_active": "正常",
     "status_limited": "受限",
     "status_capped": "已达上限",
@@ -165,6 +177,16 @@
         "title": "删除 {slug}？",
         "description": "此操作将永久删除该链接，且无法撤销。",
         "action": "删除链接"
+      },
+      "batch_delete": {
+        "title": "删除 {count} 条链接？",
+        "description": "此操作将永久删除所选链接，且无法撤销。",
+        "action": "删除链接"
+      },
+      "batch_add_tags": {
+        "title": "为所选链接添加标签",
+        "description": "为 {count} 条所选链接添加标签，已有标签将被保留。",
+        "action": "添加标签"
       }
     },
     "sort": {

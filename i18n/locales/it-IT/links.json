@@ -34,6 +34,18 @@
     },
     "expired": "Scaduto",
     "unsafe": "Link non sicuro",
+    "batch_delete": "Elimina",
+    "batch_disable": "Disabilita",
+    "batch_enable": "Abilita",
+    "batch_add_tags": "Aggiungi Tag",
+    "cancel_selection": "Annulla",
+    "select_all": "Seleziona Tutto",
+    "deselect_all": "Deseleziona Tutto",
+    "selected_count": "{count} selezionati",
+    "batch_success": "{count} link {action}",
+    "batch_item_failed": "{slug}: {error}",
+    "batch_more_failed": "{count} altri errori",
+    "batch_request_failed": "Operazione batch fallita",
     "status_active": "Attivo",
     "status_limited": "Limitato",
     "status_capped": "Limite raggiunto",
@@ -165,6 +177,16 @@
         "title": "Eliminare {slug}?",
         "description": "Il link verrà eliminato definitivamente. L’azione non può essere annullata.",
         "action": "Elimina link"
+      },
+      "batch_delete": {
+        "title": "Eliminare {count} link?",
+        "description": "I link selezionati verranno eliminati definitivamente. L'azione non può essere annullata.",
+        "action": "Elimina link"
+      },
+      "batch_add_tags": {
+        "title": "Aggiungi Tag ai Link Selezionati",
+        "description": "Aggiungi tag a {count} link selezionati. I tag esistenti verranno mantenuti.",
+        "action": "Aggiungi Tag"
       }
     },
     "sort": {

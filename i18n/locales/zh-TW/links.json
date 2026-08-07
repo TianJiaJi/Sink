@@ -34,6 +34,18 @@
     },
     "expired": "已過期",
     "unsafe": "不安全連結",
+    "batch_delete": "刪除",
+    "batch_disable": "停用",
+    "batch_enable": "啟用",
+    "batch_add_tags": "新增標籤",
+    "cancel_selection": "取消",
+    "select_all": "全選",
+    "deselect_all": "取消全選",
+    "selected_count": "已選 {count} 項",
+    "batch_success": "已{action} {count} 條連結",
+    "batch_item_failed": "{slug}: {error}",
+    "batch_more_failed": "還有 {count} 條失敗",
+    "batch_request_failed": "批次操作失敗",
     "status_active": "正常",
     "status_limited": "受限",
     "status_capped": "已達上限",
@@ -165,6 +177,16 @@
         "title": "刪除 {slug}？",
         "description": "此操作將永久刪除連結，且無法復原。",
         "action": "刪除連結"
+      },
+      "batch_delete": {
+        "title": "刪除 {count} 條連結？",
+        "description": "此操作將永久刪除所選連結，且無法復原。",
+        "action": "刪除連結"
+      },
+      "batch_add_tags": {
+        "title": "為所選連結新增標籤",
+        "description": "為 {count} 條所選連結新增標籤，已有標籤將被保留。",
+        "action": "新增標籤"
       }
     },
     "sort": {

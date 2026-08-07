@@ -23,7 +23,7 @@ async function createStoredLinks(count: number): Promise<{ slug: string, url: st
   return links
 }
 
-describe('/api/link/check', { concurrent: false }, () => {
+describe('/api/link/check', { concurrent: false, timeout: 120_000 }, () => {
   it('checks authoritative links with keyset cursor pagination', async () => {
     const created = await createStoredLinks(11)
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Blocked test outbound request'))

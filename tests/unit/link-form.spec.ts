@@ -24,6 +24,7 @@ describe('link form values', () => {
       cloaking: false,
       turnstile: false,
       disabled: false,
+      burnAfterRead: false,
       countryBlock: [],
       countryAllow: [],
       ab: [],
