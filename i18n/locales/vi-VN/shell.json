@@ -29,7 +29,15 @@
     "analysis": "Phân tích",
     "realtime": "Thời gian thực",
     "check": "Check",
-    "migrate": "Nhập/Xuất"
+    "migrate": "Nhập/Xuất",
+    "audit": "Nhật ký kiểm toán"
+  },
+  "audit": {
+    "time": "Thời gian",
+    "action": "Hành động",
+    "slug": "Slug",
+    "actor": "Người thực hiện",
+    "empty": "Chưa có bản ghi kiểm toán"
   },
   "sidebar": {
     "subtitle": "Rút gọn liên kết",

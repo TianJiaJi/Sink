@@ -29,7 +29,15 @@
     "analysis": "Analyse",
     "realtime": "Echtzeit",
     "check": "Check",
-    "migrate": "Import/Export"
+    "migrate": "Import/Export",
+    "audit": "Audit-Protokoll"
+  },
+  "audit": {
+    "time": "Zeit",
+    "action": "Aktion",
+    "slug": "Slug",
+    "actor": "Akteur",
+    "empty": "Keine Audit-Einträge"
   },
   "sidebar": {
     "subtitle": "Link-Verkürzer",
