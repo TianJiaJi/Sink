@@ -15,6 +15,7 @@ const analysisStore = useDashboardAnalysisStore()
     {{ $t('dashboard.stats', { slug: link.slug }) }}
   </h2>
   <DashboardAnalysisCounters />
+  <DashboardAnalysisAbVariants v-if="link?.ab?.length" :link="link" />
   <Tabs v-model="analysisStore.viewMode" default-value="trend">
     <div class="mb-4 flex flex-wrap items-center gap-2">
       <TabsList>
