@@ -27,19 +27,22 @@ const deleteDialogOpen = shallowRef(false)
 const actionsTriggerRef = useTemplateRef<ComponentPublicInstance>('actionsTrigger')
 const isDesktop = useMediaQuery('(min-width: 640px)')
 
-function openQrDialog() {
+async function openQrDialog() {
+  editPopoverOpen.value = false
+  await nextTick()
   qrDialogOpen.value = true
-  editPopoverOpen.value = false
 }
 
-function openEditDialog() {
+async function openEditDialog() {
+  editPopoverOpen.value = false
+  await nextTick()
   editDialogOpen.value = true
-  editPopoverOpen.value = false
 }
 
-function openDeleteDialog() {
-  deleteDialogOpen.value = true
+async function openDeleteDialog() {
   editPopoverOpen.value = false
+  await nextTick()
+  deleteDialogOpen.value = true
 }
 
 function handlePopoverCloseAutoFocus(event: Event) {
@@ -301,14 +304,14 @@ async function resetClicks() {
             >
               <DropdownMenuItem
                 v-if="!isDesktop"
-                @select="openQrDialog"
+                @select.prevent="openQrDialog"
               >
                 <QrCode aria-hidden="true" />
                 {{ $t('links.download_qr_code') }}
               </DropdownMenuItem>
 
               <DropdownMenuItem
-                @select="openEditDialog"
+                @select.prevent="openEditDialog"
               >
                 <SquarePen aria-hidden="true" />
                 {{ $t('common.edit') }}
@@ -325,7 +328,7 @@ async function resetClicks() {
 
               <DropdownMenuItem
                 variant="destructive"
-                @select="openDeleteDialog"
+                @select.prevent="openDeleteDialog"
               >
                 <Eraser aria-hidden="true" />
                 {{ $t('common.delete') }}
