@@ -42,6 +42,18 @@ Read-only checks before publication:
 
 Redacted configuration snapshots and local variable fingerprints are retained under the ignored `.pi/` directory. No credential values are included in this report.
 
+## Publication result
+
+- CLI publication succeeded with Worker version `f54cc4c2-70be-4480-ac56-fbf4f3136328` and annotation `preserve-production-no-ai-config`.
+- Both the Workers subdomain and `url.846605.xyz` custom domain were deployed; custom-domain previews remain disabled.
+- Post-publication homepage, login page and authenticated verification checks returned HTTP 200.
+- The all-status link count remained 38 before and after publication.
+- All three plaintext variable values matched their pre-publication fingerprints; both encrypted secret bindings remained present.
+- D1, KV, R2, Analytics and Assets bindings remained present, and AI remained absent. The AI endpoint continued to return HTTP 501 as expected.
+- No database migration, data deletion or production link mutation was executed.
+- Wrangler can still display a variable-configuration difference because runtime values are not embedded in the repository. The deployment uses `--keep-vars`, and post-publication fingerprints confirm those values were retained. Wrangler also honors the repository's `keep_vars: true` for subsequent CI deployments.
+- These checks validate the CLI publication; a subsequent Git-triggered build must be checked separately in Cloudflare Builds.
+
 ## Security follow-up
 
 Earlier shared deployment logs exposed a Cloudflare API token and the site token. Revoke or rotate both and store sensitive runtime values as encrypted Secrets. This repair preserves existing values and does not silently rotate credentials or claim that exposed values are safe.
