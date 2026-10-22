@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { LinkFieldsSchema } from '#shared/schemas/link'
 
 defineRouteMeta({
   openAPI: {
@@ -26,10 +27,11 @@ defineRouteMeta({
 const BatchSchema = z.object({
   action: z.enum(['delete', 'disable', 'enable', 'addTags']),
   slugs: z.array(z.string().trim().min(1).max(2048)).min(1).max(100),
-  tags: z.array(z.string().trim().min(1).max(32)).max(10).optional(),
+  tags: LinkFieldsSchema.shape.tags.optional(),
 })
 
 export default eventHandler(async (event) => {
+  assertLinkWritesAllowed(event, 'modify')
   const body = await readValidatedBody(event, BatchSchema.parse)
 
   if (body.action === 'addTags' && !body.tags?.length) {
@@ -56,15 +58,19 @@ export default eventHandler(async (event) => {
             // already in desired state, skip the write
           }
           else {
-            await updateLink(event, { ...existing, disabled }, { id: existing.id, updatedAt: existing.updatedAt })
+            const updatedAt = Math.max(Math.floor(Date.now() / 1000), existing.updatedAt + 1)
+            if (!await updateLink(event, { ...existing, disabled, updatedAt }, { id: existing.id, updatedAt: existing.updatedAt }))
+              throw new Error('Link was modified or replaced')
           }
         }
         else if (body.action === 'addTags') {
           // union (mergeEditableLink would overwrite tags — do it manually)
           const existingTags = existing.tags ?? []
-          const merged = [...new Set([...existingTags, ...(body.tags ?? [])])]
+          const merged = LinkFieldsSchema.shape.tags.parse([...existingTags, ...(body.tags ?? [])])
           if (merged.length !== existingTags.length) {
-            await updateLink(event, { ...existing, tags: merged }, { id: existing.id, updatedAt: existing.updatedAt })
+            const updatedAt = Math.max(Math.floor(Date.now() / 1000), existing.updatedAt + 1)
+            if (!await updateLink(event, { ...existing, tags: merged, updatedAt }, { id: existing.id, updatedAt: existing.updatedAt }))
+              throw new Error('Link was modified or replaced')
           }
         }
       }

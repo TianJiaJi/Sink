@@ -45,6 +45,7 @@ export function createLinkFormInitialValues(link: Partial<DashboardLink>): Dashb
     ab: link.ab ? link.ab.map(v => ({ url: v.url, weight: v.weight })) : [],
     maxClicks: link.maxClicks ?? undefined,
     redirectWithQuery: link.redirectWithQuery ?? false,
+    proxy: link.proxy ?? false,
     password: link.password ?? '',
     unsafe: link.unsafe ?? false,
     geo: link.geo ? Object.entries(link.geo).map(([country, url]) => ({ country, url })) : [],
@@ -75,6 +76,7 @@ export function normalizeLinkFormSubmitPayload(value: DashboardLinkFormData, isE
     title: value.title || undefined,
     description: value.description || undefined,
     image: value.image || undefined,
+    // Exclusivity is enforced by the visible switches; a hidden stored proxy must not rewrite cloaking.
     cloaking: value.cloaking,
     turnstile: value.turnstile,
     disabled: value.disabled,
@@ -84,6 +86,7 @@ export function normalizeLinkFormSubmitPayload(value: DashboardLinkFormData, isE
     ab: value.ab?.length ? value.ab : undefined,
     maxClicks: value.maxClicks || undefined,
     redirectWithQuery: value.redirectWithQuery,
+    proxy: value.proxy,
     password,
     unsafe: isEdit ? value.unsafe : value.unsafe || undefined,
     geo: Object.keys(geo).length > 0 ? geo : undefined,

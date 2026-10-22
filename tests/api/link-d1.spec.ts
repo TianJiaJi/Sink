@@ -169,7 +169,12 @@ describe('d1 link integration', () => {
     expect(await list('active')).toEqual([active.slug])
     expect(await list('expired')).toEqual([expired.slug])
     expect(new Set(await list('all'))).toEqual(new Set([active.slug, expired.slug]))
-    expect((await fetch(`/${expired.slug}`, { redirect: 'manual' })).status).toBe(404)
+    const expiredResponse = await fetch(`/${expired.slug}`, { redirect: 'manual' })
+    expect(expiredResponse.status).toBe(200)
+    expect(expiredResponse.headers.get('content-type')).toContain('text/html')
+    expect(expiredResponse.headers.get('cache-control')).toBe('no-store')
+    expect(expiredResponse.headers.has('location')).toBe(false)
+    expect(await expiredResponse.text()).toContain('This link has expired.')
 
     const queried = await (await fetchWithAuth(`/api/link/query?slug=${expired.slug}`)).json() as Link
     expect(queried.id).toBe(expired.id)
@@ -435,7 +440,12 @@ describe('d1 link integration', () => {
     expect(expiredList.links).toContainEqual(expect.objectContaining({ slug: link.slug, id: link.id, tags: [tag] }))
     const activeList = await (await fetchWithAuth(`/api/link/list?status=active&tag=${tag}`)).json() as { links: Link[] }
     expect(activeList.links).toEqual([])
-    expect((await fetch(`/${link.slug}`, { redirect: 'manual' })).status).toBe(404)
+    const expiredResponse = await fetch(`/${link.slug}`, { redirect: 'manual' })
+    expect(expiredResponse.status).toBe(200)
+    expect(expiredResponse.headers.get('content-type')).toContain('text/html')
+    expect(expiredResponse.headers.get('cache-control')).toBe('no-store')
+    expect(expiredResponse.headers.has('location')).toBe(false)
+    expect(await expiredResponse.text()).toContain('This link has expired.')
     expect(await getStoredLink(link.slug)).toBeNull()
   })
 

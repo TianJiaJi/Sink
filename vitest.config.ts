@@ -45,6 +45,9 @@ export default defineConfig(async ({ mode }) => ({
       miniflare: {
         cf: true,
         bindings: {
+          // Override .env explicitly so local redirect tests never use real CAPTCHA credentials.
+          NUXT_PUBLIC_TURNSTILE_SITEKEY: '',
+          NUXT_TURNSTILE_SECRET: '',
           TEST_MIGRATIONS: await readD1Migrations('./drizzle'),
         },
       },

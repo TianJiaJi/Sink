@@ -13,11 +13,7 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     'shadcn-nuxt',
   ],
-  devtools: { enabled: true },
   css: ['@/assets/css/tailwind.css'],
-  colorMode: {
-    classSuffix: '',
-  },
   runtimeConfig: {
     siteToken: process.env.NUXT_SITE_TOKEN || randomBytes(32).toString('base64url'),
     cfAccessTeamDomain: '',
@@ -52,6 +48,7 @@ export default defineNuxtConfig({
       homeURL: process.env.NUXT_HOME_URL || '',
       turnstileSitekey: '',
       maxUrlLength: '16384',
+      linkProxyEnabled: false,
     },
   },
   routeRules: {
@@ -116,9 +113,6 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ],
-    worker: {
-      format: 'es',
-    },
     optimizeDeps: {
       include: [
         '@internationalized/date',
@@ -168,14 +162,6 @@ export default defineNuxtConfig({
     defaultLocale: 'en-US',
   },
   shadcn: {
-    /**
-     * Prefix for all the imported component
-     */
     prefix: '',
-    /**
-     * Directory that the component lives in.
-     * @default "./components/ui"
-     */
-    componentDir: './app/components/ui',
   },
 })

@@ -32,10 +32,10 @@ const ResetSchema = z.object({
 export default eventHandler(async (event) => {
   const { previewMode } = useRuntimeConfig(event).public
   if (previewMode) {
-    throw createError({
+    return sendError(event, createError({
       status: 403,
       statusText: 'Preview mode cannot reset links.',
-    })
+    }))
   }
 
   const body = await readValidatedBody(event, ResetSchema.parse)

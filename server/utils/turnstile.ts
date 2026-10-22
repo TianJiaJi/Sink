@@ -51,7 +51,7 @@ export async function verifyTurnstileToken(
       timeout: 5_000,
       retry: 1,
       retryDelay: 200,
-      retryOn: [408, 429, 502, 503, 504],
+      retryStatusCodes: [408, 429, 502, 503, 504],
       responseType: 'json',
     })
     if (result.success)

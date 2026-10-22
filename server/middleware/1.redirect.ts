@@ -1,5 +1,6 @@
-import type { Link } from '@/types'
+import type { Link } from '#shared/schemas/link'
 import { parsePath, withQuery } from 'ufo'
+import { proxyLinkRequest } from '../services/link-proxy'
 import { d1GetAnyLink } from '../services/link-store/d1'
 
 const SOCIAL_BOTS = [
@@ -53,6 +54,7 @@ export default eventHandler(async (event) => {
   const { slugRegex, reserveSlug } = useAppConfig()
   const runtimeConfig = useRuntimeConfig(event)
   const { linkCacheTtl, caseSensitive, redirectWithQuery, redirectStatusCode, redirectNoStore } = runtimeConfig
+  const { linkProxyEnabled } = runtimeConfig.public
   const homeURL = runtimeConfig.public.homeURL || runtimeConfig.homeURL
   const { cloudflare } = event.context
 
@@ -119,11 +121,34 @@ export default eventHandler(async (event) => {
       const sitekey = turnstileEnabled ? getTurnstileSitekey(event) : ''
       const needTurnstile = turnstileEnabled && (!!link.turnstile || !!link.password)
 
+      // Reverse proxying is opt-in per link AND requires the instance flag
+      // (NUXT_PUBLIC_LINK_PROXY_ENABLED). With the flag off, stored proxy links
+      // keep their data and degrade to plain redirects.
+      const isProxyLink = !!link.proxy && linkProxyEnabled
+
+      // Header credentials come first so authenticated clients can stream
+      // JSON/binary bodies straight through: x-link-password authenticates and
+      // x-link-confirm: true carries the unsafe confirmation. Other POSTs are
+      // read as gate form submissions — on a proxied link a confirmed form is
+      // replayed upstream as a bodyless GET so the password never leaks.
+      const headerPassword = getHeader(event, 'x-link-password')
+      const headerConfirmed = getHeader(event, 'x-link-confirm') === 'true'
+      let formConfirmed = false
+
       // Password protection check
       if (link.password) {
-        const headerPassword = getHeader(event, 'x-link-password')
-
-        if (event.method === 'POST') {
+        if (headerPassword) {
+          if (needTurnstile && !await verifyTurnstileToken(event, getHeader(event, 'x-turnstile-token'))) {
+            throw createError({ status: 403, statusText: 'Turnstile verification required (set x-turnstile-token header)' })
+          }
+          if (!await verifyLinkPassword(headerPassword, link.password)) {
+            throw createError({ status: 403, statusText: 'Incorrect password' })
+          }
+          if (link.unsafe && !headerConfirmed) {
+            throw createError({ status: 403, statusText: 'Unsafe link: confirmation required (set x-link-confirm: true header)' })
+          }
+        }
+        else if (event.method === 'POST') {
           const body = await readBody(event)
           const submittedPassword = typeof body?.password === 'string' ? body.password : ''
 
@@ -141,24 +166,10 @@ export default eventHandler(async (event) => {
 
           // Password correct - show unsafe warning if needed
           if (link.unsafe && body?.confirm !== 'true') {
-            return sendNoStoreHtml(generateUnsafeWarningHtml(slug, finalTargetUrl, { password: submittedPassword, locale: getLocale() }))
+            return sendNoStoreHtml(generateUnsafeWarningHtml(slug, finalTargetUrl, { password: submittedPassword || undefined, locale: getLocale(), requireTurnstile: needTurnstile, sitekey }))
           }
-        }
-        else if (headerPassword) {
-          // API path: when Turnstile is triggered, require x-turnstile-token header
-          if (needTurnstile) {
-            const token = getHeader(event, 'x-turnstile-token')
-            if (!await verifyTurnstileToken(event, token || undefined)) {
-              throw createError({ status: 403, statusText: 'Turnstile verification required (set x-turnstile-token header)' })
-            }
-          }
-          if (!await verifyLinkPassword(headerPassword, link.password)) {
-            throw createError({ status: 403, statusText: 'Incorrect password' })
-          }
-          // Header-password path: check unsafe warning via x-link-confirm header
-          if (link.unsafe && getHeader(event, 'x-link-confirm') !== 'true') {
-            throw createError({ status: 403, statusText: 'Unsafe link: confirmation required (set x-link-confirm: true header)' })
-          }
+
+          formConfirmed = true
         }
         else {
           // GET: render password page, with Turnstile widget when required
@@ -168,30 +179,33 @@ export default eventHandler(async (event) => {
       else if (needTurnstile) {
         // No password, but a Turnstile gate is active (per-link toggle on this link)
         const headerToken = getHeader(event, 'x-turnstile-token')
-        if (event.method === 'POST') {
+        if (headerToken) {
+          if (!await verifyTurnstileToken(event, headerToken)) {
+            throw createError({ status: 403, statusText: 'Turnstile verification required' })
+          }
+        }
+        else if (event.method === 'POST') {
           const body = await readBody(event)
           const token = typeof body?.['cf-turnstile-response'] === 'string' ? body['cf-turnstile-response'] : ''
           if (!await verifyTurnstileToken(event, token)) {
             return sendNoStoreHtml(generateTurnstileGateHtml(slug, sitekey, getLocale()))
           }
-          // gate passed -> fall through to redirect (unsafe is skipped below since Turnstile subsumes it)
-        }
-        else if (headerToken) {
-          if (!await verifyTurnstileToken(event, headerToken)) {
-            throw createError({ status: 403, statusText: 'Turnstile verification required' })
-          }
-          // fall through
+          // Never forward a consumed Turnstile form or its token to a proxy target.
+          formConfirmed = true
         }
         else {
           return sendNoStoreHtml(generateTurnstileGateHtml(slug, sitekey, getLocale()))
         }
       }
 
-      // Unsafe link warning (for links without password; skipped when Turnstile already gated the visit)
-      if (!link.password && link.unsafe && !needTurnstile) {
+      // A successful Turnstile gate already confirms a non-password visit.
+      if (!link.password && link.unsafe && !needTurnstile && !headerConfirmed) {
         if (event.method === 'POST') {
           const body = await readBody(event)
-          if (body?.confirm !== 'true') {
+          if (body?.confirm === 'true') {
+            formConfirmed = true
+          }
+          else {
             return sendNoStoreHtml(generateUnsafeWarningHtml(slug, finalTargetUrl, { locale: getLocale() }))
           }
         }
@@ -241,12 +255,23 @@ export default eventHandler(async (event) => {
           setHeader(event, 'Cache-Control', 'no-store')
         return sendRedirect(event, finalTargetUrl, +redirectStatusCode)
       }
-
+      // Link previews use the configured OG metadata even for proxied links.
       if (isSocialBot(userAgent) && hasOgConfig(link)) {
         const baseUrl = `${getRequestProtocol(event)}://${getRequestHost(event)}`
         const html = generateOgHtml(link, targetUrl, baseUrl)
         setHeader(event, 'Content-Type', 'text/html; charset=utf-8')
         return html
+      }
+
+      if (isProxyLink) {
+        return sendWebResponse(event, await proxyLinkRequest(event, finalTargetUrl, {
+          method: formConfirmed ? 'GET' : event.method,
+          privateCache: redirectNoStore || !!(
+            link.password || link.unsafe || needTurnstile || link.burnAfterRead || link.maxClicks
+            || link.countryAllow?.length || link.countryBlock?.length || link.ab?.length
+            || (link.geo && Object.keys(link.geo).length)
+          ),
+        }))
       }
 
       if (link.cloaking) {

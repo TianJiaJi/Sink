@@ -47,12 +47,12 @@ const TagsSchema = z.preprocess((value) => {
 export const LinkPasswordSchema = z.string().trim().min(1).max(128).refine(
   password => !password.startsWith(LINK_PASSWORD_MASK_PREFIX),
   'masked password cannot be submitted',
-)
+).describe('Password protection for the link.')
 
 export const EditLinkPasswordSchema = z.string().trim().max(128).refine(
   password => !password.startsWith(LINK_PASSWORD_MASK_PREFIX),
   'masked password cannot be submitted',
-).optional()
+).optional().describe('Password protection for the link. An empty string clears it; omitting keeps the stored one.')
 
 const IdSchema = z.string().trim().min(1).max(26)
 export const UrlSchema = z.string()
@@ -78,29 +78,31 @@ const ExpirationSchema = TimestampSchema.refine(expiration => expiration > Math.
 
 const AbRouteSchema = z.object({ url: UrlSchema, weight: z.number().int().min(1) })
 
-const LinkFieldsSchema = z.object({
-  url: UrlSchema,
-  slug: SlugSchema,
-  comment: z.string().trim().max(2048).optional(),
-  expiration: ExpirationSchema.optional(),
-  title: z.string().trim().max(256).optional(),
-  description: z.string().trim().max(2048).optional(),
-  image: z.string().trim().max(128).optional(),
-  apple: z.string().trim().url().max(MAX_URL_LENGTH).optional(),
-  google: z.string().trim().url().max(MAX_URL_LENGTH).optional(),
-  cloaking: z.boolean().optional(),
-  redirectWithQuery: z.boolean().optional(),
+/** Writable link fields shared by REST and MCP; stored and legacy contracts remain separate. */
+export const LinkFieldsSchema = z.object({
+  url: UrlSchema.describe('The target URL.'),
+  slug: SlugSchema.describe('The slug identifying the short link.'),
+  comment: z.string().trim().max(2048).optional().describe('Optional internal note.'),
+  expiration: ExpirationSchema.optional().describe('Unix seconds. Must be in the future.'),
+  title: z.string().trim().max(256).optional().describe('Overrides the title in the link preview.'),
+  description: z.string().trim().max(2048).optional().describe('Overrides the description in the link preview.'),
+  image: z.string().trim().max(128).optional().describe('Overrides the image in the link preview.'),
+  apple: z.string().trim().url().max(MAX_URL_LENGTH).optional().describe('Apple App Store redirect URL.'),
+  google: z.string().trim().url().max(MAX_URL_LENGTH).optional().describe('Google Play Store redirect URL.'),
+  cloaking: z.boolean().optional().describe('Mask the destination URL behind the short link.'),
+  redirectWithQuery: z.boolean().optional().describe('Append incoming query parameters to the destination URL.'),
+  proxy: z.boolean().optional().describe('Reverse-proxy the destination instead of redirecting.'),
   password: LinkPasswordSchema.optional(),
-  unsafe: z.boolean().optional(),
-  turnstile: z.boolean().optional(),
-  disabled: z.boolean().optional(),
-  burnAfterRead: z.boolean().optional(),
-  countryBlock: z.array(z.string().regex(/^[A-Z]{2}$/)).optional(),
-  countryAllow: z.array(z.string().regex(/^[A-Z]{2}$/)).optional(),
-  ab: z.array(AbRouteSchema).optional(),
-  maxClicks: z.number().int().positive().optional(),
-  geo: GeoSchema.optional(),
-  tags: TagsSchema,
+  unsafe: z.boolean().optional().describe('Show a warning page before redirecting.'),
+  turnstile: z.boolean().optional().describe('Require Turnstile verification before resolving the link.'),
+  disabled: z.boolean().optional().describe('Disable public resolution without deleting the link.'),
+  burnAfterRead: z.boolean().optional().describe('Delete the link after its first allowed visit.'),
+  countryBlock: z.array(z.string().regex(/^[A-Z]{2}$/)).optional().describe('Countries that cannot resolve the link.'),
+  countryAllow: z.array(z.string().regex(/^[A-Z]{2}$/)).optional().describe('Countries allowed to resolve the link.'),
+  ab: z.array(AbRouteSchema).optional().describe('Weighted destination variants for A/B routing.'),
+  maxClicks: z.number().int().positive().optional().describe('Maximum number of allowed visits.'),
+  geo: GeoSchema.optional().describe('Geo-routing rules mapping a two-letter country code to a URL.'),
+  tags: TagsSchema.describe('Up to 10 normalized link tags, each 1-32 characters.'),
 })
 
 export const CreateLinkSchema = LinkFieldsSchema.extend({
@@ -136,6 +138,48 @@ export const StoredLinkSchema = LinkFieldsSchema.extend({
   updatedAt: TimestampSchema,
   expiration: TimestampSchema.optional(),
   clickCount: z.number().int().min(0).optional(),
+})
+
+const LinkKeywordSchema = z.string().trim().refine(
+  value => new TextEncoder().encode(value.toLowerCase().replace(/[!%_]/g, '!$&')).length <= 48,
+  { message: 'Search query must not exceed 48 UTF-8 bytes' },
+).describe('Case-insensitive substring matched against slug, URL, comment, or tag. Limited to 48 UTF-8 bytes.')
+
+const LinkTagFilterSchema = z.string().trim().toLowerCase().min(1).max(32).describe('Exact tag match, normalized to lowercase.')
+const LinkStatusFilterSchema = z.enum(['active', 'expired', 'all']).default('active')
+const LinkQueryLimitSchema = z.coerce.number().int().min(1).max(1000).default(20).describe('Maximum number of results, 1-1000.')
+
+/** Read contracts shared by the REST link routes and the MCP link tools. */
+export const LinkFilterQuerySchema = z.object({
+  q: LinkKeywordSchema.optional(),
+  url: z.string().trim().url().max(MAX_URL_LENGTH).optional().describe('Target URL matched exactly.'),
+  tag: LinkTagFilterSchema.optional(),
+  status: LinkStatusFilterSchema,
+})
+
+export const SearchLinksQuerySchema = LinkFilterQuerySchema.extend({
+  limit: LinkQueryLimitSchema,
+})
+
+/** POST /api/link/search body: an exact URL match kept out of the query string. */
+export const ExactUrlSearchSchema = SearchLinksQuerySchema
+  .pick({ url: true, limit: true })
+  .extend({ url: UrlSchema.describe('Normalized target URL to match exactly.') })
+
+export const ListLinksQuerySchema = z.object({
+  limit: LinkQueryLimitSchema,
+  cursor: z.string().trim().max(1024).optional().describe('Pagination cursor returned by a previous call.'),
+  sort: z.enum(['az', 'za', 'newest', 'oldest']).default('newest'),
+  tag: LinkTagFilterSchema.optional(),
+  status: LinkStatusFilterSchema,
+})
+
+export const LinkSlugQuerySchema = z.object({
+  slug: z.string().trim().min(1).max(2048),
+})
+
+export const DeleteLinkSchema = z.object({
+  slug: SlugSchema.min(1),
 })
 
 export function parseLegacyKvLink(value: unknown, slug: string) {

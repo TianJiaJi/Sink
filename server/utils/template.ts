@@ -164,18 +164,24 @@ export function generateTurnstileGateHtml(slug: string, sitekey: string, locale:
 interface UnsafeWarningHtmlOptions {
   password?: string
   locale?: RedirectLocale
+  requireTurnstile?: boolean
+  sitekey?: string
 }
 
 export function generateUnsafeWarningHtml(slug: string, targetUrl: string, options: UnsafeWarningHtmlOptions = {}): string {
-  const { password, locale = 'en-US' } = options
+  const { password, locale = 'en-US', requireTurnstile = false, sitekey = '' } = options
   const t = REDIRECT_TRANSLATIONS[locale]
+  const withTurnstile = requireTurnstile && !!sitekey
+  const turnstileScript = withTurnstile
+    ? '\n    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>\n    <script>function onTurnstileOk(){var b=document.getElementById("unsafe-submit-btn");if(b)b.disabled=false;}</script>'
+    : ''
   return `<!DOCTYPE html>
 <html lang="${escape(locale)}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="robots" content="noindex">
-    <title>${escape(t.unsafeTitle)}</title>
+    <title>${escape(t.unsafeTitle)}</title>${turnstileScript}
     <style>${REDIRECT_BASE_CSS}
       .card{max-width:420px}
       h1{color:#ef4444;margin-bottom:.75rem}
@@ -183,6 +189,7 @@ export function generateUnsafeWarningHtml(slug: string, targetUrl: string, optio
       .url{font-size:.8125rem;color:#a1a1aa;background:#09090b;border:1px solid #27272a;border-radius:8px;padding:.5rem .75rem;word-break:break-all;margin-bottom:1.5rem;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
       .actions{display:flex;gap:.75rem}
       .actions .btn{flex:1}
+      .cf-turnstile{margin-bottom:1.25rem;display:flex;justify-content:center}
     </style>
 </head>
 <body>
@@ -191,13 +198,13 @@ export function generateUnsafeWarningHtml(slug: string, targetUrl: string, optio
         <h1>${escape(t.unsafeTitle)}</h1>
         <p class="desc">${escape(t.unsafeDesc)}</p>
         <div class="url">${escape(targetUrl)}</div>
-        <div class="actions">
-            <a href="javascript:history.back()" class="btn btn-ghost">${escape(t.goBack)}</a>
-            <form method="POST" action="/${escape(slug)}" style="flex:1;display:flex">
-                <input type="hidden" name="confirm" value="true">${password ? `\n                <input type="hidden" name="password" value="${escape(password)}">` : ''}
-                <button type="submit" class="btn btn-primary" style="width:100%">${escape(t.continue)}</button>
-            </form>
-        </div>
+        <form method="POST" action="/${escape(slug)}">
+            <input type="hidden" name="confirm" value="true">${password ? `\n            <input type="hidden" name="password" value="${escape(password)}">` : ''}${withTurnstile ? `\n            <div class="cf-turnstile" data-sitekey="${escape(sitekey)}" data-language="${escape(redirectLocaleToTurnstileLang(locale))}" data-action="turnstile-spin-v2" data-callback="onTurnstileOk"></div>` : ''}
+            <div class="actions">
+                <a href="javascript:history.back()" class="btn btn-ghost">${escape(t.goBack)}</a>
+                <button type="submit" id="unsafe-submit-btn" class="btn btn-primary"${withTurnstile ? ' disabled' : ''}>${escape(t.continue)}</button>
+            </div>
+        </form>
     </div>
 </body>
 </html>`

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { deleteStoredLinks, fetchWithAuth, postJson, setLinkStoreD1Mode } from '../utils'
+import { deleteStoredLinks, fetchWithAuth, getD1Link, postJson, setLinkStoreD1Mode } from '../utils'
 
 const createdSlugs = new Set<string>()
 
@@ -102,6 +102,32 @@ describe('/api/link/batch', { concurrent: false, timeout: 60_000 }, () => {
     expect(link.tags).toContain('existing')
     expect(link.tags).toContain('new-tag')
     expect(link.tags).toContain('another')
+  })
+
+  it('bumps the metadata version without losing proxy settings', async () => {
+    const slug = trackSlug(`batch-version-${crypto.randomUUID()}`)
+    await createLink(slug, 'https://example.com', { proxy: true, maxClicks: 5 })
+    const before = await getD1Link(slug)
+    const response = await postJson('/api/link/batch', { action: 'disable', slugs: [slug] })
+    expect(await response.json()).toMatchObject({ results: [{ slug, ok: true }] })
+    const after = await getD1Link(slug)
+    expect(after).toMatchObject({ disabled: true, proxy: true, maxClicks: 5 })
+    expect(after?.updatedAt).toBeGreaterThan(before!.updatedAt)
+  })
+
+  it('normalizes added tags and rejects a union exceeding the shared tag contract', async () => {
+    const slug = trackSlug(`batch-normalize-${crypto.randomUUID()}`)
+    await createLink(slug, 'https://example.com', { tags: ['existing'] })
+    const added = await postJson('/api/link/batch', { action: 'addTags', slugs: [slug], tags: [' New ', 'NEW'] })
+    expect(await added.json()).toMatchObject({ results: [{ slug, ok: true }] })
+    expect(await (await fetchWithAuth(`/api/link/query?slug=${slug}`)).json()).toMatchObject({ tags: ['existing', 'new'] })
+
+    const fullSlug = trackSlug(`batch-full-${crypto.randomUUID()}`)
+    const tags = Array.from({ length: 10 }, (_, index) => `tag-${index}`)
+    await createLink(fullSlug, 'https://example.com', { tags })
+    const rejected = await postJson('/api/link/batch', { action: 'addTags', slugs: [fullSlug], tags: ['overflow'] })
+    expect(await rejected.json()).toMatchObject({ results: [{ slug: fullSlug, ok: false }] })
+    expect(await (await fetchWithAuth(`/api/link/query?slug=${fullSlug}`)).json()).toMatchObject({ tags })
   })
 
   it('returns per-slug errors for non-existent links', async () => {

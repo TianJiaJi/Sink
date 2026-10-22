@@ -78,6 +78,12 @@ On Workers, set the same value in Builds and runtime. On Pages, set once, then r
 | `NUXT_PUBLIC_KV_BATCH_LIMIT`      | `50`    | Export page size; import accepts at most half per request |
 | `NUXT_PUBLIC_MAX_URL_LENGTH`      | `16384` | Maximum target URL length in characters (256-24000)       |
 
+### Reverse proxy delivery
+
+`NUXT_PUBLIC_LINK_PROXY_ENABLED` defaults to `false`. After applying the additive database migration, enabling the flag allows individual links to opt into proxy delivery. Stored proxy links fall back to normal redirects while the flag is off. Use only fully trusted destinations: proxied content executes in the Sink origin.
+
+This setting does not restore Workers AI, which remains disabled in this fork. Keep build and runtime public settings aligned and rebuild when changing them. Do not publish the proxy-aware server before the database migration has been applied, even when proxy delivery is disabled.
+
 ### Target URL length
 
 `NUXT_PUBLIC_MAX_URL_LENGTH` defaults to `16384` and accepts integers from `256` through `24000`. Set the same value in build and runtime environments, then rebuild. The write limit applies to target, mobile, geo-routing, and A/B variant URLs submitted through create, edit, or import.

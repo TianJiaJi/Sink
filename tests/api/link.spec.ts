@@ -1,10 +1,12 @@
 import { env } from 'cloudflare:workers'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { deleteStoredLinks, expectMaskedPassword, expectStoredHashedPassword, fetch, fetchWithAuth, getStoredLink, postJson, putJson, setLinkStoreD1Mode } from '../utils'
+import { links } from '../../server/database/schema'
+import { db, deleteStoredLinks, expectMaskedPassword, expectStoredHashedPassword, fetch, fetchWithAuth, getStoredLink, postJson, putJson, setLinkStoreD1Mode } from '../utils'
 
 const createdSlugs = new Set<string>()
 
 beforeEach(async () => {
+  env.NUXT_PUBLIC_LINK_PROXY_ENABLED = 'false'
   await setLinkStoreD1Mode()
 })
 
@@ -458,27 +460,32 @@ describe('/api/link/edit', { concurrent: false }, () => {
     const payload = createLinkPayload()
     expect((await postJson('/api/link/create', payload)).status).toBe(201)
 
+    // Proxy is a stored field; the instance flag only governs request-time
+    // delivery, so writing it does not require the flag.
     const setResponse = await putJson('/api/link/edit', {
       ...payload,
       comment: 'test comment',
       title: 'test title',
       cloaking: true,
       redirectWithQuery: true,
+      proxy: true,
     })
     expect(setResponse.status).toBe(201)
-    const setData = await setResponse.json() as { link: { comment?: string, title?: string, cloaking?: boolean, redirectWithQuery?: boolean } }
+    const setData = await setResponse.json() as { link: { comment?: string, title?: string, cloaking?: boolean, redirectWithQuery?: boolean, proxy?: boolean } }
     expect(setData.link.comment).toBe('test comment')
     expect(setData.link.title).toBe('test title')
     expect(setData.link.cloaking).toBe(true)
     expect(setData.link.redirectWithQuery).toBe(true)
+    expect(setData.link.proxy).toBe(true)
 
     const removeResponse = await putJson('/api/link/edit', payload)
     expect(removeResponse.status).toBe(201)
-    const removeData = await removeResponse.json() as { link: { comment?: string, title?: string, cloaking?: boolean, redirectWithQuery?: boolean } }
+    const removeData = await removeResponse.json() as { link: { comment?: string, title?: string, cloaking?: boolean, redirectWithQuery?: boolean, proxy?: boolean } }
     expect(removeData.link.comment).toBeUndefined()
     expect(removeData.link.title).toBeUndefined()
     expect(removeData.link.cloaking).toBeUndefined()
     expect(removeData.link.redirectWithQuery).toBeUndefined()
+    expect(removeData.link.proxy).toBeUndefined()
   })
 
   it('removes geo when not provided in edit', async () => {
@@ -563,5 +570,45 @@ describe('/api/link/delete', { concurrent: false }, () => {
   it('returns 400 when slug is empty', async () => {
     const response = await postJson('/api/link/delete', { slug: '' })
     expect(response.status).toBe(400)
+  })
+})
+
+describe('link proxy field persistence', { concurrent: false }, () => {
+  // The instance flag only governs request-time delivery; writes always store
+  // the `proxy` field.
+  it('lets edits keep or clear a stored proxy flag while the flag is off', async () => {
+    const slug = trackSlug(`legacy-proxy-${crypto.randomUUID()}`)
+    const id = `legacy-${crypto.randomUUID().slice(0, 8)}`
+    const now = Math.floor(Date.now() / 1000)
+    await db.insert(links).values({
+      slug,
+      id,
+      url: 'https://example.com/legacy',
+      createdAt: now,
+      updatedAt: now,
+      proxy: true,
+      normalizedUrl: 'https://example.com/legacy',
+    })
+    await env.KV.put(`link:${slug}`, JSON.stringify({ slug, id, url: 'https://example.com/legacy', createdAt: now, updatedAt: now, proxy: true, tags: [] }))
+
+    const keepResponse = await putJson('/api/link/edit', {
+      url: 'https://example.com/legacy',
+      slug,
+      proxy: true,
+      comment: 'kept proxy flag',
+    })
+    expect(keepResponse.status).toBe(201)
+    const keepData = await keepResponse.json() as { link: { proxy?: boolean, comment?: string } }
+    expect(keepData.link.proxy).toBe(true)
+    expect(keepData.link.comment).toBe('kept proxy flag')
+
+    const clearResponse = await putJson('/api/link/edit', {
+      url: 'https://example.com/legacy',
+      slug,
+      proxy: false,
+    })
+    expect(clearResponse.status).toBe(201)
+    const clearData = await clearResponse.json() as { link: { proxy?: boolean } }
+    expect(clearData.link.proxy).toBe(false)
   })
 })
