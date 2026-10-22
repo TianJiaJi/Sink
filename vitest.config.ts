@@ -84,6 +84,7 @@ export default defineConfig(async ({ mode }) => ({
       // Vue-dependent unit tests: cannot run inside the Cloudflare Workers pool
       // (Workers runtime has no `vue` package). Need a separate vitest node-pool
       // config (workspace) to re-enable.
+      // Run this composable separately with vitest.node.config.ts.
       'tests/unit/dashboard-links-search-store.spec.ts',
       'tests/unit/realtime-logs.spec.ts',
       'tests/unit/use-link-check.spec.ts',

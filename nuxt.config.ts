@@ -51,6 +51,7 @@ export default defineNuxtConfig({
       kvBatchLimit: '50',
       homeURL: process.env.NUXT_HOME_URL || '',
       turnstileSitekey: '',
+      maxUrlLength: '16384',
     },
   },
   routeRules: {

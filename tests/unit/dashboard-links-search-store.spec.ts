@@ -1,4 +1,4 @@
-import { createPinia, defineStore, setActivePinia } from 'pinia'
+import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import { useDashboardLinksSearchStore } from '../../app/composables/useDashboardLinksSearchStore'
@@ -7,7 +7,6 @@ const { useAPIMock } = vi.hoisted(() => ({
   useAPIMock: vi.fn(async () => []),
 }))
 
-vi.mock('#imports', () => ({ defineStore }))
 vi.mock('@/utils/api', () => ({ useAPI: useAPIMock }))
 
 describe('dashboard links search store', () => {
@@ -58,6 +57,30 @@ describe('dashboard links search store', () => {
 
     expect(useAPIMock).not.toHaveBeenCalled()
     expect(store.requestStatus).toBe('idle')
+  })
+
+  it('checks exact URL duplicates in a request body', async () => {
+    const store = useDashboardLinksSearchStore()
+
+    await store.findDuplicateLink('https://example.com/path?ignored=1')
+
+    expect(useAPIMock).toHaveBeenLastCalledWith('/api/link/search', {
+      method: 'POST',
+      body: {
+        url: 'https://example.com/path',
+        limit: 20,
+      },
+    })
+  })
+
+  it('keeps a long target path in the POST body, not the request URL', async () => {
+    const store = useDashboardLinksSearchStore()
+    const url = `https://example.com/${'a'.repeat(9_000)}`
+    await store.findDuplicateLink(`${url}?ignored=1`)
+    expect(useAPIMock).toHaveBeenLastCalledWith('/api/link/search', {
+      method: 'POST',
+      body: { url, limit: 20 },
+    })
   })
 
   it('distinguishes idle, loading, successful empty, and error states', async () => {

@@ -76,6 +76,15 @@ On Workers, set the same value in Builds and runtime. On Pages, set once, then r
 | `NUXT_PUBLIC_PREVIEW_MODE`        | empty   | `true` = demo mode (links last 5 minutes)                 |
 | `NUXT_PUBLIC_SLUG_DEFAULT_LENGTH` | `6`     | Length of auto-generated short codes                      |
 | `NUXT_PUBLIC_KV_BATCH_LIMIT`      | `50`    | Export page size; import accepts at most half per request |
+| `NUXT_PUBLIC_MAX_URL_LENGTH`      | `16384` | Maximum target URL length in characters (256-24000)       |
+
+### Target URL length
+
+`NUXT_PUBLIC_MAX_URL_LENGTH` defaults to `16384` and accepts integers from `256` through `24000`. Set the same value in build and runtime environments, then rebuild. The write limit applies to target, mobile, geo-routing, and A/B variant URLs submitted through create, edit, or import.
+
+Stored and legacy-KV records retain a fixed 24000-character read ceiling, so lowering the write setting does not invalidate existing records. Editing or re-importing those records still requires their submitted URLs to satisfy the current write limit.
+
+Exact duplicate checks use a POST request body instead of putting the target URL in the request URL. Platform byte-size and response-header limits still apply; the configurable character limit does not remove those transport limits.
 
 ### Deployment configuration ownership
 

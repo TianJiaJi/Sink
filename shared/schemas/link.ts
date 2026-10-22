@@ -8,17 +8,35 @@ const { slugRegex, reserveSlug } = useAppConfig()
 const reservedSlugs = new Set((reserveSlug as string[]).map(slug => slug.toLowerCase()))
 
 const slugDefaultLength = +useRuntimeConfig().public.slugDefaultLength
+const configuredMaxUrlLength = Number(useRuntimeConfig().public.maxUrlLength)
+const MIN_CONFIGURED_URL_LENGTH = 256
+// Leaves room under Cloudflare's 128 KB response-header limit after URL encoding.
+const MAX_CONFIGURED_URL_LENGTH = 24_000
+
+if (!Number.isSafeInteger(configuredMaxUrlLength)
+  || configuredMaxUrlLength < MIN_CONFIGURED_URL_LENGTH
+  || configuredMaxUrlLength > MAX_CONFIGURED_URL_LENGTH) {
+  throw new Error(
+    `NUXT_PUBLIC_MAX_URL_LENGTH must be an integer between ${MIN_CONFIGURED_URL_LENGTH} and ${MAX_CONFIGURED_URL_LENGTH}`,
+  )
+}
+
+export const MAX_URL_LENGTH = configuredMaxUrlLength
 
 export const nanoid = (length: number = slugDefaultLength) => customAlphabet('23456789abcdefghjkmnpqrstuvwxyz', length)
 
-const GeoSchema = z.preprocess((value) => {
-  if (!value || typeof value !== 'object' || Array.isArray(value))
-    return value
+function createGeoSchema(maxUrlLength: number) {
+  return z.preprocess((value) => {
+    if (!value || typeof value !== 'object' || Array.isArray(value))
+      return value
 
-  return Object.fromEntries(
-    Object.entries(value as Record<string, unknown>).map(([key, url]) => [key.trim().toUpperCase(), url]),
-  )
-}, z.record(z.string().trim().regex(/^[A-Z]{2}$/), z.string().trim().url().max(2048)))
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, url]) => [key.trim().toUpperCase(), url]),
+    )
+  }, z.record(z.string().trim().regex(/^[A-Z]{2}$/), z.string().trim().url().max(maxUrlLength)))
+}
+
+const GeoSchema = createGeoSchema(MAX_URL_LENGTH)
 
 const TagsSchema = z.preprocess((value) => {
   if (!Array.isArray(value))
@@ -37,7 +55,11 @@ export const EditLinkPasswordSchema = z.string().trim().max(128).refine(
 ).optional()
 
 const IdSchema = z.string().trim().min(1).max(26)
-export const UrlSchema = z.string().trim().url().max(2048)
+export const UrlSchema = z.string()
+  .trim()
+  .min(1, 'URL is required')
+  .max(MAX_URL_LENGTH, `URL must not exceed ${MAX_URL_LENGTH} characters`)
+  .url('URL format is invalid')
 export const SlugSchema = z.string().trim().max(2048).regex(new RegExp(slugRegex))
 // `server/middleware/1.redirect.ts` skips reserved slugs before it looks a link up, so a
 // link written to one never redirects. Reject them where new links come in, and compare
@@ -54,6 +76,8 @@ const ExpirationSchema = TimestampSchema.refine(expiration => expiration > Math.
   path: ['expiration'],
 })
 
+const AbRouteSchema = z.object({ url: UrlSchema, weight: z.number().int().min(1) })
+
 const LinkFieldsSchema = z.object({
   url: UrlSchema,
   slug: SlugSchema,
@@ -62,8 +86,8 @@ const LinkFieldsSchema = z.object({
   title: z.string().trim().max(256).optional(),
   description: z.string().trim().max(2048).optional(),
   image: z.string().trim().max(128).optional(),
-  apple: z.string().trim().url().max(2048).optional(),
-  google: z.string().trim().url().max(2048).optional(),
+  apple: z.string().trim().url().max(MAX_URL_LENGTH).optional(),
+  google: z.string().trim().url().max(MAX_URL_LENGTH).optional(),
   cloaking: z.boolean().optional(),
   redirectWithQuery: z.boolean().optional(),
   password: LinkPasswordSchema.optional(),
@@ -73,7 +97,7 @@ const LinkFieldsSchema = z.object({
   burnAfterRead: z.boolean().optional(),
   countryBlock: z.array(z.string().regex(/^[A-Z]{2}$/)).optional(),
   countryAllow: z.array(z.string().regex(/^[A-Z]{2}$/)).optional(),
-  ab: z.array(z.object({ url: UrlSchema, weight: z.number().int().min(1) })).optional(),
+  ab: z.array(AbRouteSchema).optional(),
   maxClicks: z.number().int().positive().optional(),
   geo: GeoSchema.optional(),
   tags: TagsSchema,
@@ -98,7 +122,15 @@ export const ImportLinkSchema = LinkFieldsSchema.extend({
   expiration: TimestampSchema.optional(),
 })
 
+// Lowering the write limit must not make previously valid stored or legacy-KV links unreadable.
+const StoredUrlSchema = z.string().trim().url().max(MAX_CONFIGURED_URL_LENGTH)
+
 export const StoredLinkSchema = LinkFieldsSchema.extend({
+  url: StoredUrlSchema,
+  apple: StoredUrlSchema.optional(),
+  google: StoredUrlSchema.optional(),
+  geo: createGeoSchema(MAX_CONFIGURED_URL_LENGTH).optional(),
+  ab: z.array(AbRouteSchema.extend({ url: StoredUrlSchema })).optional(),
   id: IdSchema,
   createdAt: TimestampSchema,
   updatedAt: TimestampSchema,
