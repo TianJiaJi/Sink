@@ -12,6 +12,16 @@
     "nodejs_compat"
   ],
   "keep_vars": true,
+  "workers_dev": true,
+  "preview_urls": true,
+  "routes": [
+    {
+      "pattern": "url.846605.xyz",
+      "custom_domain": true,
+      "enabled": true,
+      "previews_enabled": false
+    }
+  ],
   "upload_source_maps": true,
   "observability": {
     "logs": {
@@ -21,10 +31,8 @@
       "enabled": true
     }
   },
-  "ai": {
-    "binding": "AI",
-    "remote": true
-  },
+  // Workers AI is currently disabled to match production. Re-enable only after
+  // the account-level AI authentication and binding-generation errors are resolved.
   // Values marked with DEPLOY_* below are placeholders for local/dev.
   // CLI deploy (pnpm deploy:worker / deploy:config) rewrites them into gitignored wrangler.deploy.jsonc.
   // Prefer setting DEPLOY_* in .env or Workers Builds / Pages variables — do not hardcode production IDs here.

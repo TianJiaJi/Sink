@@ -25,10 +25,31 @@ afterEach(async () => {
   createdSlugs.clear()
 })
 
+function mockUnavailableAi() {
+  const original = env.AI
+  const run = vi.fn().mockRejectedValue(new Error('Workers AI unavailable'))
+  const toMarkdown = vi.fn().mockRejectedValue(new Error('Markdown conversion unavailable'))
+  env.AI = { run, toMarkdown } as unknown as Ai
+  return {
+    run,
+    restore() {
+      if (original)
+        env.AI = original
+      else
+        delete env.AI
+    },
+  }
+}
+
 describe('/api/link/ai', () => {
+  it('returns 501 when the AI binding is absent', async () => {
+    expect(env.AI).toBeUndefined()
+    const response = await fetchWithAuth(`/api/link/ai?url=${encodeURIComponent('https://example.com')}`)
+    expect(response.status).toBe(501)
+  })
+
   it('returns a fallback slug when Workers AI fails', async () => {
-    const runSpy = vi.spyOn(env.AI, 'run').mockRejectedValue(new Error('Workers AI unavailable'))
-    const toMarkdownSpy = vi.spyOn(env.AI, 'toMarkdown').mockRejectedValue(new Error('Markdown conversion unavailable'))
+    const ai = mockUnavailableAi()
 
     try {
       const response = await fetchWithAuth(`/api/link/ai?url=${encodeURIComponent('https://example.com/fallback-slug')}`)
@@ -37,11 +58,10 @@ describe('/api/link/ai', () => {
       const data = await response.json() as { slug: string }
       expect(data.slug).toBe('fallback-slug')
       expect(data.slug).not.toBe('')
-      expect(runSpy).toHaveBeenCalledOnce()
+      expect(ai.run).toHaveBeenCalledOnce()
     }
     finally {
-      runSpy.mockRestore()
-      toMarkdownSpy.mockRestore()
+      ai.restore()
     }
   })
 
@@ -57,9 +77,14 @@ describe('/api/link/ai', () => {
 })
 
 describe('/api/link/og-ai', () => {
+  it('returns 501 when the AI binding is absent', async () => {
+    expect(env.AI).toBeUndefined()
+    const response = await fetchWithAuth(`/api/link/og-ai?url=${encodeURIComponent('https://example.com')}`)
+    expect(response.status).toBe(501)
+  })
+
   it('returns fallback metadata when Workers AI fails', async () => {
-    const runSpy = vi.spyOn(env.AI, 'run').mockRejectedValue(new Error('Workers AI unavailable'))
-    const toMarkdownSpy = vi.spyOn(env.AI, 'toMarkdown').mockRejectedValue(new Error('Markdown conversion unavailable'))
+    const ai = mockUnavailableAi()
 
     try {
       const response = await fetchWithAuth(`/api/link/og-ai?url=${encodeURIComponent('https://example.com/fallback-metadata')}`)
@@ -68,11 +93,10 @@ describe('/api/link/og-ai', () => {
       const data = await response.json() as { title: string, description: string }
       expect(data.title).toBe('example.com')
       expect(data.description).not.toBe('')
-      expect(runSpy).toHaveBeenCalledOnce()
+      expect(ai.run).toHaveBeenCalledOnce()
     }
     finally {
-      runSpy.mockRestore()
-      toMarkdownSpy.mockRestore()
+      ai.restore()
     }
   })
 

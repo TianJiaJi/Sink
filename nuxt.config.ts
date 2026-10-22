@@ -86,6 +86,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-07-13',
   nitro: {
     preset: import.meta.env.CF_PAGES !== '1' ? 'cloudflare-module' : undefined,
+    cloudflare: {
+      // Generate the same deployment config locally and in Workers Builds.
+      deployConfig: true,
+    },
     experimental: {
       openAPI: true,
     },

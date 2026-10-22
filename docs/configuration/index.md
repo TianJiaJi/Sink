@@ -77,6 +77,12 @@ On Workers, set the same value in Builds and runtime. On Pages, set once, then r
 | `NUXT_PUBLIC_SLUG_DEFAULT_LENGTH` | `6`     | Length of auto-generated short codes                      |
 | `NUXT_PUBLIC_KV_BATCH_LIMIT`      | `50`    | Export page size; import accepts at most half per request |
 
+### Deployment configuration ownership
+
+Wrangler bindings and custom domains are controlled by the repository configuration. A dashboard-only binding removal can be undone by the next deployment if the binding is still declared in `wrangler.jsonc`. Keep these declarations aligned with production. `keep_vars: true` preserves dashboard-managed variables; store credentials as encrypted Secrets rather than plaintext variables.
+
+This fork currently omits the optional Workers AI binding because the production account rejects AI binding creation. AI endpoints return HTTP 501 while the binding is absent; ordinary link management does not require it. Restore the binding only after the account-level AI issue is resolved, regenerate Worker types, and validate the deployment configuration before publishing.
+
 ### Homepage redirect
 
 Set `NUXT_PUBLIC_HOME_URL` to redirect both full-page requests and in-app navigation to `/`. Set it in both build and runtime environments, then rebuild. An empty value shows the Sink homepage.
