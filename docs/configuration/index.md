@@ -77,6 +77,12 @@ On Workers, set the same value in Builds and runtime. On Pages, set once, then r
 | `NUXT_PUBLIC_SLUG_DEFAULT_LENGTH` | `6`     | Length of auto-generated short codes                      |
 | `NUXT_PUBLIC_KV_BATCH_LIMIT`      | `50`    | Export page size; import accepts at most half per request |
 
+### Homepage redirect
+
+Set `NUXT_PUBLIC_HOME_URL` to redirect both full-page requests and in-app navigation to `/`. Set it in both build and runtime environments, then rebuild. An empty value shows the Sink homepage.
+
+`NUXT_HOME_URL` remains a deprecated fallback for server-side redirects. Its build-time value also initializes the public setting, but changing only the legacy runtime variable does not update the built SPA. An explicit non-empty `NUXT_PUBLIC_HOME_URL` takes precedence.
+
 ## Optional
 
 ### Build-time options
@@ -92,7 +98,7 @@ On Workers, set the same value in Builds and runtime. On Pages, set once, then r
 
 | Variable                                            | Purpose                                                                  |
 | --------------------------------------------------- | ------------------------------------------------------------------------ |
-| `NUXT_HOME_URL`                                     | Non-empty URL redirects `/`; empty shows the Sink homepage               |
+| `NUXT_HOME_URL`                                     | Deprecated server-side fallback; prefer `NUXT_PUBLIC_HOME_URL`           |
 | `NUXT_NOT_FOUND_REDIRECT`                           | Where to send unknown short codes (**always HTTP 302**)                  |
 | `NUXT_CF_ACCESS_TEAM_DOMAIN` + `NUXT_CF_ACCESS_AUD` | Both set → enable [Cloudflare Access](./cloudflare-access)               |
 | `NUXT_SAFE_BROWSING_DOH`                            | DNS-over-HTTPS URL used to check unsafe domains when `unsafe` is not set |

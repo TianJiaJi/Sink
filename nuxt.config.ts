@@ -26,6 +26,7 @@ export default defineNuxtConfig({
     linkCacheTtl: 60,
     redirectWithQuery: false,
     redirectNoStore: false,
+    // Deprecated runtime alias for deployments using NUXT_HOME_URL.
     homeURL: '',
     cfAccountId: '',
     cfApiToken: '',
@@ -48,6 +49,7 @@ export default defineNuxtConfig({
       previewMode: '',
       slugDefaultLength: '6',
       kvBatchLimit: '50',
+      homeURL: process.env.NUXT_HOME_URL || '',
       turnstileSitekey: '',
     },
   },
